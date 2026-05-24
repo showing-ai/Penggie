@@ -9,7 +9,7 @@
 
 - [x] 2.1 Implement the v0.1 session state model for idle, checking Codex, launching, running, failed, exited, and closed.
 - [x] 2.2 Implement Codex availability checking through the user's login shell/PATH.
-- [ ] 2.3 Integrate the real Ghostty substrate path required for PTY text/key send, screen text read, screen model JSON read, and raw surface hosting.
+- [x] 2.3 Integrate the real Ghostty substrate path required for PTY text/key send, screen text read, screen model JSON read, and raw surface hosting.
 - [x] 2.4 Launch a single real Codex CLI process in a Ghostty-backed PTY.
 - [x] 2.5 Implement `Close Session` to end the active session and return to the start screen.
 - [x] 2.6 Implement `New Chat` to restart a fresh Codex session in the same window.
@@ -27,7 +27,7 @@
 - [x] 4.1 Migrate and rename first-character native trigger rules for `/` and Codex-allowed `$` behavior.
 - [x] 4.2 Migrate native interaction phase, timing, focus recovery, and key capture behavior.
 - [x] 4.3 Migrate Ghostty screen model JSON parsing and native overlay row extraction.
-- [ ] 4.4 Render native slash suggestions as a GUI projection of the real Codex terminal screen model.
+- [x] 4.4 Render native slash suggestions as a GUI projection of the real Codex terminal screen model.
 - [x] 4.5 Ensure `/m`, `/model`, arrow keys, Enter, Esc, and Backspace route through the PTY and do not use local command/model state.
 
 ## 5. Raw Terminal Fallback

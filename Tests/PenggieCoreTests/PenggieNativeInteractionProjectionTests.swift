@@ -53,6 +53,30 @@ struct PenggieNativeInteractionProjectionTests {
     }
 
     @Test
+    func extractsFilteredSuggestionsFromUnstyledScreenModel() {
+        let snapshot = PenggieTerminalScreenSnapshot(
+            columns: 80,
+            rows: 24,
+            cursor: .init(x: 4, y: 8, visible: true),
+            lines: [
+                .init(index: 8, text: "› /m", selected: false),
+                .init(index: 9, text: "", selected: false),
+                .init(index: 10, text: "  /model     choose model", selected: false),
+                .init(index: 11, text: "  /memories  configure memories", selected: false),
+                .init(index: 12, text: "  /quit      exit", selected: false)
+            ]
+        )
+
+        let rows = PenggieNativeInteractionProjection.rows(from: snapshot, currentInput: "/m")
+
+        #expect(rows.map(\.text) == [
+            "/model     choose model",
+            "/memories  configure memories"
+        ])
+        #expect(rows.allSatisfy { !$0.isSelected })
+    }
+
+    @Test
     func extractsContinuationMenuAroundSelectedModel() {
         let headingStyle = style(text: "Select Model and Effort", bold: 23)
         let snapshot = PenggieTerminalScreenSnapshot(

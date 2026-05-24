@@ -188,6 +188,17 @@ final class PenggieGhosttySession: ObservableObject {
         return String(cString: rawText)
     }
 
+    func readScreenModelJSON() -> String? {
+        guard let surface else { return nil }
+
+        var text = ghostty_text_s()
+        guard ghostty_surface_read_screen_model(surface, &text), let rawText = text.text else {
+            return nil
+        }
+        defer { ghostty_surface_free_text(surface, &text) }
+        return String(cString: rawText)
+    }
+
     var processExited: Bool {
         guard let surface else { return true }
         return ghostty_surface_process_exited(surface)

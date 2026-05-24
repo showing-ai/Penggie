@@ -1,0 +1,143 @@
+diff --git a/include/ghostty.h b/include/ghostty.h
+index fbfe3ee2c..702fa9943 100644
+--- a/include/ghostty.h
++++ b/include/ghostty.h
+@@ -1160,6 +1160,8 @@ GHOSTTY_API bool ghostty_surface_read_selection(ghostty_surface_t, ghostty_text_
+ GHOSTTY_API bool ghostty_surface_read_text(ghostty_surface_t,
+                                               ghostty_selection_s,
+                                               ghostty_text_s*);
++GHOSTTY_API bool ghostty_surface_read_screen_model(ghostty_surface_t,
++                                                      ghostty_text_s*);
+ GHOSTTY_API void ghostty_surface_free_text(ghostty_surface_t, ghostty_text_s*);
+ 
+ #ifdef __APPLE__
+diff --git a/src/apprt/embedded.zig b/src/apprt/embedded.zig
+index 7310159cc..f5be43d95 100644
+--- a/src/apprt/embedded.zig
++++ b/src/apprt/embedded.zig
+@@ -1642,6 +1642,125 @@ pub const CAPI = struct {
+         return readTextLocked(surface, core_sel, result);
+     }
+ 
++    /// Read the visible viewport as a compact JSON screen model. This is
++    /// intentionally scoped to embedded hosts that need structured row/cursor
++    /// data without taking ownership of terminal state.
++    export fn ghostty_surface_read_screen_model(
++        surface: *Surface,
++        result: *Text,
++    ) bool {
++        const core_surface = &surface.core_surface;
++        core_surface.renderer_state.mutex.lock();
++        defer core_surface.renderer_state.mutex.unlock();
++
++        const screen = core_surface.renderer_state.terminal.screens.active;
++        const selection: terminal.Selection = .{
++            .bounds = .{ .untracked = .{
++                .start = screen.pages.getTopLeft(.viewport),
++                .end = screen.pages.getBottomRight(.viewport) orelse return false,
++            } },
++            .rectangle = false,
++        };
++
++        var text = core_surface.dumpTextLocked(
++            global.alloc,
++            selection,
++        ) catch |err| {
++            log.warn("error reading screen model text err={}", .{err});
++            return false;
++        };
++        defer text.deinit(global.alloc);
++
++        var stream: std.Io.Writer.Allocating = .init(global.alloc);
++        defer stream.deinit();
++        writeScreenModelJSON(
++            &stream.writer,
++            text.text,
++            core_surface.size.grid().columns,
++            core_surface.size.grid().rows,
++            screen.cursor.x,
++            screen.cursor.y,
++            core_surface.io.terminal.modes.get(.cursor_visible),
++        ) catch |err| {
++            log.warn("error writing screen model json err={}", .{err});
++            return false;
++        };
++
++        const owned = stream.toOwnedSliceSentinel(0) catch |err| {
++            log.warn("error allocating screen model json err={}", .{err});
++            return false;
++        };
++
++        result.* = .{
++            .tl_px_x = -1,
++            .tl_px_y = -1,
++            .offset_start = 0,
++            .offset_len = 0,
++            .text = owned.ptr,
++            .text_len = owned.len,
++        };
++
++        return true;
++    }
++
++    fn writeScreenModelJSON(
++        writer: *std.Io.Writer,
++        text: [:0]const u8,
++        columns: u32,
++        rows: u32,
++        cursor_x: usize,
++        cursor_y: usize,
++        cursor_visible: bool,
++    ) !void {
++        try writer.print(
++            "{{\"columns\":{d},\"rows\":{d},\"cursor\":{{\"x\":{d},\"y\":{d},\"visible\":{}}},\"lines\":[",
++            .{ columns, rows, cursor_x, cursor_y, cursor_visible },
++        );
++
++        var line_index: usize = 0;
++        var line_iter = std.mem.splitScalar(u8, text, '\n');
++        while (line_iter.next()) |line| : (line_index += 1) {
++            if (line_index > 0) try writer.writeByte(',');
++            try writer.print(
++                "{{\"index\":{d},\"text\":{f},\"selected\":false,\"firstNonBlankColumn\":",
++                .{ line_index, std.json.fmt(line, .{ .whitespace = .minified }) },
++            );
++            if (firstNonBlankColumn(line)) |column| {
++                try writer.print("{d}", .{column});
++            } else {
++                try writer.writeAll("null");
++            }
++
++            try writer.writeAll(",\"lastNonBlankColumn\":");
++            if (lastNonBlankColumn(line)) |column| {
++                try writer.print("{d}", .{column});
++            } else {
++                try writer.writeAll("null");
++            }
++
++            try writer.writeAll(",\"styleSummary\":null}");
++        }
++
++        try writer.writeAll("]}");
++    }
++
++    fn firstNonBlankColumn(line: []const u8) ?usize {
++        for (line, 0..) |byte, index| {
++            if (byte != ' ' and byte != '\t' and byte != '\r') return index;
++        }
++        return null;
++    }
++
++    fn lastNonBlankColumn(line: []const u8) ?usize {
++        var index = line.len;
++        while (index > 0) {
++            index -= 1;
++            const byte = line[index];
++            if (byte != ' ' and byte != '\t' and byte != '\r') return index;
++        }
++        return null;
++    }
++
+     fn readTextLocked(
+         surface: *Surface,
+         core_sel: terminal.Selection,

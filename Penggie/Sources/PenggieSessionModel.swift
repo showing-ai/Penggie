@@ -254,9 +254,13 @@ final class PenggieSessionModel: ObservableObject {
                 await MainActor.run {
                     guard let self, let session = self.ghosttySession else { return }
                     let visibleText = session.readVisibleText()
+                    let screenModelJSON = session.readScreenModelJSON()
                     self.transcriptText = visibleText
                     self.updateReadingBlocks(from: visibleText)
-                    self.updateNativeInteractionRows(from: visibleText)
+                    self.updateNativeInteractionRows(
+                        from: visibleText,
+                        screenModelJSON: screenModelJSON
+                    )
                     if session.processExited {
                         self.state = .exited
                         self.screenPollTask?.cancel()
@@ -319,13 +323,26 @@ final class PenggieSessionModel: ObservableObject {
         nativeInteractionRows = []
     }
 
-    private func updateNativeInteractionRows(from visibleText: String) {
+    private func updateNativeInteractionRows(
+        from visibleText: String,
+        screenModelJSON: String?
+    ) {
         guard nativeInteractionIsActive else {
             nativeInteractionRows = []
             return
         }
 
-        let rows = PenggieNativeInteractionProjection.rows(fromVisibleText: visibleText)
+        let screenModelRows = screenModelJSON
+            .flatMap(PenggieTerminalScreenSnapshot.init(json:))
+            .map {
+                PenggieNativeInteractionProjection.rows(
+                    from: $0,
+                    currentInput: nativeInteractionDisplayText
+                ).map(\.text)
+            } ?? []
+        let rows = screenModelRows.isEmpty
+            ? PenggieNativeInteractionProjection.rows(fromVisibleText: visibleText)
+            : screenModelRows
 
         switch nativeInteractionPhase {
         case .editing, .continuation:
