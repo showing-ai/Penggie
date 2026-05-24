@@ -12,7 +12,7 @@
 - [ ] 2.3 Integrate the real Ghostty substrate path required for PTY text/key send, screen text read, screen model JSON read, and raw surface hosting.
 - [x] 2.4 Launch a single real Codex CLI process in a Ghostty-backed PTY.
 - [x] 2.5 Implement `Close Session` to end the active session and return to the start screen.
-- [ ] 2.6 Implement `New Chat` to restart a fresh Codex session in the same window.
+- [x] 2.6 Implement `New Chat` to restart a fresh Codex session in the same window.
 
 ## 3. Reading Chat UI
 
@@ -20,7 +20,7 @@
 - [x] 3.2 Build the Reading empty state with centered headline and composer.
 - [ ] 3.3 Build the transcript state with Reading output projection and a bottom/sticky composer after conversation content exists.
 - [x] 3.4 Migrate the AppKit-backed composer with IME-safe placeholder behavior.
-- [ ] 3.5 Implement ordinary prompt submission to the real Codex PTY and show submitted user input in Reading.
+- [x] 3.5 Implement ordinary prompt submission to the real Codex PTY and show submitted user input in Reading.
 
 ## 4. Native Slash Interaction
 
@@ -41,7 +41,7 @@
 
 - [ ] 6.1 Add or port regression tests for composer native trigger rules and IME placeholder visibility.
 - [ ] 6.2 Add or port regression tests for screen model native overlay row extraction and continuation menus.
-- [ ] 6.3 Verify Codex installed: start with Codex, enter Reading, send prompt, display Reading output.
+- [x] 6.3 Verify Codex installed: start with Codex, enter Reading, send prompt, display Reading output.
 - [ ] 6.4 Verify Codex missing, launch failed, and process exited product states.
 - [x] 6.5 Verify `/`, `/m`, `/model`, arrow/Enter, Esc, and Backspace behavior against real Codex CLI.
-- [ ] 6.6 Verify Raw Terminal shows the same PTY state as Reading.
+- [x] 6.6 Verify Raw Terminal shows the same PTY state as Reading.

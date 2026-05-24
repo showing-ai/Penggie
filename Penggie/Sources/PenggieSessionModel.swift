@@ -4,6 +4,8 @@ import SwiftUI
 
 @MainActor
 final class PenggieSessionModel: ObservableObject {
+    static let codexCommandEnvironmentKey = "PENGGIE_CODEX_COMMAND"
+
     enum State: Equatable {
         case idle
         case checkingCodex
@@ -69,7 +71,7 @@ final class PenggieSessionModel: ObservableObject {
         lastError = nil
 
         Task {
-            let isAvailable = await Self.commandExistsInLoginShell("codex")
+            let isAvailable = await Self.resolveCodexCommandPath() != nil
             await MainActor.run {
                 guard isAvailable else {
                     self.state = .codexMissing
@@ -126,7 +128,7 @@ final class PenggieSessionModel: ObservableObject {
         }
 
         Task {
-            let codexPath = await Self.commandPathInLoginShell("codex")
+            let codexPath = await Self.resolveCodexCommandPath()
             await MainActor.run {
                 guard let codexPath else {
                     self.state = .codexMissing
@@ -231,6 +233,11 @@ final class PenggieSessionModel: ObservableObject {
                     let visibleText = session.readVisibleText()
                     self.transcriptText = visibleText
                     self.updateNativeInteractionRows(from: visibleText)
+                    if session.processExited {
+                        self.state = .exited
+                        self.screenPollTask?.cancel()
+                        self.screenPollTask = nil
+                    }
                 }
             }
         }
@@ -330,8 +337,18 @@ final class PenggieSessionModel: ObservableObject {
         }
     }
 
-    nonisolated private static func commandExistsInLoginShell(_ command: String) async -> Bool {
-        await commandPathInLoginShell(command) != nil
+    nonisolated private static func resolveCodexCommandPath() async -> String? {
+        let command = ProcessInfo.processInfo.environment[codexCommandEnvironmentKey]?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let requestedCommand = command?.isEmpty == false ? command! : "codex"
+
+        if requestedCommand.contains("/") {
+            return FileManager.default.isExecutableFile(atPath: requestedCommand)
+                ? requestedCommand
+                : nil
+        }
+
+        return await commandPathInLoginShell(requestedCommand)
     }
 
     nonisolated private static func commandPathInLoginShell(_ command: String) async -> String? {

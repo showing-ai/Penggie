@@ -188,6 +188,11 @@ final class PenggieGhosttySession: ObservableObject {
         return String(cString: rawText)
     }
 
+    var processExited: Bool {
+        guard let surface else { return true }
+        return ghostty_surface_process_exited(surface)
+    }
+
     func resizeSurface(to size: CGSize) {
         guard let surface else { return }
 
