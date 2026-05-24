@@ -26,7 +26,8 @@ let package = Package(
             sources: [
                 "PenggieComposerNativeTrigger.swift",
                 "PenggieNativeInteractionPhase.swift",
-                "PenggieNativeInteractionProjection.swift"
+                "PenggieNativeInteractionProjection.swift",
+                "PenggieReadingTranscript.swift"
             ]
         ),
         .testTarget(

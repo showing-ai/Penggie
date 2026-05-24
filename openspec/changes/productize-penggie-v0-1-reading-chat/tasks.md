@@ -16,9 +16,9 @@
 
 ## 3. Reading Chat UI
 
-- [ ] 3.1 Migrate and rename the PoC Reading projection, transcript, and presentation models.
+- [x] 3.1 Migrate and rename the PoC Reading projection, transcript, and presentation models.
 - [x] 3.2 Build the Reading empty state with centered headline and composer.
-- [ ] 3.3 Build the transcript state with Reading output projection and a bottom/sticky composer after conversation content exists.
+- [x] 3.3 Build the transcript state with Reading output projection and a bottom/sticky composer after conversation content exists.
 - [x] 3.4 Migrate the AppKit-backed composer with IME-safe placeholder behavior.
 - [x] 3.5 Implement ordinary prompt submission to the real Codex PTY and show submitted user input in Reading.
 

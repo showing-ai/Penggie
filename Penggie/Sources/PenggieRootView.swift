@@ -246,20 +246,24 @@ private struct PenggieReadingChatView: View {
         VStack(spacing: 24) {
             Spacer()
 
-            if session.transcriptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            let visibleBlocks = session.readingBlocks.filter {
+                !PenggieReadingPresentation.isHiddenChromeBlock($0)
+            }
+
+            if visibleBlocks.isEmpty {
                 Text("What should we work on in \(session.projectDisplayName)?")
                     .font(.system(size: 27, weight: .medium))
                     .foregroundStyle(.primary)
                     .padding(.bottom, 6)
             } else {
                 ScrollView {
-                    Text(session.transcriptText)
-                        .font(.system(size: 13, design: .monospaced))
-                        .foregroundStyle(.primary)
-                        .textSelection(.enabled)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 20)
+                    LazyVStack(alignment: .leading, spacing: 12) {
+                        ForEach(visibleBlocks) { block in
+                            PenggieReadingBlockView(block: block)
+                        }
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 20)
                 }
                 .frame(width: 760, height: 380)
                 .background(Color(nsColor: .textBackgroundColor))
@@ -437,6 +441,44 @@ private struct PenggieReadingChatView: View {
             nativeInteractionFocusRequestID += 1
         }
         return sent
+    }
+}
+
+private struct PenggieReadingBlockView: View {
+    let block: PenggieReadingBlock
+
+    var body: some View {
+        if PenggieReadingPresentation.isUserPromptBlock(block) {
+            HStack {
+                Spacer(minLength: 60)
+                Text(PenggieReadingPresentation.promptText(for: block))
+                    .font(.system(size: 14))
+                    .foregroundStyle(.white)
+                    .textSelection(.enabled)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .background(Color.primary)
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            }
+        } else if PenggieReadingPresentation.isToolChromeBlock(block) {
+            Text(PenggieReadingPresentation.terminalText(for: block))
+                .font(.system(size: 12, design: .monospaced))
+                .foregroundStyle(.secondary)
+                .textSelection(.enabled)
+                .lineSpacing(3)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(Color(nsColor: .controlBackgroundColor))
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        } else {
+            Text(PenggieReadingPresentation.chatText(for: block))
+                .font(.system(size: 14))
+                .foregroundStyle(.primary)
+                .textSelection(.enabled)
+                .lineSpacing(4)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
     }
 }
 

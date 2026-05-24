@@ -21,6 +21,7 @@ final class PenggieSessionModel: ObservableObject {
     @Published private(set) var state: State = .idle
     @Published private(set) var lastError: String?
     @Published private(set) var transcriptText = ""
+    @Published private(set) var readingBlocks: [PenggieReadingBlock] = []
     @Published private(set) var ghosttySession: PenggieGhosttySession?
     @Published private(set) var nativeInteractionPhase: PenggieNativeInteractionPhase = .inactive
     @Published private(set) var nativeInteractionDisplayText = ""
@@ -30,6 +31,8 @@ final class PenggieSessionModel: ObservableObject {
     let substrate = PenggieGhosttySubstrate()
     private var screenPollTask: Task<Void, Never>?
     private var nativeInteractionResolvingBeganAt: Date?
+    private var composerSubmissions: [PenggieComposerSubmission] = []
+    private var consumedComposerSubmissionIDs = Set<UUID>()
 
     var nativeInteractionIsActive: Bool {
         nativeInteractionPhase.isActive
@@ -150,6 +153,9 @@ final class PenggieSessionModel: ObservableObject {
                     }
                     self.ghosttySession = session
                     self.transcriptText = ""
+                    self.readingBlocks = []
+                    self.composerSubmissions = []
+                    self.consumedComposerSubmissionIDs = []
                     self.startScreenPolling()
                     self.state = .reading
                 } catch {
@@ -162,6 +168,7 @@ final class PenggieSessionModel: ObservableObject {
     func sendPrompt(_ prompt: String) {
         let trimmed = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
+        composerSubmissions.append(.init(text: trimmed, submittedAt: Date()))
         ghosttySession?.sendPrompt(trimmed)
         startScreenPolling()
     }
@@ -227,6 +234,9 @@ final class PenggieSessionModel: ObservableObject {
         ghosttySession?.close()
         ghosttySession = nil
         transcriptText = ""
+        readingBlocks = []
+        composerSubmissions = []
+        consumedComposerSubmissionIDs = []
         endNativeInteraction()
     }
 
@@ -239,6 +249,7 @@ final class PenggieSessionModel: ObservableObject {
                     guard let self, let session = self.ghosttySession else { return }
                     let visibleText = session.readVisibleText()
                     self.transcriptText = visibleText
+                    self.updateReadingBlocks(from: visibleText)
                     self.updateNativeInteractionRows(from: visibleText)
                     if session.processExited {
                         self.state = .exited
@@ -248,6 +259,19 @@ final class PenggieSessionModel: ObservableObject {
                 }
             }
         }
+    }
+
+    private func updateReadingBlocks(from visibleText: String) {
+        readingBlocks = PenggieReadingProjectionModel.blocks(
+            from: visibleText,
+            terminalColumns: nil,
+            previousBlocks: readingBlocks,
+            composerSubmissions: composerSubmissions,
+            consumedComposerSubmissionIDs: consumedComposerSubmissionIDs
+        )
+        consumedComposerSubmissionIDs.formUnion(
+            readingBlocks.compactMap(\.composerSubmissionID)
+        )
     }
 
     private func sendNativeKey(_ command: PenggieInteractionCommand) -> Bool {
