@@ -42,6 +42,6 @@
 - [x] 6.1 Add or port regression tests for composer native trigger rules and IME placeholder visibility.
 - [x] 6.2 Add or port regression tests for screen model native overlay row extraction and continuation menus.
 - [x] 6.3 Verify Codex installed: start with Codex, enter Reading, send prompt, display Reading output.
-- [ ] 6.4 Verify Codex missing, launch failed, and process exited product states.
+- [x] 6.4 Verify Codex missing, launch failed, and process exited product states.
 - [x] 6.5 Verify `/`, `/m`, `/model`, arrow/Enter, Esc, and Backspace behavior against real Codex CLI.
 - [x] 6.6 Verify Raw Terminal shows the same PTY state as Reading.

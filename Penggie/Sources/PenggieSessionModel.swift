@@ -5,6 +5,7 @@ import SwiftUI
 @MainActor
 final class PenggieSessionModel: ObservableObject {
     static let codexCommandEnvironmentKey = "PENGGIE_CODEX_COMMAND"
+    static let forceLaunchFailureEnvironmentKey = "PENGGIE_FORCE_LAUNCH_FAILURE"
 
     enum State: Equatable {
         case idle
@@ -132,6 +133,11 @@ final class PenggieSessionModel: ObservableObject {
     private func launchCodexSession() {
         guard substrate.isAvailable else {
             state = .launchFailed("Penggie could not initialize the terminal session.")
+            return
+        }
+
+        if Self.shouldForceLaunchFailureForVerification {
+            state = .launchFailed("Penggie could not start Codex.")
             return
         }
 
@@ -400,6 +406,13 @@ final class PenggieSessionModel: ObservableObject {
         }
 
         return await commandPathInLoginShell(requestedCommand)
+    }
+
+    nonisolated private static var shouldForceLaunchFailureForVerification: Bool {
+        let value = ProcessInfo.processInfo.environment[forceLaunchFailureEnvironmentKey]?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+        return value == "1" || value == "true" || value == "yes"
     }
 
     nonisolated private static func commandPathInLoginShell(_ command: String) async -> String? {
