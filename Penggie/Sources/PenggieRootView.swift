@@ -246,9 +246,10 @@ private struct PenggieReadingChatView: View {
         VStack(spacing: 24) {
             Spacer()
 
-            let visibleBlocks = session.readingBlocks.filter {
-                !PenggieReadingPresentation.isHiddenChromeBlock($0)
-            }
+            let visibleBlocks = PenggieReadingPresentation.visibleBlocks(
+                from: session.readingBlocks,
+                nativeInteractionIsActive: session.nativeInteractionIsActive
+            )
 
             if visibleBlocks.isEmpty {
                 Text("What should we work on in \(session.projectDisplayName)?")

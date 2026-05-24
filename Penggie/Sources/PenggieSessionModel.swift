@@ -256,7 +256,9 @@ final class PenggieSessionModel: ObservableObject {
                     let visibleText = session.readVisibleText()
                     let screenModelJSON = session.readScreenModelJSON()
                     self.transcriptText = visibleText
-                    self.updateReadingBlocks(from: visibleText)
+                    if !self.nativeInteractionIsActive {
+                        self.updateReadingBlocks(from: visibleText)
+                    }
                     self.updateNativeInteractionRows(
                         from: visibleText,
                         screenModelJSON: screenModelJSON

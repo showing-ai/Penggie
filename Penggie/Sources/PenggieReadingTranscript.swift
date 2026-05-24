@@ -328,9 +328,18 @@ enum PenggieTranscriptBlockizer {
         .init(id: "codex.tool.reading", label: "Reading", variant: .activity),
         .init(id: "codex.tool.edited", label: "Edited", variant: .toolLike),
         .init(id: "codex.tool.edited", label: "Added", variant: .toolLike),
+        .init(id: "codex.tool.edited", label: "Deleted", variant: .toolLike),
         .init(id: "codex.tool.edited", label: "Updated", variant: .toolLike),
+        .init(id: "codex.tool.edited", label: "Created", variant: .toolLike),
         .init(id: "codex.tool.editing", label: "Editing", variant: .activity),
+        .init(id: "codex.tool.web_search", label: "Web Search", variant: .toolLike),
+        .init(id: "codex.tool.web_search", label: "Searched", variant: .toolLike),
+        .init(id: "codex.tool.searching", label: "Searching the web", variant: .activity),
+        .init(id: "codex.tool.searching", label: "Searching", variant: .activity),
+        .init(id: "codex.tool.viewed_image", label: "Viewed Image", variant: .toolLike),
+        .init(id: "codex.tool.viewing", label: "Viewing", variant: .activity),
         .init(id: "codex.status.worked_for", label: "Worked for", variant: .status),
+        .init(id: "codex.status.skill_context_budget", label: "Skill descriptions were shortened", variant: .status),
         .init(id: "codex.activity.working", label: "Working", variant: .activity),
         .init(id: "codex.activity.working", label: "Thinking", variant: .activity),
         .init(id: "codex.activity.working", label: "Waiting", variant: .activity),
@@ -456,7 +465,7 @@ enum PenggieTranscriptBlockizer {
             guard normalized.count > hint.label.count else { return true }
             let nextIndex = normalized.index(normalized.startIndex, offsetBy: hint.label.count)
             let next = normalized[nextIndex]
-            return next.isWhitespace || "(:[{'\"`.-–—".contains(next)
+            return next.isWhitespace || "(:[{'\"`·-–—".contains(next)
         }
     }
 
@@ -635,8 +644,29 @@ enum PenggieTranscriptBlockizer {
 }
 
 enum PenggieReadingPresentation {
+    static func visibleBlocks(
+        from blocks: [PenggieReadingBlock],
+        nativeInteractionIsActive: Bool
+    ) -> [PenggieReadingBlock] {
+        blocks.filter { block in
+            guard !isHiddenChromeBlock(block) else { return false }
+            guard !isStartupChromeBlock(block) else { return false }
+            guard nativeInteractionIsActive else { return true }
+            return !isNativeInteractionChromeBlock(block)
+        }
+    }
+
     static func isHiddenChromeBlock(_ block: PenggieReadingBlock) -> Bool {
-        block.kind == .output && isDividerOnlyText(block.displayText)
+        guard block.kind == .output else { return false }
+        return isDividerOnlyText(block.displayText)
+    }
+
+    static func isStartupChromeBlock(_ block: PenggieReadingBlock) -> Bool {
+        block.kind == .output && block.variant == .startup
+    }
+
+    static func isNativeInteractionChromeBlock(_ block: PenggieReadingBlock) -> Bool {
+        isToolChromeBlock(block)
     }
 
     static func isToolChromeBlock(_ block: PenggieReadingBlock) -> Bool {
@@ -644,7 +674,11 @@ enum PenggieReadingPresentation {
         guard !isHiddenChromeBlock(block) else { return false }
 
         switch block.variant {
-        case .activity, .menu, .status, .toolLike, .startup, .prompt:
+        case .activity, .menu, .status, .toolLike:
+            return true
+        case .startup:
+            return true
+        case .prompt:
             return true
         case .proseLike, .unknown:
             return false
@@ -753,36 +787,138 @@ enum PenggieReadingPresentation {
                 continue
             }
 
-            if isBulletLike(trimmed) || isNumberedListLike(trimmed) {
-                flushCurrent()
-                output.append(trimmed)
+            guard let existing = current else {
+                current = trimmed
                 continue
             }
 
-            if let active = current {
-                current = active + " " + trimmed
-            } else {
+            if shouldStartNewDisplayLine(trimmed, after: existing) {
+                flushCurrent()
                 current = trimmed
+            } else {
+                current = existing + joinSeparator(previous: existing, next: trimmed) + trimmed
             }
         }
 
         flushCurrent()
-        while output.last?.isEmpty == true {
+
+        while output.last == "" {
             output.removeLast()
         }
+
         return output
     }
 
+    private static func shouldStartNewDisplayLine(_ line: String, after previous: String) -> Bool {
+        if isStructuralDisplayLine(line) {
+            return true
+        }
+
+        return isStandaloneBoundaryLine(previous)
+    }
+
+    private static func isStandaloneBoundaryLine(_ line: String) -> Bool {
+        line.hasPrefix("#") || isTableLine(line)
+    }
+
+    private static func isStructuralDisplayLine(_ line: String) -> Bool {
+        if isCodeFenceLine(line) { return true }
+        if line.hasPrefix("#") { return true }
+        if line.hasPrefix(">") { return true }
+        if line.hasPrefix("- ") || line.hasPrefix("* ") || line.hasPrefix("+ ") || line.hasPrefix("• ") {
+            return true
+        }
+        if isOrderedListLine(line) { return true }
+        if isTableLine(line) { return true }
+        if isLabelLikeLine(line) { return true }
+        return false
+    }
+
     private static func isCodeFenceLine(_ line: String) -> Bool {
-        line.hasPrefix("```")
+        line.hasPrefix("```") || line.hasPrefix("~~~")
     }
 
-    private static func isBulletLike(_ line: String) -> Bool {
-        line.hasPrefix("- ") || line.hasPrefix("* ") || line.hasPrefix("• ")
+    private static func isOrderedListLine(_ line: String) -> Bool {
+        var index = line.startIndex
+        var digitCount = 0
+
+        while index < line.endIndex,
+              let scalar = line[index].unicodeScalars.first,
+              CharacterSet.decimalDigits.contains(scalar),
+              digitCount < 3 {
+            digitCount += 1
+            index = line.index(after: index)
+        }
+
+        guard digitCount > 0, index < line.endIndex else { return false }
+        let marker = line[index]
+        guard marker == "." || marker == ")" || marker == "、" else { return false }
+
+        let nextIndex = line.index(after: index)
+        guard nextIndex < line.endIndex else { return false }
+        return marker == "、" || line[nextIndex].isWhitespace
     }
 
-    private static func isNumberedListLike(_ line: String) -> Bool {
-        line.range(of: #"^\d+\.\s"#, options: .regularExpression) != nil
+    private static func isTableLine(_ line: String) -> Bool {
+        line.first == "|" && line.last == "|"
+    }
+
+    private static func isLabelLikeLine(_ line: String) -> Bool {
+        guard let punctuationIndex = line.firstIndex(where: { $0 == ":" || $0 == "：" }) else {
+            return false
+        }
+
+        let prefix = line[..<punctuationIndex]
+        guard !prefix.isEmpty, prefix.count <= 14 else { return false }
+        return !prefix.contains(where: { $0.isWhitespace })
+    }
+
+    private static func joinSeparator(previous: String, next: String) -> String {
+        guard let previousScalar = lastNonWhitespaceScalar(in: previous),
+              let nextScalar = firstNonWhitespaceScalar(in: next) else {
+            return ""
+        }
+
+        if isCJK(previousScalar) || isCJK(nextScalar) {
+            return ""
+        }
+
+        let noSpaceAfter = CharacterSet(charactersIn: "([{/'\"“‘，、。；：！？")
+        if noSpaceAfter.contains(previousScalar) {
+            return ""
+        }
+
+        let noSpaceBefore = CharacterSet(charactersIn: ".,!?;:%)]}/'\"”’）】」』，。；：！？")
+        if noSpaceBefore.contains(nextScalar) {
+            return ""
+        }
+
+        if previousScalar == "-" || previousScalar == "/" {
+            return ""
+        }
+
+        return " "
+    }
+
+    private static func firstNonWhitespaceScalar(in text: String) -> UnicodeScalar? {
+        text.unicodeScalars.first { !CharacterSet.whitespacesAndNewlines.contains($0) }
+    }
+
+    private static func lastNonWhitespaceScalar(in text: String) -> UnicodeScalar? {
+        text.unicodeScalars.reversed().first { !CharacterSet.whitespacesAndNewlines.contains($0) }
+    }
+
+    private static func isCJK(_ scalar: UnicodeScalar) -> Bool {
+        switch scalar.value {
+        case 0x3400...0x4DBF,
+             0x4E00...0x9FFF,
+             0xF900...0xFAFF,
+             0x3040...0x30FF,
+             0xAC00...0xD7AF:
+            return true
+        default:
+            return false
+        }
     }
 
     private static func trimmingTrailingWhitespace(from line: String) -> String {
