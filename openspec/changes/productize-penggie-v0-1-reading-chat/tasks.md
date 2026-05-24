@@ -5,13 +5,14 @@
 - [ ] 1.3 Add productized states for Codex missing, launch failed, process exited, and session closed.
 - [ ] 1.4 Remove or hide user-visible ShowCLI and Ghostty shell copy from v0.1 surfaces.
 
-## 2. Codex Single Session
+## 2. Ghostty-backed Codex Single Session
 
 - [ ] 2.1 Implement the v0.1 session state model for idle, checking Codex, launching, running, failed, exited, and closed.
 - [ ] 2.2 Implement Codex availability checking through the user's login shell/PATH.
-- [ ] 2.3 Launch a single real Codex CLI process in a Ghostty-backed PTY.
-- [ ] 2.4 Implement `Close Session` to end the active session and return to the start screen.
-- [ ] 2.5 Implement `New Chat` to restart a fresh Codex session in the same window.
+- [ ] 2.3 Integrate the real Ghostty substrate path required for PTY text/key send, screen text read, screen model JSON read, and raw surface hosting.
+- [ ] 2.4 Launch a single real Codex CLI process in a Ghostty-backed PTY.
+- [ ] 2.5 Implement `Close Session` to end the active session and return to the start screen.
+- [ ] 2.6 Implement `New Chat` to restart a fresh Codex session in the same window.
 
 ## 3. Reading Chat UI
 

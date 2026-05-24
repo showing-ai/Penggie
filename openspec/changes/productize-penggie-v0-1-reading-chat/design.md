@@ -31,6 +31,18 @@ Penggie will own bundle metadata, app icon, menus, window title, start screen, t
 
 Alternative considered: continue modifying the Ghostty app shell. Rejected because terminal-first lifecycle, menus, command palette, split/tree UI, and Ghostty text would keep leaking into the product.
 
+### Decision 1a: Use SwiftUI/AppKit as the v0.1 app shell, not Tauri/Rust
+
+Penggie v0.1 will use a native macOS SwiftUI/AppKit product shell that integrates with GhosttyKit/libghostty. This follows the validated PoC path for `Ghostty.SurfaceView`, AppKit key events, IME handling, screen model reads, PTY text/key sends, and same-surface Raw Terminal fallback.
+
+Alternative considered: build the app shell with Tauri + Rust + WebView. Rejected for v0.1 because it would add a WebView/native bridge around the most sensitive parts of the product: composer IME behavior, native key event routing, focus handoff, slash overlay projection, and Ghostty raw surface hosting. Rust may be introduced later for isolated helpers, but it is not part of the v0.1 shell path.
+
+### Decision 1b: Ghostty substrate is required from the first implementation phase
+
+The first implementation phase must integrate the real Ghostty substrate path rather than a mock or local terminal adapter as the main route. The PoC success depends specifically on Ghostty's PTY, screen model, styled rows, AppKit surface, and key event behavior; replacing that path early would produce a UI prototype that does not exercise the validated risks.
+
+Alternative considered: start with a `PenggieTerminalClient` mock adapter and connect Ghostty later. Rejected because it would defer the riskiest integration points and could make early Reading/composer behavior misleading.
+
 ### Decision 2: v0.1 supports Codex only
 
 The start screen keeps the calm centered onboarding style but shows only `Start with Codex`. Provider cards for Claude, Copilot, local models, or other providers are out of scope.
