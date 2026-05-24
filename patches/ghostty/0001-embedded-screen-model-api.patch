@@ -15,7 +15,7 @@ diff --git a/src/apprt/embedded.zig b/src/apprt/embedded.zig
 index 7310159cc..f5be43d95 100644
 --- a/src/apprt/embedded.zig
 +++ b/src/apprt/embedded.zig
-@@ -1642,6 +1642,125 @@ pub const CAPI = struct {
+@@ -1642,6 +1642,197 @@ pub const CAPI = struct {
          return readTextLocked(surface, core_sel, result);
      }
  
@@ -52,6 +52,7 @@ index 7310159cc..f5be43d95 100644
 +        defer stream.deinit();
 +        writeScreenModelJSON(
 +            &stream.writer,
++            screen,
 +            text.text,
 +            core_surface.size.grid().columns,
 +            core_surface.size.grid().rows,
@@ -82,6 +83,7 @@ index 7310159cc..f5be43d95 100644
 +
 +    fn writeScreenModelJSON(
 +        writer: *std.Io.Writer,
++        screen: anytype,
 +        text: [:0]const u8,
 +        columns: u32,
 +        rows: u32,
@@ -115,10 +117,80 @@ index 7310159cc..f5be43d95 100644
 +                try writer.writeAll("null");
 +            }
 +
-+            try writer.writeAll(",\"styleSummary\":null}");
++            try writer.writeAll(",\"styleSummary\":");
++            try writeScreenModelStyleSummaryJSON(
++                writer,
++                screenModelStyleSummaryForViewportRow(screen, line_index),
++            );
++            try writer.writeByte('}');
 +        }
 +
 +        try writer.writeAll("]}");
++    }
++
++    const ScreenModelStyleSummary = struct {
++        text_cell_count: usize = 0,
++        selected_cell_count: usize = 0,
++        selected_text_cell_count: usize = 0,
++        bold_text_cell_count: usize = 0,
++        faint_text_cell_count: usize = 0,
++        inverse_text_cell_count: usize = 0,
++        background_text_cell_count: usize = 0,
++        foreground_text_cell_count: usize = 0,
++    };
++
++    fn screenModelStyleSummaryForViewportRow(
++        screen: anytype,
++        viewport_row_index: usize,
++    ) ScreenModelStyleSummary {
++        var summary: ScreenModelStyleSummary = .{};
++        var row_index: usize = 0;
++        var row_iter = screen.pages.rowIterator(.right_down, .{ .viewport = .{} }, null);
++        while (row_iter.next()) |row_pin| : (row_index += 1) {
++            if (row_index != viewport_row_index) continue;
++
++            for (row_pin.cells(.all)) |*cell| {
++                if (!cell.hasText()) continue;
++
++                summary.text_cell_count += 1;
++                const style = row_pin.style(cell);
++                if (style.flags.bold) summary.bold_text_cell_count += 1;
++                if (style.flags.faint) summary.faint_text_cell_count += 1;
++                if (style.flags.inverse) summary.inverse_text_cell_count += 1;
++                if (screenModelColorIsPresent(style.bg_color)) summary.background_text_cell_count += 1;
++                if (screenModelColorIsPresent(style.fg_color)) summary.foreground_text_cell_count += 1;
++            }
++
++            return summary;
++        }
++
++        return summary;
++    }
++
++    fn screenModelColorIsPresent(color: terminal.Style.Color) bool {
++        return switch (color) {
++            .none => false,
++            .palette, .rgb => true,
++        };
++    }
++
++    fn writeScreenModelStyleSummaryJSON(
++        writer: *std.Io.Writer,
++        summary: ScreenModelStyleSummary,
++    ) !void {
++        try writer.print(
++            "{{\"textCellCount\":{d},\"selectedCellCount\":{d},\"selectedTextCellCount\":{d},\"boldTextCellCount\":{d},\"faintTextCellCount\":{d},\"inverseTextCellCount\":{d},\"backgroundTextCellCount\":{d},\"foregroundTextCellCount\":{d}}}",
++            .{
++                summary.text_cell_count,
++                summary.selected_cell_count,
++                summary.selected_text_cell_count,
++                summary.bold_text_cell_count,
++                summary.faint_text_cell_count,
++                summary.inverse_text_cell_count,
++                summary.background_text_cell_count,
++                summary.foreground_text_cell_count,
++            },
++        );
 +    }
 +
 +    fn firstNonBlankColumn(line: []const u8) ?usize {

@@ -77,6 +77,33 @@ struct PenggieNativeInteractionProjectionTests {
     }
 
     @Test
+    func infersSelectedSuggestionFromUndimmedRowAmongDimmedSiblings() {
+        let snapshot = PenggieTerminalScreenSnapshot(
+            columns: 120,
+            rows: 32,
+            cursor: .init(x: 4, y: 11, visible: true),
+            lines: [
+                .init(index: 11, text: "› /m", selected: false, styleSummary: style(text: "› /m", bold: 1)),
+                .init(index: 12, text: "", selected: false),
+                .init(index: 13, text: "  /model     choose what model and reasoning effort to use", selected: false, styleSummary: style(text: "  /model     choose what model and reasoning effort to use")),
+                .init(index: 14, text: "  /memories  configure memory use and generation", selected: false, styleSummary: style(text: "  /memories  configure memory use and generation", bold: 1, faint: 35)),
+                .init(index: 15, text: "  /mention   mention a file", selected: false, styleSummary: style(text: "  /mention   mention a file", bold: 1, faint: 14)),
+                .init(index: 16, text: "  /mcp       list configured MCP tools", selected: false, styleSummary: style(text: "  /mcp       list configured MCP tools", bold: 1, faint: 30))
+            ]
+        )
+
+        let rows = PenggieNativeInteractionProjection.rows(from: snapshot, currentInput: "/m")
+
+        #expect(rows.map(\.text) == [
+            "/model     choose what model and reasoning effort to use",
+            "/memories  configure memory use and generation",
+            "/mention   mention a file",
+            "/mcp       list configured MCP tools"
+        ])
+        #expect(rows.map(\.isSelected) == [true, false, false, false])
+    }
+
+    @Test
     func extractsContinuationMenuAroundSelectedModel() {
         let headingStyle = style(text: "Select Model and Effort", bold: 23)
         let snapshot = PenggieTerminalScreenSnapshot(

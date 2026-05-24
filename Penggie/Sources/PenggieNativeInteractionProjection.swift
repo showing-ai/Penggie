@@ -138,6 +138,10 @@ struct PenggieNativeInteractionLine: Identifiable, Equatable {
     var id: String {
         "screen-\(screenLineIndex)-\(text.hashValue)"
     }
+
+    static func visibleTextFallback(index: Int, text: String) -> Self {
+        .init(screenLineIndex: index, text: text, isSelected: false)
+    }
 }
 
 enum PenggieNativeInteractionProjection {
@@ -168,6 +172,17 @@ enum PenggieNativeInteractionProjection {
             .filter { !$0.isEmpty }
 
         return Array(lines.suffix(limit))
+    }
+
+    static func rowsFromVisibleText(
+        _ visibleText: String,
+        limit: Int = 10
+    ) -> [PenggieNativeInteractionLine] {
+        rows(fromVisibleText: visibleText, limit: limit)
+            .enumerated()
+            .map { index, text in
+                .visibleTextFallback(index: index, text: text)
+            }
     }
 
     static func rows(

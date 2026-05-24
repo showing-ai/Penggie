@@ -484,7 +484,7 @@ private struct PenggieReadingBlockView: View {
 }
 
 private struct PenggieNativeInteractionOverlay: View {
-    let rows: [String]
+    let rows: [PenggieNativeInteractionLine]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
@@ -497,16 +497,7 @@ private struct PenggieNativeInteractionOverlay: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
-                    Text(row)
-                        .font(.system(size: 13, design: .monospaced))
-                        .foregroundStyle(.primary)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(nativeRowIsSelected(row) ? Color.black.opacity(0.08) : Color.clear)
-                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                    nativeInteractionRowView(row)
                 }
             }
             .padding(8)
@@ -522,9 +513,20 @@ private struct PenggieNativeInteractionOverlay: View {
         }
     }
 
-    private func nativeRowIsSelected(_ row: String) -> Bool {
-        let trimmed = row.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.hasPrefix(">") || trimmed.hasPrefix("›") || trimmed.hasPrefix("●")
+    private func nativeInteractionRowView(_ row: PenggieNativeInteractionLine) -> some View {
+        let foreground = row.isSelected ? Color.primary : Color.primary.opacity(0.92)
+        let background = row.isSelected ? Color.black.opacity(0.08) : Color.clear
+
+        return Text(row.text.isEmpty ? " " : row.text)
+            .font(.system(size: 13, design: .monospaced))
+            .foregroundStyle(foreground)
+            .lineLimit(1)
+            .truncationMode(.middle)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .background(background)
+            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
     }
 }
 

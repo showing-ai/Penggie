@@ -26,7 +26,7 @@ final class PenggieSessionModel: ObservableObject {
     @Published private(set) var ghosttySession: PenggieGhosttySession?
     @Published private(set) var nativeInteractionPhase: PenggieNativeInteractionPhase = .inactive
     @Published private(set) var nativeInteractionDisplayText = ""
-    @Published private(set) var nativeInteractionRows: [String] = []
+    @Published private(set) var nativeInteractionRows: [PenggieNativeInteractionLine] = []
     @Published var pendingConfirmation: Confirmation?
 
     let substrate = PenggieGhosttySubstrate()
@@ -340,17 +340,17 @@ final class PenggieSessionModel: ObservableObject {
                 PenggieNativeInteractionProjection.rows(
                     from: $0,
                     currentInput: nativeInteractionDisplayText
-                ).map(\.text)
+                )
             } ?? []
         let rows = screenModelRows.isEmpty
-            ? PenggieNativeInteractionProjection.rows(fromVisibleText: visibleText)
+            ? PenggieNativeInteractionProjection.rowsFromVisibleText(visibleText)
             : screenModelRows
 
         switch nativeInteractionPhase {
         case .editing, .continuation:
             nativeInteractionRows = rows
         case .resolving:
-            if PenggieNativeInteractionProjection.containsContinuationMenu(rows) {
+            if PenggieNativeInteractionProjection.containsContinuationMenu(rows.map(\.text)) {
                 nativeInteractionPhase = .continuation
                 nativeInteractionRows = rows
                 nativeInteractionResolvingBeganAt = nil
