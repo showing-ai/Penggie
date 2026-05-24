@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Belly Height Adjusted — Penggie</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", sans-serif;
+    background: #fafaf7;
+    color: #1a1a1a;
+    padding: 60px 40px;
+    line-height: 1.6;
+  }
+  .container { max-width: 1280px; margin: 0 auto; }
+  h1 {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+  }
+  .subtitle {
+    color: #707070;
+    font-size: 15px;
+    margin-bottom: 50px;
+  }
+
+  /* Side by side */
+  .pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+  .pair-card {
+    background: white;
+    border-radius: 12px;
+    padding: 32px;
+    border: 1px solid #ececec;
+  }
+  .pair-card.dark { background: #1f1f1f; color: white; }
+  .pair-card.good {
+    border-color: #CC6B2C;
+    box-shadow: 0 0 0 1px #CC6B2C inset;
+  }
+  .pair-card.dark.good {
+    border-color: #E8773C;
+    box-shadow: 0 0 0 1px #E8773C inset;
+  }
+  .pair-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #999;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .pair-card.good .pair-label { color: #CC6B2C; }
+  .pair-card.dark .pair-label { color: #888; }
+  .pair-card.dark.good .pair-label { color: #E8773C; }
+  .pair-meta {
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 16px;
+    font-family: monospace;
+  }
+  .pair-card.dark .pair-meta { color: #888; }
+  .logo-hero {
+    width: 280px;
+    height: 280px;
+    margin: 0 auto;
+    display: block;
+  }
+
+  /* Annotation overlay */
+  .annotated-hero {
+    position: relative;
+    width: 280px;
+    margin: 0 auto;
+  }
+  .annotation {
+    position: absolute;
+    font-size: 11px;
+    color: #CC6B2C;
+    font-family: monospace;
+    font-weight: 600;
+    background: rgba(255,255,255,0.95);
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid #CC6B2C;
+    white-space: nowrap;
+  }
+  .pair-card.dark .annotation {
+    background: rgba(31,31,31,0.95);
+    color: #E8773C;
+    border-color: #E8773C;
+  }
+
+  /* Section */
+  section { margin-bottom: 48px; }
+  h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #ececec;
+  }
+
+  /* Multi-size verification */
+  .scale-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid #ececec;
+    align-items: end;
+  }
+  .scale-grid.dark { background: #1f1f1f; border-color: #333; }
+  .scale-cell { text-align: center; }
+  .scale-cell .scale-label {
+    font-size: 10px;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 8px;
+  }
+  .scale-grid.dark .scale-label { color: #888; }
+
+  /* Numbers */
+  .numbers {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid #ececec;
+  }
+  .num-row {
+    display: grid;
+    grid-template-columns: 200px 1fr 1fr 1fr;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0ec;
+    font-size: 13px;
+  }
+  .num-row:last-child { border-bottom: none; }
+  .num-row.header {
+    font-weight: 600;
+    color: #555;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    background: #fafaf7;
+    margin: -8px -12px 0;
+    padding: 8px 12px;
+  }
+  .num-row .label { color: #666; }
+  .num-row .old { color: #999; text-decoration: line-through; }
+  .num-row .new { color: #CC6B2C; font-weight: 600; }
+  .num-row code { background: #f0f0ec; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <h1>Belly Height Adjustment</h1>
+  <p class="subtitle">历史对比页已同步最终定稿：眼睛 6×9、单体 T 形嘴、身体压住脚、Logo 本体圆角统一 0.4。</p>
+
+  <!-- Light comparison -->
+  <section>
+    <h2>浅色版本</h2>
+    <div class="pair">
+      <!-- Before -->
+      <div class="pair-card">
+        <div class="pair-label">Before · 肚子偏长</div>
+        <div class="pair-meta">body y=22→82 (60px tall) · belly 20px</div>
+        <div class="annotated-hero">
+          <svg class="logo-hero" viewBox="0 0 100 100">
+            <path d="M 23 22 L 77 22 Q 80 22 80 25 L 80 44 L 85 44 Q 87 44 87 46 L 87 62 Q 87 64 85 64 L 80 64 L 80 79 Q 80 82 77 82 L 23 82 Q 20 82 20 79 L 20 64 L 15 64 Q 13 64 13 62 L 13 46 Q 13 44 15 44 L 20 44 L 20 25 Q 20 22 23 22 Z" fill="#707070"/>
+            <rect x="28" y="32" width="44" height="30" rx="2" fill="white"/>
+            <rect x="36" y="38" width="6" height="10" fill="#1A1A1A"/>
+            <rect x="58" y="38" width="6" height="10" fill="#1A1A1A"/>
+            <rect x="46" y="52" width="8" height="3" fill="#CC6B2C"/>
+            <rect x="48" y="55" width="4" height="3" fill="#CC6B2C"/>
+            <rect x="33" y="82" width="11" height="4" rx="1" fill="#CC6B2C"/>
+            <rect x="56" y="82" width="11" height="4" rx="1" fill="#CC6B2C"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- After -->
+      <div class="pair-card good">
+        <div class="pair-label">Final · 定稿</div>
+        <div class="pair-meta">eyes 6×9 · radius 0.4 · single-piece beak · feet behind body</div>
+        <div class="annotated-hero">
+          <img class="logo-hero" src="../penggie-logo-light.svg" alt="Penggie Logo 浅色定稿">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dark comparison -->
+  <section>
+    <h2>深色版本</h2>
+    <div class="pair">
+      <div class="pair-card dark">
+        <div class="pair-label">Before · 肚子偏长</div>
+        <div class="pair-meta">body y=22→82 (60px tall) · belly 20px</div>
+        <svg class="logo-hero" viewBox="0 0 100 100">
+          <defs><radialGradient id="bgOld" cx="50%" cy="38%" r="78%"><stop offset="0%" stop-color="#2A2A2A"/><stop offset="100%" stop-color="#0F0F0F"/></radialGradient></defs>
+          <rect x="0" y="0" width="100" height="100" rx="22" fill="url(#bgOld)"/>
+          <path d="M 23 22 L 77 22 Q 80 22 80 25 L 80 44 L 85 44 Q 87 44 87 46 L 87 62 Q 87 64 85 64 L 80 64 L 80 79 Q 80 82 77 82 L 23 82 Q 20 82 20 79 L 20 64 L 15 64 Q 13 64 13 62 L 13 46 Q 13 44 15 44 L 20 44 L 20 25 Q 20 22 23 22 Z" fill="#EDEAE2"/>
+          <rect x="28" y="32" width="44" height="30" rx="2" fill="#1A1A1A"/>
+          <rect x="36" y="38" width="6" height="10" fill="#E8773C"/>
+          <rect x="58" y="38" width="6" height="10" fill="#E8773C"/>
+          <rect x="46" y="52" width="8" height="3" fill="#E8773C"/>
+          <rect x="48" y="55" width="4" height="3" fill="#E8773C"/>
+          <rect x="33" y="82" width="11" height="4" rx="1" fill="#E8773C"/>
+          <rect x="56" y="82" width="11" height="4" rx="1" fill="#E8773C"/>
+        </svg>
+      </div>
+      <div class="pair-card dark good">
+        <div class="pair-label">Final · 定稿</div>
+        <div class="pair-meta">eyes 6×9 · icon rx=4.4 · radius 0.4 · feet behind body</div>
+        <img class="logo-hero" src="../penggie-logo-dark.svg" alt="Penggie Logo 深色定稿">
+      </div>
+    </div>
+  </section>
+
+  <!-- Numerical changes -->
+  <section>
+    <h2>具体数字变化</h2>
+    <div class="numbers">
+      <div class="num-row header">
+        <div>元素</div>
+        <div>Before</div>
+        <div>After</div>
+        <div>变化</div>
+      </div>
+      <div class="num-row">
+        <div class="label">身体顶部</div>
+        <div><code>y=22</code></div>
+        <div><code>y=22</code></div>
+        <div>不变</div>
+      </div>
+      <div class="num-row">
+        <div class="label">身体底部</div>
+        <div class="old"><code>y=82</code></div>
+        <div class="new"><code>y=75</code></div>
+        <div>↑ 7px</div>
+      </div>
+      <div class="num-row">
+        <div class="label">身体高度</div>
+        <div class="old"><code>60px</code></div>
+        <div class="new"><code>53px</code></div>
+        <div>缩短 12%</div>
+      </div>
+      <div class="num-row">
+        <div class="label"><strong>肚子区域（高亮）</strong></div>
+        <div class="old"><code>20px</code></div>
+        <div class="new"><code>13px</code></div>
+        <div><strong>缩短 35%（≈ 2/3）</strong></div>
+      </div>
+      <div class="num-row">
+        <div class="label">脸</div>
+        <div><code>y=32-62, 30px</code></div>
+        <div><code>y=32-62, 30px</code></div>
+        <div>不变</div>
+      </div>
+      <div class="num-row">
+        <div class="label">翅膀</div>
+        <div><code>y=44-64, 20px</code></div>
+        <div class="new"><code>y=39-56, 17px</code></div>
+        <div>高度从 15px 回增到 17px，中心保持稳定</div>
+      </div>
+      <div class="num-row">
+        <div class="label">脚 y 位置</div>
+        <div class="old"><code>y=82</code></div>
+        <div class="new"><code>y=74</code></div>
+        <div>↑ 8px，向身体内嵌 1px</div>
+      </div>
+      <div class="num-row">
+        <div class="label">脚尺寸</div>
+        <div class="old"><code>11×4, rx=1</code></div>
+        <div class="new"><code>12×6, rx=0.4</code></div>
+        <div>脚在身体后方，顶部由身体压住 1px</div>
+      </div>
+      <div class="num-row">
+        <div class="label">脚 x 位置</div>
+        <div class="old"><code>x=33 / 56</code></div>
+        <div class="new"><code>x=32 / 56</code></div>
+        <div>中心点 38 / 62，距中线各 12px</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Multi-size light -->
+  <section>
+    <h2>浅色版本多尺寸</h2>
+    <div class="scale-grid">
+      <div class="scale-cell">
+        <img width="120" height="120" src="../penggie-logo-light.svg" alt="浅色 120px">
+        <div class="scale-label">120 PX</div>
+      </div>
+      <div class="scale-cell">
+        <img width="80" height="80" src="../penggie-logo-light.svg" alt="浅色 80px">
+        <div class="scale-label">80 PX</div>
+      </div>
+      <div class="scale-cell">
+        <img width="48" height="48" src="../penggie-logo-light.svg" alt="浅色 48px">
+        <div class="scale-label">48 PX</div>
+      </div>
+      <div class="scale-cell">
+        <img width="32" height="32" src="../penggie-logo-light.svg" alt="浅色 32px">
+        <div class="scale-label">32 PX</div>
+      </div>
+      <div class="scale-cell">
+        <img width="16" height="16" src="../penggie-logo-light.svg" alt="浅色 16px">
+        <div class="scale-label">16 PX</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Multi-size dark -->
+  <section>
+    <h2>深色版本多尺寸</h2>
+    <div class="scale-grid dark">
+      <div class="scale-cell">
+        <img width="120" height="120" src="../penggie-logo-dark.svg" alt="深色 120px">
+        <div class="scale-label">120 PX</div>
+      </div>
+      <div class="scale-cell">
+        <img width="80" height="80" src="../penggie-logo-dark.svg" alt="深色 80px">
+        <div class="scale-label">80 PX</div>
+      </div>
+      <div class="scale-cell">
+        <img width="48" height="48" src="../penggie-logo-dark.svg" alt="深色 48px">
+        <div class="scale-label">48 PX</div>
+      </div>
+      <div class="scale-cell">
+        <img width="32" height="32" src="../penggie-logo-dark.svg" alt="深色 32px">
+        <div class="scale-label">32 PX</div>
+      </div>
+      <div class="scale-cell">
+        <img width="16" height="16" src="../penggie-logo-dark.svg" alt="深色 16px">
+        <div class="scale-label">16 PX</div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+</body>
+</html>

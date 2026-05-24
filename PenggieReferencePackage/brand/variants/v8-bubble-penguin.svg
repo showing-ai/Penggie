@@ -1,0 +1,17 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Chat bubble background (rounded square with tail) -->
+  <path d="M 12 18 Q 12 12 18 12 L 82 12 Q 88 12 88 18 L 88 70 Q 88 76 82 76 L 32 76 L 22 84 L 26 76 L 18 76 Q 12 76 12 70 Z" fill="none" stroke="#707070" stroke-width="2"/>
+  <!-- Penguin inside bubble -->
+  <rect x="32" y="24" width="36" height="40" rx="5" fill="#707070"/>
+  <!-- Face -->
+  <rect x="38" y="30" width="24" height="20" rx="2" fill="white"/>
+  <!-- Eyes -->
+  <rect x="42" y="35" width="4" height="5" fill="#1A1A1A"/>
+  <rect x="54" y="35" width="4" height="5" fill="#1A1A1A"/>
+  <!-- Beak -->
+  <rect x="46" y="43" width="8" height="2" fill="#CC6B2C"/>
+  <rect x="48" y="45" width="4" height="3" fill="#CC6B2C"/>
+  <!-- Feet -->
+  <rect x="38" y="66" width="8" height="3" rx="1" fill="#CC6B2C"/>
+  <rect x="54" y="66" width="8" height="3" rx="1" fill="#CC6B2C"/>
+</svg>

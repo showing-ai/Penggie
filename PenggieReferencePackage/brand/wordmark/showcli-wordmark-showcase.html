@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ShowCLI Wordmark System</title>
+  <style>
+    :root {
+      --paper: #fbfaf7;
+      --ink: #242321;
+      --muted: #706b64;
+      --line: #e4ddd3;
+      --panel: #fffefa;
+      --accent: #cc6b2c;
+      --accent-text: #9b471a;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); line-height: 1.6; }
+    main { width: min(1100px, calc(100% - 40px)); margin: 0 auto; padding: 56px 0 72px; }
+    header { display: grid; grid-template-columns: 1fr 320px; gap: 48px; align-items: end; padding-bottom: 30px; border-bottom: 1px solid var(--line); }
+    .kicker { margin: 0 0 12px; color: var(--accent-text); font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(44px, 7vw, 86px); line-height: .95; letter-spacing: 0; }
+    .intro { margin: 18px 0 0; max-width: 720px; color: #5b5650; font-size: 18px; }
+    .hero-mark { display: grid; place-items: center; min-height: 180px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+    .hero-mark img { width: min(82%, 260px); height: auto; }
+    section { padding: 38px 0; border-bottom: 1px solid var(--line); }
+    h2 { margin: 0 0 18px; font-size: 24px; line-height: 1.2; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .card { border: 1px solid var(--line); border-radius: 8px; background: var(--panel); padding: 22px; }
+    .card.primary { grid-column: 1 / -1; }
+    .preview { display: grid; place-items: center; min-height: 150px; margin-bottom: 16px; border-radius: 6px; background: #fbfaf7; }
+    .preview.dark { background: #151515; }
+    .preview img { max-width: min(100%, 680px); height: auto; }
+    h3 { margin: 0 0 8px; font-size: 18px; }
+    p { margin: 0; color: #5f5a53; }
+    code { font: 13px/1.5 "SFMono-Regular", Consolas, monospace; color: #3d352e; }
+    .asset { margin-top: 12px; color: var(--muted); }
+    .archive { color: #76716a; }
+    @media (max-width: 800px) { header, .grid { grid-template-columns: 1fr; } .card.primary { grid-column: auto; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <p class="kicker">Canonical wordmark</p>
+        <h1>ShowCLI</h1>
+        <p class="intro">字标采用路径化 JetBrains Mono Bold，保留开发者工具的终端节奏，同时确保品牌名连续写作，不拆分为两个词。</p>
+      </div>
+      <div class="hero-mark"><img src="../penggie-logo-light.svg" alt="Penggie icon" /></div>
+    </header>
+
+    <section>
+      <h2>正式字标</h2>
+      <div class="grid">
+        <article class="card primary">
+          <div class="preview"><img src="showcli-wordmark-horizontal.svg" alt="ShowCLI horizontal wordmark" /></div>
+          <h3>标准横向字标</h3>
+          <p>默认品牌露出。适合官网页眉、README、文档封面和产品介绍页。</p>
+          <p class="asset"><code>showcli-wordmark-horizontal.svg</code></p>
+        </article>
+        <article class="card">
+          <div class="preview dark"><img src="showcli-wordmark-dark-horizontal.svg" alt="ShowCLI dark horizontal wordmark" /></div>
+          <h3>深色横向字标</h3>
+          <p>用于深色主题、社交图、发布图和高对比展示。</p>
+          <p class="asset"><code>showcli-wordmark-dark-horizontal.svg</code></p>
+        </article>
+        <article class="card">
+          <div class="preview"><img src="showcli-wordmark-stacked.svg" alt="ShowCLI stacked wordmark" /></div>
+          <h3>堆叠组合字标</h3>
+          <p>用于启动页、中心构图和垂直空间更充裕的品牌场景。</p>
+          <p class="asset"><code>showcli-wordmark-stacked.svg</code></p>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <h2>探索稿归档</h2>
+      <p class="archive">其他方向仅保留在 <code>wordmark/explorations/</code> 作为过程记录，不进入主品牌系统。</p>
+    </section>
+  </main>
+</body>
+</html>

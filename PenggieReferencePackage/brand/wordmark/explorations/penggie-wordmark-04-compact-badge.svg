@@ -1,0 +1,22 @@
+<svg viewBox="0 0 320 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Penggie compact badge wordmark">
+  <defs>
+    <radialGradient id="bg" cx="30%" cy="28%" r="88%">
+      <stop offset="0%" stop-color="#2A2A2A"/>
+      <stop offset="100%" stop-color="#0F0F0F"/>
+    </radialGradient>
+    <style>
+      .word { font: 760 38px/1 "SF Pro Display", "Inter", "Avenir Next", "Helvetica Neue", Arial, sans-serif; letter-spacing: 0; }
+    </style>
+  </defs>
+  <rect x="8" y="18" width="304" height="84" rx="8" fill="url(#bg)"/>
+  <g transform="translate(22 20) scale(0.78)">
+    <rect x="32" y="74" width="12" height="6" rx="0.4" fill="#E8773C"/>
+    <rect x="56" y="74" width="12" height="6" rx="0.4" fill="#E8773C"/>
+    <path d="M 20.4 22 L 79.6 22 Q 80 22 80 22.4 L 80 38.6 Q 80 39 80.4 39 L 86.6 39 Q 87 39 87 39.4 L 87 55.6 Q 87 56 86.6 56 L 80.4 56 Q 80 56 80 56.4 L 80 74.6 Q 80 75 79.6 75 L 20.4 75 Q 20 75 20 74.6 L 20 56.4 Q 20 56 19.6 56 L 13.4 56 Q 13 56 13 55.6 L 13 39.4 Q 13 39 13.4 39 L 19.6 39 Q 20 39 20 38.6 L 20 22.4 Q 20 22 20.4 22 Z" fill="#EDEAE2"/>
+    <rect x="28" y="32" width="44" height="30" rx="0.4" fill="#1A1A1A"/>
+    <rect x="36" y="38" width="6" height="9" fill="#E8773C"/>
+    <rect x="58" y="38" width="6" height="9" fill="#E8773C"/>
+    <path d="M 46 52 H 54 V 55 H 52 V 58 H 48 V 55 H 46 Z" fill="#E8773C"/>
+  </g>
+  <text class="word" x="118" y="72" fill="#EDEAE2">Peng<tspan fill="#E8773C">gie</tspan></text>
+</svg>

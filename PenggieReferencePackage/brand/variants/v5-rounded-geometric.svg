@@ -1,0 +1,18 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Head (large circle) -->
+  <circle cx="50" cy="40" r="24" fill="#707070"/>
+  <!-- Face (white oval) -->
+  <ellipse cx="50" cy="44" rx="16" ry="12" fill="white"/>
+  <!-- Eyes (rounded) -->
+  <circle cx="44" cy="42" r="2.5" fill="#1A1A1A"/>
+  <circle cx="56" cy="42" r="2.5" fill="#1A1A1A"/>
+  <!-- Beak (clean triangle) -->
+  <polygon points="46,49 54,49 50,55" fill="#CC6B2C"/>
+  <!-- Body (rounded rectangle) -->
+  <path d="M 28 64 Q 28 60 32 60 L 68 60 Q 72 60 72 64 L 72 78 Q 72 82 68 82 L 32 82 Q 28 82 28 78 Z" fill="#707070"/>
+  <!-- Belly (white) -->
+  <ellipse cx="50" cy="72" rx="11" ry="9" fill="white"/>
+  <!-- Feet (rounded) -->
+  <ellipse cx="42" cy="86" rx="5" ry="2.5" fill="#CC6B2C"/>
+  <ellipse cx="58" cy="86" rx="5" ry="2.5" fill="#CC6B2C"/>
+</svg>

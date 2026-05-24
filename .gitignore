@@ -1,0 +1,53 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.key
+*.mobileprovision
+*.provisionprofile
+
+# Xcode / Swift
+DerivedData/
+build/
+.build/
+*.xcuserstate
+xcuserdata/
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
+
+# Swift Package Manager
+Packages/
+.swiftpm/
+
+# App packaging / signing output
+*.app
+*.dSYM
+*.ipa
+*.pkg
+*.xcarchive
+*.xcresult
+
+# Logs and local diagnostics
+*.log
+logs/
+tmp/
+temp/
+
+# IDE
+.idea/
+.vscode/
+
+# Node tooling, if used for asset scripts
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

@@ -1,0 +1,10 @@
+<svg viewBox="0 0 300 96" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Penggie minimal type wordmark">
+  <defs>
+    <style>
+      .word { font: 780 48px/1 "SF Pro Display", "Inter", "Avenir Next", "Helvetica Neue", Arial, sans-serif; letter-spacing: 0; }
+    </style>
+  </defs>
+  <text class="word" x="20" y="64" fill="#1A1A1A">Penggie</text>
+  <rect x="228" y="28" width="7" height="36" fill="#CC6B2C"/>
+  <rect x="241" y="56" width="22" height="6" rx="0.4" fill="#CC6B2C"/>
+</svg>

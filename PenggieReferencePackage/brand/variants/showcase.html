@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>ShowCLI Logo Variants — Penggie</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", sans-serif;
+    background: #fafaf7;
+    color: #1a1a1a;
+    padding: 60px 40px;
+    line-height: 1.6;
+  }
+  header {
+    max-width: 1320px;
+    margin: 0 auto 60px;
+    text-align: center;
+  }
+  h1 {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+  }
+  .subtitle {
+    color: #707070;
+    font-size: 15px;
+  }
+  .legend {
+    margin-top: 24px;
+    display: inline-flex;
+    gap: 24px;
+    font-size: 13px;
+    color: #707070;
+  }
+  .legend-item { display: flex; align-items: center; gap: 8px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .grid {
+    max-width: 1320px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+  }
+  .card {
+    background: white;
+    border-radius: 12px;
+    padding: 28px 24px 24px;
+    border: 1px solid #ececec;
+    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+    cursor: pointer;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+    border-color: #d0d0d0;
+  }
+  .logo-frame {
+    width: 100%;
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    background: #fdfdfb;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    padding: 24px;
+  }
+  .logo-frame.dark { background: #1f1f1f; }
+  .logo-frame svg { width: 100%; height: 100%; }
+  .meta-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .id-badge {
+    display: inline-block;
+    background: #f0f0ec;
+    color: #707070;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.04em;
+  }
+  .tag {
+    font-size: 11px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+  .tag-cli-strong { background: #fff0e6; color: #b85515; }
+  .tag-cli-light { background: #fff7ef; color: #cc6b2c; }
+  .tag-cli-none { background: #f0f0ec; color: #707070; }
+  .tag-color { background: #1a1a1a; color: #e8e8e8; }
+  h3 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    letter-spacing: -0.01em;
+  }
+  .rationale {
+    font-size: 13px;
+    color: #565656;
+    line-height: 1.5;
+  }
+  .scale-row {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #f0f0ec;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .scale-row svg { display: block; }
+  .scale-row .scale-label {
+    font-size: 11px;
+    color: #999;
+    margin-left: auto;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .scale-32 { width: 32px; height: 32px; }
+  .scale-16 { width: 16px; height: 16px; }
+  footer {
+    max-width: 1320px;
+    margin: 60px auto 0;
+    text-align: center;
+    color: #999;
+    font-size: 13px;
+  }
+  footer code {
+    background: #f0f0ec;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>ShowCLI Logo Variants — Penggie</h1>
+  <p class="subtitle">从原像素企鹅出发，简化几何 × 探索 CLI 融入度</p>
+  <div class="legend">
+    <div class="legend-item"><span class="legend-dot" style="background:#b85515"></span>强 CLI 融入</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#cc6b2c"></span>轻 CLI 融入</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#707070"></span>无 CLI 元素</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#1a1a1a"></span>色彩反转</div>
+  </div>
+</header>
+
+<div class="grid">
+
+  <!-- V1 -->
+  <div class="card">
+    <div class="logo-frame">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="12" width="84" height="76" rx="6" fill="none" stroke="#707070" stroke-width="2"/><circle cx="15" cy="19" r="2" fill="#FF5F56"/><circle cx="22" cy="19" r="2" fill="#FFBD2E"/><circle cx="29" cy="19" r="2" fill="#27C93F"/><line x1="8" y1="26" x2="92" y2="26" stroke="#707070" stroke-width="1" opacity="0.4"/><rect x="32" y="36" width="36" height="40" rx="5" fill="#707070"/><rect x="38" y="42" width="24" height="20" rx="2" fill="white"/><rect x="42" y="47" width="4" height="5" fill="#1A1A1A"/><rect x="54" y="47" width="4" height="5" fill="#1A1A1A"/><rect x="46" y="55" width="8" height="2" fill="#CC6B2C"/><rect x="48" y="57" width="4" height="3" fill="#CC6B2C"/><rect x="38" y="78" width="8" height="3" rx="1" fill="#CC6B2C"/><rect x="54" y="78" width="8" height="3" rx="1" fill="#CC6B2C"/></svg>
+    </div>
+    <div class="meta-row"><span class="id-badge">V1</span><span class="tag tag-cli-strong">强 CLI</span></div>
+    <h3>Terminal Window</h3>
+    <p class="rationale">企鹅装进 macOS 终端窗口（含红黄绿交通灯）。视觉直接讲产品：终端里跑 agent。最 literal 的版本。</p>
+    <div class="scale-row">
+      <svg class="scale-32" viewBox="0 0 100 100"><rect x="8" y="12" width="84" height="76" rx="6" fill="none" stroke="#707070" stroke-width="2"/><circle cx="15" cy="19" r="2" fill="#FF5F56"/><circle cx="22" cy="19" r="2" fill="#FFBD2E"/><circle cx="29" cy="19" r="2" fill="#27C93F"/><line x1="8" y1="26" x2="92" y2="26" stroke="#707070" stroke-width="1" opacity="0.4"/><rect x="32" y="36" width="36" height="40" rx="5" fill="#707070"/><rect x="38" y="42" width="24" height="20" rx="2" fill="white"/><rect x="42" y="47" width="4" height="5" fill="#1A1A1A"/><rect x="54" y="47" width="4" height="5" fill="#1A1A1A"/><rect x="46" y="55" width="8" height="2" fill="#CC6B2C"/><rect x="48" y="57" width="4" height="3" fill="#CC6B2C"/><rect x="38" y="78" width="8" height="3" rx="1" fill="#CC6B2C"/><rect x="54" y="78" width="8" height="3" rx="1" fill="#CC6B2C"/></svg>
+      <svg class="scale-16" viewBox="0 0 100 100"><rect x="8" y="12" width="84" height="76" rx="6" fill="none" stroke="#707070" stroke-width="2"/><rect x="32" y="36" width="36" height="40" rx="5" fill="#707070"/><rect x="38" y="42" width="24" height="20" rx="2" fill="white"/><rect x="42" y="47" width="4" height="5" fill="#1A1A1A"/><rect x="54" y="47" width="4" height="5" fill="#1A1A1A"/><rect x="46" y="55" width="8" height="2" fill="#CC6B2C"/><rect x="48" y="57" width="4" height="3" fill="#CC6B2C"/></svg>
+      <span class="scale-label">32 · 16</span>
+    </div>
+  </div>
+
+  <!-- V2 -->
+  <div class="card">
+    <div class="logo-frame">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><polyline points="10,38 22,50 10,62" fill="none" stroke="#CC6B2C" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="32" y="22" width="56" height="56" rx="5" fill="#707070"/><rect x="28" y="44" width="4" height="14" rx="1" fill="#707070"/><rect x="88" y="44" width="4" height="14" rx="1" fill="#707070"/><rect x="38" y="32" width="44" height="26" rx="2" fill="white"/><rect x="46" y="38" width="5" height="6" fill="#1A1A1A"/><rect x="69" y="38" width="5" height="6" fill="#1A1A1A"/><rect x="56" y="48" width="8" height="3" fill="#CC6B2C"/><rect x="58" y="51" width="4" height="3" fill="#CC6B2C"/><rect x="44" y="80" width="10" height="3" rx="1" fill="#CC6B2C"/><rect x="66" y="80" width="10" height="3" rx="1" fill="#CC6B2C"/></svg>
+    </div>
+    <div class="meta-row"><span class="id-badge">V2</span><span class="tag tag-cli-strong">强 CLI</span></div>
+    <h3>Prompt Penguin</h3>
+    <p class="rationale">橙色 <code>&gt;</code> shell prompt 紧挨企鹅，暗示"该你说话了"。轻量、识别度高，favicon 也好看。</p>
+    <div class="scale-row">
+      <svg class="scale-32" viewBox="0 0 100 100"><polyline points="10,38 22,50 10,62" fill="none" stroke="#CC6B2C" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="32" y="22" width="56" height="56" rx="5" fill="#707070"/><rect x="28" y="44" width="4" height="14" rx="1" fill="#707070"/><rect x="88" y="44" width="4" height="14" rx="1" fill="#707070"/><rect x="38" y="32" width="44" height="26" rx="2" fill="white"/><rect x="46" y="38" width="5" height="6" fill="#1A1A1A"/><rect x="69" y="38" width="5" height="6" fill="#1A1A1A"/><rect x="56" y="48" width="8" height="3" fill="#CC6B2C"/><rect x="58" y="51" width="4" height="3" fill="#CC6B2C"/></svg>
+      <svg class="scale-16" viewBox="0 0 100 100"><polyline points="10,38 22,50 10,62" fill="none" stroke="#CC6B2C" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><rect x="32" y="22" width="56" height="56" rx="5" fill="#707070"/><rect x="38" y="32" width="44" height="26" rx="2" fill="white"/><rect x="46" y="38" width="5" height="6" fill="#1A1A1A"/><rect x="69" y="38" width="5" height="6" fill="#1A1A1A"/></svg>
+      <span class="scale-label">32 · 16</span>
+    </div>
+  </div>
+
+  <!-- V3 -->
+  <div class="card">
+    <div class="logo-frame">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="20" y="20" width="60" height="60" rx="8" fill="#707070"/><rect x="16" y="42" width="4" height="16" rx="1" fill="#707070"/><rect x="80" y="42" width="4" height="16" rx="1" fill="#707070"/><rect x="28" y="30" width="44" height="30" rx="3" fill="white"/><rect x="36" y="36" width="6" height="10" fill="#1A1A1A"><animate attributeName="opacity" values="1;1;1;0;0;1" dur="1.4s" repeatCount="indefinite"/></rect><rect x="58" y="36" width="6" height="10" fill="#1A1A1A"><animate attributeName="opacity" values="1;1;1;0;0;1" dur="1.4s" repeatCount="indefinite"/></rect><rect x="46" y="50" width="8" height="3" fill="#CC6B2C"/><rect x="48" y="53" width="4" height="3" fill="#CC6B2C"/><rect x="34" y="82" width="10" height="4" rx="1" fill="#CC6B2C"/><rect x="56" y="82" width="10" height="4" rx="1" fill="#CC6B2C"/></svg>
+    </div>
+    <div class="meta-row"><span class="id-badge">V3</span><span class="tag tag-cli-light">轻 CLI</span></div>
+    <h3>Cursor Eyes</h3>
+    <p class="rationale">眼睛改成终端光标块且会闪烁。第一眼看到的是企鹅，第二眼发现是 CLI 工具。微妙暗示。</p>
+    <div class="scale-row">
+      <svg class="scale-32" viewBox="0 0 100 100"><rect x="20" y="20" width="60" height="60" rx="8" fill="#707070"/><rect x="16" y="42" width="4" height="16" rx="1" fill="#707070"/><rect x="80" y="42" width="4" height="16" rx="1" fill="#707070"/><rect x="28" y="30" width="44" height="30" rx="3" fill="white"/><rect x="36" y="36" width="6" height="10" fill="#1A1A1A"/><rect x="58" y="36" width="6" height="10" fill="#1A1A1A"/><rect x="46" y="50" width="8" height="3" fill="#CC6B2C"/><rect x="48" y="53" width="4" height="3" fill="#CC6B2C"/></svg>
+      <svg class="scale-16" viewBox="0 0 100 100"><rect x="20" y="20" width="60" height="60" rx="8" fill="#707070"/><rect x="28" y="30" width="44" height="30" rx="3" fill="white"/><rect x="36" y="36" width="6" height="10" fill="#1A1A1A"/><rect x="58" y="36" width="6" height="10" fill="#1A1A1A"/><rect x="46" y="50" width="8" height="3" fill="#CC6B2C"/></svg>
+      <span class="scale-label">32 · 16</span>
+    </div>
+  </div>
+
+  <!-- V4 -->
+  <div class="card">
+    <div class="logo-frame">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="20" y="20" width="60" height="60" rx="8" fill="#707070"/><rect x="16" y="42" width="4" height="16" rx="1" fill="#707070"/><rect x="80" y="42" width="4" height="16" rx="1" fill="#707070"/><rect x="28" y="30" width="44" height="30" rx="3" fill="white"/><rect x="36" y="36" width="6" height="7" fill="#1A1A1A"/><rect x="58" y="36" width="6" height="7" fill="#1A1A1A"/><polyline points="44,49 53,55 44,61" fill="none" stroke="#CC6B2C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><rect x="34" y="82" width="10" height="4" rx="1" fill="#CC6B2C"/><rect x="56" y="82" width="10" height="4" rx="1" fill="#CC6B2C"/></svg>
+    </div>
+    <div class="meta-row"><span class="id-badge">V4</span><span class="tag tag-cli-light">轻 CLI</span></div>
+    <h3>Chevron Beak</h3>
+    <p class="rationale">鸟喙换成 <code>&gt;</code> 形 chevron。最低限度的"CLI 暗示"，仍然 100% 是一只企鹅。优雅且可记。</p>
+    <div class="scale-row">
+      <svg class="scale-32" viewBox="0 0 100 100"><rect x="20" y="20" width="60" height="60" rx="8" fill="#707070"/><rect x="16" y="42" width="4" height="16" rx="1" fill="#707070"/><rect x="80" y="42" width="4" height="16" rx="1" fill="#707070"/><rect x="28" y="30" width="44" height="30" rx="3" fill="white"/><rect x="36" y="36" width="6" height="7" fill="#1A1A1A"/><rect x="58" y="36" width="6" height="7" fill="#1A1A1A"/><polyline points="44,49 53,55 44,61" fill="none" stroke="#CC6B2C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg class="scale-16" viewBox="0 0 100 100"><rect x="20" y="20" width="60" height="60" rx="8" fill="#707070"/><rect x="28" y="30" width="44" height="30" rx="3" fill="white"/><rect x="36" y="36" width="6" height="7" fill="#1A1A1A"/><rect x="58" y="36" width="6" height="7" fill="#1A1A1A"/><polyline points="44,49 53,55 44,61" fill="none" stroke="#CC6B2C" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="scale-label">32 · 16</span>
+    </div>
+  </div>
+
+  <!-- V5 -->
+  <div class="card">
+    <div class="logo-frame">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="40" r="24" fill="#707070"/><ellipse cx="50" cy="44" rx="16" ry="12" fill="white"/><circle cx="44" cy="42" r="2.5" fill="#1A1A1A"/><circle cx="56" cy="42" r="2.5" fill="#1A1A1A"/><polygon points="46,49 54,49 50,55" fill="#CC6B2C"/><path d="M 28 64 Q 28 60 32 60 L 68 60 Q 72 60 72 64 L 72 78 Q 72 82 68 82 L 32 82 Q 28 82 28 78 Z" fill="#707070"/><ellipse cx="50" cy="72" rx="11" ry="9" fill="white"/><ellipse cx="42" cy="86" rx="5" ry="2.5" fill="#CC6B2C"/><ellipse cx="58" cy="86" rx="5" ry="2.5" fill="#CC6B2C"/></svg>
+    </div>
+    <div class="meta-row"><span class="id-badge">V5</span><span class="tag tag-cli-none">无 CLI</span></div>
+    <h3>Rounded Geometric</h3>
+    <p class="rationale">圆头 + 圆身体 + 圆肚子。最 cute / kawaii，最像独立 IP（可周边、可吉祥物）。柔和友好。</p>
+    <div class="scale-row">
+      <svg class="scale-32" viewBox="0 0 100 100"><circle cx="50" cy="40" r="24" fill="#707070"/><ellipse cx="50" cy="44" rx="16" ry="12" fill="white"/><circle cx="44" cy="42" r="2.5" fill="#1A1A1A"/><circle cx="56" cy="42" r="2.5" fill="#1A1A1A"/><polygon points="46,49 54,49 50,55" fill="#CC6B2C"/><path d="M 28 64 Q 28 60 32 60 L 68 60 Q 72 60 72 64 L 72 78 Q 72 82 68 82 L 32 82 Q 28 82 28 78 Z" fill="#707070"/><ellipse cx="50" cy="72" rx="11" ry="9" fill="white"/></svg>
+      <svg class="scale-16" viewBox="0 0 100 100"><circle cx="50" cy="40" r="24" fill="#707070"/><ellipse cx="50" cy="44" rx="16" ry="12" fill="white"/><circle cx="44" cy="42" r="3" fill="#1A1A1A"/><circle cx="56" cy="42" r="3" fill="#1A1A1A"/><polygon points="46,49 54,49 50,55" fill="#CC6B2C"/></svg>
+      <span class="scale-label">32 · 16</span>
+    </div>
+  </div>
+
+  <!-- V6 -->
+  <div class="card">
+    <div class="logo-frame">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="22" y="18" width="56" height="64" fill="#707070"/><rect x="17" y="38" width="5" height="20" fill="#707070"/><rect x="78" y="38" width="5" height="20" fill="#707070"/><rect x="30" y="28" width="40" height="26" fill="white"/><rect x="36" y="34" width="7" height="7" fill="#1A1A1A"/><rect x="57" y="34" width="7" height="7" fill="#1A1A1A"/><polygon points="45,46 55,46 50,52" fill="#CC6B2C"/><rect x="30" y="84" width="14" height="5" fill="#CC6B2C"/><rect x="56" y="84" width="14" height="5" fill="#CC6B2C"/></svg>
+    </div>
+    <div class="meta-row"><span class="id-badge">V6</span><span class="tag tag-cli-none">无 CLI</span></div>
+    <h3>Strict Geometric</h3>
+    <p class="rationale">严格直角几何，最接近原像素图但 line-perfect。极简，最像 Linear / Vercel 风的严肃工程感。</p>
+    <div class="scale-row">
+      <svg class="scale-32" viewBox="0 0 100 100"><rect x="22" y="18" width="56" height="64" fill="#707070"/><rect x="17" y="38" width="5" height="20" fill="#707070"/><rect x="78" y="38" width="5" height="20" fill="#707070"/><rect x="30" y="28" width="40" height="26" fill="white"/><rect x="36" y="34" width="7" height="7" fill="#1A1A1A"/><rect x="57" y="34" width="7" height="7" fill="#1A1A1A"/><polygon points="45,46 55,46 50,52" fill="#CC6B2C"/></svg>
+      <svg class="scale-16" viewBox="0 0 100 100"><rect x="22" y="18" width="56" height="64" fill="#707070"/><rect x="30" y="28" width="40" height="26" fill="white"/><rect x="36" y="34" width="7" height="7" fill="#1A1A1A"/><rect x="57" y="34" width="7" height="7" fill="#1A1A1A"/><polygon points="45,46 55,46 50,52" fill="#CC6B2C"/></svg>
+      <span class="scale-label">32 · 16</span>
+    </div>
+  </div>
+
+  <!-- V7 -->
+  <div class="card">
+    <div class="logo-frame dark">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="100" height="100" rx="16" fill="#1A1A1A"/><rect x="22" y="22" width="56" height="56" rx="8" fill="#E8E8E8"/><rect x="18" y="44" width="4" height="14" rx="1" fill="#E8E8E8"/><rect x="78" y="44" width="4" height="14" rx="1" fill="#E8E8E8"/><rect x="30" y="32" width="40" height="26" rx="3" fill="#1A1A1A"/><rect x="38" y="38" width="5" height="8" fill="#CC6B2C"/><rect x="57" y="38" width="5" height="8" fill="#CC6B2C"/><rect x="46" y="50" width="8" height="2" fill="#CC6B2C"/><rect x="48" y="52" width="4" height="3" fill="#CC6B2C"/><rect x="34" y="80" width="10" height="3" rx="1" fill="#CC6B2C"/><rect x="56" y="80" width="10" height="3" rx="1" fill="#CC6B2C"/></svg>
+    </div>
+    <div class="meta-row"><span class="id-badge">V7</span><span class="tag tag-color">色彩反转</span></div>
+    <h3>Dark Mono</h3>
+    <p class="rationale">深色底 app icon 风。橙色眼睛=终端光标。适合做 macOS dock icon、深色主题场景下视觉很强。</p>
+    <div class="scale-row">
+      <svg class="scale-32" viewBox="0 0 100 100"><rect x="0" y="0" width="100" height="100" rx="16" fill="#1A1A1A"/><rect x="22" y="22" width="56" height="56" rx="8" fill="#E8E8E8"/><rect x="30" y="32" width="40" height="26" rx="3" fill="#1A1A1A"/><rect x="38" y="38" width="5" height="8" fill="#CC6B2C"/><rect x="57" y="38" width="5" height="8" fill="#CC6B2C"/><rect x="46" y="50" width="8" height="2" fill="#CC6B2C"/><rect x="48" y="52" width="4" height="3" fill="#CC6B2C"/></svg>
+      <svg class="scale-16" viewBox="0 0 100 100"><rect x="0" y="0" width="100" height="100" rx="16" fill="#1A1A1A"/><rect x="22" y="22" width="56" height="56" rx="8" fill="#E8E8E8"/><rect x="30" y="32" width="40" height="26" rx="3" fill="#1A1A1A"/><rect x="38" y="38" width="5" height="8" fill="#CC6B2C"/><rect x="57" y="38" width="5" height="8" fill="#CC6B2C"/></svg>
+      <span class="scale-label">32 · 16</span>
+    </div>
+  </div>
+
+  <!-- V8 -->
+  <div class="card">
+    <div class="logo-frame">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M 12 18 Q 12 12 18 12 L 82 12 Q 88 12 88 18 L 88 70 Q 88 76 82 76 L 32 76 L 22 84 L 26 76 L 18 76 Q 12 76 12 70 Z" fill="none" stroke="#707070" stroke-width="2"/><rect x="32" y="24" width="36" height="40" rx="5" fill="#707070"/><rect x="38" y="30" width="24" height="20" rx="2" fill="white"/><rect x="42" y="35" width="4" height="5" fill="#1A1A1A"/><rect x="54" y="35" width="4" height="5" fill="#1A1A1A"/><rect x="46" y="43" width="8" height="2" fill="#CC6B2C"/><rect x="48" y="45" width="4" height="3" fill="#CC6B2C"/><rect x="38" y="66" width="8" height="3" rx="1" fill="#CC6B2C"/><rect x="54" y="66" width="8" height="3" rx="1" fill="#CC6B2C"/></svg>
+    </div>
+    <div class="meta-row"><span class="id-badge">V8</span><span class="tag tag-cli-strong">强 CLI</span></div>
+    <h3>Chat Bubble</h3>
+    <p class="rationale">企鹅装进 chat 气泡（带 tail）。直接讲产品定位：chat-shaped terminal。比 V1 更强调 chat 一面。</p>
+    <div class="scale-row">
+      <svg class="scale-32" viewBox="0 0 100 100"><path d="M 12 18 Q 12 12 18 12 L 82 12 Q 88 12 88 18 L 88 70 Q 88 76 82 76 L 32 76 L 22 84 L 26 76 L 18 76 Q 12 76 12 70 Z" fill="none" stroke="#707070" stroke-width="2"/><rect x="32" y="24" width="36" height="40" rx="5" fill="#707070"/><rect x="38" y="30" width="24" height="20" rx="2" fill="white"/><rect x="42" y="35" width="4" height="5" fill="#1A1A1A"/><rect x="54" y="35" width="4" height="5" fill="#1A1A1A"/><rect x="46" y="43" width="8" height="2" fill="#CC6B2C"/><rect x="48" y="45" width="4" height="3" fill="#CC6B2C"/></svg>
+      <svg class="scale-16" viewBox="0 0 100 100"><path d="M 12 18 Q 12 12 18 12 L 82 12 Q 88 12 88 18 L 88 70 Q 88 76 82 76 L 32 76 L 22 84 L 26 76 L 18 76 Q 12 76 12 70 Z" fill="none" stroke="#707070" stroke-width="3"/><rect x="32" y="24" width="36" height="40" rx="5" fill="#707070"/><rect x="38" y="30" width="24" height="20" rx="2" fill="white"/><rect x="42" y="35" width="4" height="5" fill="#1A1A1A"/><rect x="54" y="35" width="4" height="5" fill="#1A1A1A"/></svg>
+      <span class="scale-label">32 · 16</span>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  8 个变体，每个都从你原图配色出发（灰 #707070 / 橙 #CC6B2C / 黑 #1A1A1A / 白）。每张卡片下方有 32px / 16px 缩略测试视图。<br>
+  在浏览器打开此文件：<code>open /Users/showing/A-ThinkBig/Project-ShowCLI/BrandLogo/Insight/variants/showcase.html</code>
+</footer>
+
+</body>
+</html>

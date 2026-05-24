@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Blocky Balance — Penggie</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", sans-serif;
+    background: #fafaf7;
+    color: #1a1a1a;
+    padding: 60px 40px;
+    line-height: 1.6;
+  }
+  .container { max-width: 1320px; margin: 0 auto; }
+  h1 {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+  }
+  .subtitle {
+    color: #707070;
+    font-size: 15px;
+    margin-bottom: 50px;
+  }
+
+  /* Evolution row: 3 columns */
+  .evolution {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+  .evo-card {
+    background: white;
+    border-radius: 12px;
+    padding: 28px;
+    border: 1px solid #ececec;
+    text-align: center;
+  }
+  .evo-card.bad { border-color: #ddd; opacity: 0.85; }
+  .evo-card.good {
+    border-color: #CC6B2C;
+    box-shadow: 0 0 0 1px #CC6B2C inset;
+  }
+  .evo-stage {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #999;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .evo-card.good .evo-stage { color: #CC6B2C; }
+  .evo-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    letter-spacing: -0.01em;
+  }
+  .evo-canvas {
+    width: 200px;
+    height: 200px;
+    margin: 0 auto 16px;
+    display: block;
+  }
+  .evo-canvas.pixel { image-rendering: pixelated; image-rendering: crisp-edges; }
+  .evo-notes {
+    font-size: 12px;
+    color: #666;
+    line-height: 1.55;
+    text-align: left;
+  }
+  .evo-notes ul { list-style: none; padding-left: 0; }
+  .evo-notes li {
+    padding: 3px 0 3px 14px;
+    position: relative;
+  }
+  .evo-notes li::before {
+    content: "·";
+    position: absolute;
+    left: 4px;
+    color: #999;
+  }
+  .evo-card.good .evo-notes li::before { color: #CC6B2C; content: "→"; }
+
+  /* Section */
+  section { margin-bottom: 56px; }
+  h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #ececec;
+  }
+
+  /* Property comparison */
+  .props-table {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid #ececec;
+    overflow: hidden;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th, td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid #f0f0ec;
+  }
+  th {
+    font-weight: 600;
+    color: #555;
+    background: #fafaf7;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  td.col-bad { color: #999; text-decoration: line-through; }
+  td.col-good { color: #1a1a1a; font-weight: 500; }
+  td.col-good code { background: #fff0e6; color: #b85515; padding: 1px 6px; border-radius: 3px; font-size: 12px; }
+
+  /* Scale grid */
+  .scale-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #ececec;
+    align-items: end;
+  }
+  .scale-grid.dark { background: #1f1f1f; border-color: #333; }
+  .scale-cell { text-align: center; }
+  .scale-cell .scale-label {
+    font-size: 10px;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 8px;
+  }
+  .scale-grid.dark .scale-label { color: #888; }
+
+  /* Final card */
+  .final {
+    background: #1f1f1f;
+    color: white;
+    padding: 32px;
+    border-radius: 12px;
+  }
+  .final h2 { color: white; border: none; }
+  .final p { color: #ccc; }
+  .final code {
+    background: #2a2a2a;
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: #E8773C;
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <h1>Blocky Balance — 把方块感找回来</h1>
+  <p class="subtitle">用户反馈"过于圆角化"。回看原图 DNA，重新校准：保留 pixel-art 方块气质 + 仅做最小 vector polish</p>
+
+  <!-- Evolution row -->
+  <section>
+    <h2>设计演化 · 三个阶段</h2>
+    <div class="evolution">
+      <!-- Stage 1: Original pixel -->
+      <div class="evo-card bad">
+        <div class="evo-stage">STAGE 1 · ORIGINAL</div>
+        <div class="evo-title">原始像素企鹅</div>
+        <svg class="evo-canvas" viewBox="0 0 100 100" shape-rendering="crispEdges">
+          <!-- pixel-perfect replication of original -->
+          <rect x="22" y="20" width="56" height="60" fill="#828282"/>
+          <rect x="14" y="40" width="8" height="14" fill="#828282"/>
+          <rect x="78" y="40" width="8" height="14" fill="#828282"/>
+          <rect x="30" y="28" width="40" height="28" fill="white"/>
+          <rect x="36" y="34" width="8" height="10" fill="#000000"/>
+          <rect x="56" y="34" width="8" height="10" fill="#000000"/>
+          <rect x="44" y="46" width="12" height="4" fill="#CC6B2C"/>
+          <rect x="48" y="50" width="4" height="6" fill="#CC6B2C"/>
+          <rect x="32" y="80" width="14" height="6" fill="#CC6B2C"/>
+          <rect x="54" y="80" width="14" height="6" fill="#CC6B2C"/>
+        </svg>
+        <div class="evo-notes">
+          <ul>
+            <li>纯方块 sharp 90°</li>
+            <li>翅膀矩形凸起 sharp</li>
+            <li>blocky / retro / 8-bit DNA</li>
+            <li>但: 像素 aliasing 锯齿感强</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Stage 2: Over-rounded -->
+      <div class="evo-card bad">
+        <div class="evo-stage">STAGE 2 · OVER-ROUNDED</div>
+        <div class="evo-title">过圆版（错了的方向）</div>
+        <svg class="evo-canvas" viewBox="0 0 100 100">
+          <path d="M 30 22 L 70 22 Q 80 22 80 32 L 80 44 Q 85 44 85 49 L 85 59 Q 85 64 80 64 L 80 72 Q 80 82 70 82 L 30 82 Q 20 82 20 72 L 20 64 Q 15 64 15 59 L 15 49 Q 15 44 20 44 L 20 32 Q 20 22 30 22 Z" fill="#707070"/>
+          <rect x="28" y="32" width="44" height="30" rx="4" fill="white"/>
+          <rect x="36" y="38" width="6" height="10" fill="#1A1A1A"/>
+          <rect x="58" y="38" width="6" height="10" fill="#1A1A1A"/>
+          <rect x="46" y="52" width="8" height="3" fill="#CC6B2C"/>
+          <rect x="48" y="55" width="4" height="3" fill="#CC6B2C"/>
+          <rect x="33" y="82" width="11" height="4" rx="1.5" fill="#CC6B2C"/>
+          <rect x="56" y="82" width="11" height="4" rx="1.5" fill="#CC6B2C"/>
+        </svg>
+        <div class="evo-notes">
+          <ul>
+            <li>身体 rx=10，圆润 mascot 感</li>
+            <li>翅膀 smooth Q-bump 像吹气球</li>
+            <li>脸 rx=4，软</li>
+            <li>丢失原 pixel DNA → "Slack 风吉祥物"</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Stage 3: Just right -->
+      <div class="evo-card good">
+        <div class="evo-stage">STAGE 3 · JUST RIGHT</div>
+        <div class="evo-title">校准版（现在）</div>
+        <svg class="evo-canvas" viewBox="0 0 100 100">
+          <path d="M 23 22 L 77 22 Q 80 22 80 25 L 80 44 L 85 44 Q 87 44 87 46 L 87 62 Q 87 64 85 64 L 80 64 L 80 79 Q 80 82 77 82 L 23 82 Q 20 82 20 79 L 20 64 L 15 64 Q 13 64 13 62 L 13 46 Q 13 44 15 44 L 20 44 L 20 25 Q 20 22 23 22 Z" fill="#707070"/>
+          <rect x="28" y="32" width="44" height="30" rx="2" fill="white"/>
+          <rect x="36" y="38" width="6" height="10" fill="#1A1A1A">
+            <animate attributeName="opacity" calcMode="discrete" values="1;0;1" keyTimes="0;0.6;1" dur="1s" repeatCount="indefinite"/>
+          </rect>
+          <rect x="58" y="38" width="6" height="10" fill="#1A1A1A">
+            <animate attributeName="opacity" calcMode="discrete" values="1;0;1" keyTimes="0;0.6;1" dur="1s" repeatCount="indefinite"/>
+          </rect>
+          <rect x="46" y="52" width="8" height="3" fill="#CC6B2C"/>
+          <rect x="48" y="55" width="4" height="3" fill="#CC6B2C"/>
+          <rect x="33" y="82" width="11" height="4" rx="1" fill="#CC6B2C"/>
+          <rect x="56" y="82" width="11" height="4" rx="1" fill="#CC6B2C"/>
+        </svg>
+        <div class="evo-notes">
+          <ul>
+            <li>身体 rx=3 微 chamfer，方形 DNA</li>
+            <li>翅膀矩形 protrusion + 外角 rx=2</li>
+            <li>翅膀 7px 宽，小尺寸不消失</li>
+            <li>单一连续 path → 翅膀和谐连接</li>
+            <li>脸 rx=2，"monitor 屏幕"感</li>
+            <li>眼睛 / 鸟喙 sharp（保留 pixel DNA）</li>
+            <li>整体：blocky-but-polished</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Property comparison table -->
+  <section>
+    <h2>逐项对照</h2>
+    <div class="props-table">
+      <table>
+        <thead>
+          <tr>
+            <th>元素</th>
+            <th>Stage 1 原图</th>
+            <th>Stage 2 过圆</th>
+            <th>Stage 3 现在</th>
+            <th>设计理由</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>身体拐角</strong></td>
+            <td>sharp 90°</td>
+            <td class="col-bad">rx = 10</td>
+            <td class="col-good"><code>rx = 3</code></td>
+            <td>仅 vector polish，保留方形 DNA</td>
+          </tr>
+          <tr>
+            <td><strong>翅膀形状</strong></td>
+            <td>矩形 sharp 凸起</td>
+            <td class="col-bad">Q-curve smooth bump (r=5)</td>
+            <td class="col-good">矩形 protrusion + <code>外角 rx=2</code></td>
+            <td>保 blocky 凸起，仅外角微 chamfer</td>
+          </tr>
+          <tr>
+            <td><strong>翅膀凸起宽度</strong></td>
+            <td>~3 像素 (≈9% body)</td>
+            <td class="col-bad">5px (8%)</td>
+            <td class="col-good"><code>7px</code> (12%)</td>
+            <td>稍微加大，小尺寸下不消失</td>
+          </tr>
+          <tr>
+            <td><strong>身体 + 翅膀拓扑</strong></td>
+            <td>3 个独立 rect</td>
+            <td class="col-bad">单一 path（圆 bump）</td>
+            <td class="col-good">单一 path（矩形 step）</td>
+            <td>保留 path 连续，避免 visual break</td>
+          </tr>
+          <tr>
+            <td><strong>脸（显示器）拐角</strong></td>
+            <td>sharp 90°</td>
+            <td class="col-bad">rx = 4</td>
+            <td class="col-good"><code>rx = 2</code></td>
+            <td>"monitor 屏幕"感，仅最小软化</td>
+          </tr>
+          <tr>
+            <td><strong>眼睛</strong></td>
+            <td>sharp 方块</td>
+            <td>sharp ✓</td>
+            <td>sharp ✓ (+ blink)</td>
+            <td>保留原 DNA</td>
+          </tr>
+          <tr>
+            <td><strong>鸟喙</strong></td>
+            <td>sharp T 字</td>
+            <td>sharp ✓</td>
+            <td>sharp ✓</td>
+            <td>保留原 DNA</td>
+          </tr>
+          <tr>
+            <td><strong>脚</strong></td>
+            <td>sharp 长方</td>
+            <td class="col-bad">rx = 1.5</td>
+            <td class="col-good"><code>rx = 1</code></td>
+            <td>几乎 sharp，仅微 chamfer 防锯齿</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Live preview at scale: V3 light -->
+  <section>
+    <h2>V3 · 浅色 · 多尺寸验证</h2>
+    <div class="scale-grid">
+      <div class="scale-cell">
+        <svg width="120" height="120" viewBox="0 0 100 100">
+          <path d="M 23 22 L 77 22 Q 80 22 80 25 L 80 44 L 85 44 Q 87 44 87 46 L 87 62 Q 87 64 85 64 L 80 64 L 80 79 Q 80 82 77 82 L 23 82 Q 20 82 20 79 L 20 64 L 15 64 Q 13 64 13 62 L 13 46 Q 13 44 15 44 L 20 44 L 20 25 Q 20 22 23 22 Z" fill="#707070"/>
+          <rect x="28" y="32" width="44" height="30" rx="2" fill="white"/>
+          <rect x="36" y="38" width="6" height="10" fill="#1A1A1A"/>
+          <rect x="58" y="38" width="6" height="10" fill="#1A1A1A"/>
+          <rect x="46" y="52" width="8" height="3" fill="#CC6B2C"/>
+          <rect x="48" y="55" width="4" height="3" fill="#CC6B2C"/>
+          <rect x="33" y="82" width="11" height="4" rx="1" fill="#CC6B2C"/>
+          <rect x="56" y="82" width="11" height="4" rx="1" fill="#CC6B2C"/>
+        </svg>
+        <div class="scale-label">120 PX</div>
+      </div>
+      <div class="scale-cell">
+        <svg width="80" height="80" viewBox="0 0 100 100">
+          <path d="M 23 22 L 77 22 Q 80 22 80 25 L 80 44 L 85 44 Q 87 44 87 46 L 87 62 Q 87 64 85 64 L 80 64 L 80 79 Q 80 82 77 82 L 23 82 Q 20 82 20 79 L 20 64 L 15 64 Q 13 64 13 62 L 13 46 Q 13 44 15 44 L 20 44 L 20 25 Q 20 22 23 22 Z" fill="#707070"/>
+          <rect x="28" y="32" width="44" height="30" rx="2" fill="white"/>
+          <rect x="36" y="38" width="6" height="10" fill="#1A1A1A"/>
+          <rect x="58" y="38" width="6" height="10" fill="#1A1A1A"/>
+          <rect x="46" y="52" width="8" height="3" fill="#CC6B2C"/>
+          <rect x="48" y="55" width="4" height="3" fill="#CC6B2C"/>
+          <rect x="33" y="82" width="11" height="4" rx="1" fill="#CC6B2C"/>
+          <rect x="56" y="82" width="11" height="4" rx="1" fill="#CC6B2C"/>
+        </svg>
+        <div class="scale-label">80 PX</div>
+      </div>
+      <div class="scale-cell">
+        <svg width="48" height="48" viewBox="0 0 100 100">
+          <path d="M 23 22 L 77 22 Q 80 22 80 25 L 80 44 L 85 44 Q 87 44 87 46 L 87 62 Q 87 64 85 64 L 80 64 L 80 79 Q 80 82 77 82 L 23 82 Q 20 82 20 79 L 20 64 L 15 64 Q 13 64 13 62 L 13 46 Q 13 44 15 44 L 20 44 L 20 25 Q 20 22 23 22 Z" fill="#707070"/>
+          <rect x="28" y="32" width="44" height="30" rx="2" fill="white"/>
+          <rect x="36" y="38" width="6" height="10" fill="#1A1A1A"/>
+          <rect x="58" y="38" width="6" height="10" fill="#1A1A1A"/>
+          <rect x="46" y="52" width="8" height="3" fill="#CC6B2C"/>
+          <rect x="48" y="55" width="4" height="3" fill="#CC6B2C"/>
+        </svg>
+        <div class="scale-label">48 PX</div>
+      </div>
+      <div class="scale-cell">
+        <svg width="32" height="32" viewBox="0 0 100 100">
+          <path d="M 23 22 L 77 22 Q 80 22 80 25 L 80 44 L 85 44 Q 87 44 87 46 L 87 62 Q 87 64 85 64 L 80 64 L 80 79 Q 80 82 77 82 L 23 82 Q 20 82 20 79 L 20 64 L 15 64 Q 13 64 13 62 L 13 46 Q 13 44 15 44 L 20 44 L 20 25 Q 20 22 23 22 Z" fill="#707070"/>
+          <rect x="28" y="32" width="44" height="30" rx="2" fill="white"/>
+          <rect x="36" y="38" width="6" height="10" fill="#1A1A1A"/>
+          <rect x="58" y="38" width="6" height="10" fill="#1A1A1A"/>
+          <rect x="46" y="52" width="8" height="3" fill="#CC6B2C"/>
+        </svg>
+        <div class="scale-label">32 PX</div>
+      </div>
+      <div class="scale-cell">
+        <svg width="16" height="16" viewBox="0 0 100 100">
+          <path d="M 23 22 L 77 22 Q 80 22 80 25 L 80 44 L 85 44 Q 87 44 87 46 L 87 62 Q 87 64 85 64 L 80 64 L 80 79 Q 80 82 77 82 L 23 82 Q 20 82 20 79 L 20 64 L 15 64 Q 13 64 13 62 L 13 46 Q 13 44 15 44 L 20 44 L 20 25 Q 20 22 23 22 Z" fill="#707070"/>
+          <rect x="28" y="32" width="44" height="30" rx="2" fill="white"/>
+          <rect x="36" y="38" width="6" height="10" fill="#1A1A1A"/>
+          <rect x="58" y="38" width="6" height="10" fill="#1A1A1A"/>
+        </svg>
+        <div class="scale-label">16 PX</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- V7 dark -->
+  <section>
+    <h2>V7 · 深色 · 多尺寸验证</h2>
+    <div class="scale-grid dark">
+      <div class="scale-cell">
+        <svg width="120" height="120" viewBox="0 0 100 100">
+          <defs><radialGradient id="bg120" cx="50%" cy="38%" r="78%"><stop offset="0%" stop-color="#2A2A2A"/><stop offset="100%" stop-color="#0F0F0F"/></radialGradient></defs>
+          <rect x="0" y="0" width="100" height="100" rx="22" fill="url(#bg120)"/>
+          <path d="M 23 22 L 77 22 Q 80 22 80 25 L 80 44 L 85 44 Q 87 44 87 46 L 87 62 Q 87 64 85 64 L 80 64 L 80 79 Q 80 82 77 82 L 23 82 Q 20 82 20 79 L 20 64 L 15 64 Q 13 64 13 62 L 13 46 Q 13 44 15 44 L 20 44 L 20 25 Q 20 22 23 22 Z" fill="#EDEAE2"/>
+          <rect x="28" y="32" width="44" height="30" rx="2" fill="#1A1A1A"/>
+          <rect x="36" y="38" width="6" height="10" fill="#E8773C"/>
+          <rect x="58" y="38" width="6" height="10" fill="#E8773C"/>
+          <rect x="46" y="52" width="8" height="3" fill="#E8773C"/>
+          <rect x="48" y="55" width="4" height="3" fill="#E8773C"/>
+          <rect x="33" y="82" width="11" height="4" rx="1" fill="#E8773C"/>
+          <rect x="56" y="82" width="11" height="4" rx="1" fill="#E8773C"/>
+        </svg>
+        <div class="scale-label">120 PX</div>
+      </div>
+      <div class="scale-cell">
+        <svg width="80" height="80" viewBox="0 0 100 100">
+          <defs><radialGradient id="bg80" cx="50%" cy="38%" r="78%"><stop offset="0%" stop-color="#2A2A2A"/><stop offset="100%" stop-color="#0F0F0F"/></radialGradient></defs>
+          <rect x="0" y="0" width="100" height="100" rx="22" fill="url(#bg80)"/>
+          <path d="M 23 22 L 77 22 Q 80 22 80 25 L 80 44 L 85 44 Q 87 44 87 46 L 87 62 Q 87 64 85 64 L 80 64 L 80 79 Q 80 82 77 82 L 23 82 Q 20 82 20 79 L 20 64 L 15 64 Q 13 64 13 62 L 13 46 Q 13 44 15 44 L 20 44 L 20 25 Q 20 22 23 22 Z" fill="#EDEAE2"/>
+          <rect x="28" y="32" width="44" height="30" rx="2" fill="#1A1A1A"/>
+          <rect x="36" y="38" width="6" height="10" fill="#E8773C"/>
+          <rect x="58" y="38" width="6" height="10" fill="#E8773C"/>
+          <rect x="46" y="52" width="8" height="3" fill="#E8773C"/>
+          <rect x="48" y="55" width="4" height="3" fill="#E8773C"/>
+          <rect x="33" y="82" width="11" height="4" rx="1" fill="#E8773C"/>
+          <rect x="56" y="82" width="11" height="4" rx="1" fill="#E8773C"/>
+        </svg>
+        <div class="scale-label">80 PX</div>
+      </div>
+      <div class="scale-cell">
+        <svg width="48" height="48" viewBox="0 0 100 100">
+          <defs><radialGradient id="bg48" cx="50%" cy="38%" r="78%"><stop offset="0%" stop-color="#2A2A2A"/><stop offset="100%" stop-color="#0F0F0F"/></radialGradient></defs>
+          <rect x="0" y="0" width="100" height="100" rx="22" fill="url(#bg48)"/>
+          <path d="M 23 22 L 77 22 Q 80 22 80 25 L 80 44 L 85 44 Q 87 44 87 46 L 87 62 Q 87 64 85 64 L 80 64 L 80 79 Q 80 82 77 82 L 23 82 Q 20 82 20 79 L 20 64 L 15 64 Q 13 64 13 62 L 13 46 Q 13 44 15 44 L 20 44 L 20 25 Q 20 22 23 22 Z" fill="#EDEAE2"/>
+          <rect x="28" y="32" width="44" height="30" rx="2" fill="#1A1A1A"/>
+          <rect x="36" y="38" width="6" height="10" fill="#E8773C"/>
+          <rect x="58" y="38" width="6" height="10" fill="#E8773C"/>
+          <rect x="46" y="52" width="8" height="3" fill="#E8773C"/>
+          <rect x="48" y="55" width="4" height="3" fill="#E8773C"/>
+        </svg>
+        <div class="scale-label">48 PX</div>
+      </div>
+      <div class="scale-cell">
+        <svg width="32" height="32" viewBox="0 0 100 100">
+          <defs><radialGradient id="bg32" cx="50%" cy="38%" r="78%"><stop offset="0%" stop-color="#2A2A2A"/><stop offset="100%" stop-color="#0F0F0F"/></radialGradient></defs>
+          <rect x="0" y="0" width="100" height="100" rx="22" fill="url(#bg32)"/>
+          <path d="M 23 22 L 77 22 Q 80 22 80 25 L 80 44 L 85 44 Q 87 44 87 46 L 87 62 Q 87 64 85 64 L 80 64 L 80 79 Q 80 82 77 82 L 23 82 Q 20 82 20 79 L 20 64 L 15 64 Q 13 64 13 62 L 13 46 Q 13 44 15 44 L 20 44 L 20 25 Q 20 22 23 22 Z" fill="#EDEAE2"/>
+          <rect x="28" y="32" width="44" height="30" rx="2" fill="#1A1A1A"/>
+          <rect x="36" y="38" width="6" height="10" fill="#E8773C"/>
+          <rect x="58" y="38" width="6" height="10" fill="#E8773C"/>
+          <rect x="46" y="52" width="8" height="3" fill="#E8773C"/>
+        </svg>
+        <div class="scale-label">32 PX</div>
+      </div>
+      <div class="scale-cell">
+        <svg width="16" height="16" viewBox="0 0 100 100">
+          <defs><radialGradient id="bg16" cx="50%" cy="38%" r="78%"><stop offset="0%" stop-color="#2A2A2A"/><stop offset="100%" stop-color="#0F0F0F"/></radialGradient></defs>
+          <rect x="0" y="0" width="100" height="100" rx="22" fill="url(#bg16)"/>
+          <path d="M 23 22 L 77 22 Q 80 22 80 25 L 80 44 L 85 44 Q 87 44 87 46 L 87 62 Q 87 64 85 64 L 80 64 L 80 79 Q 80 82 77 82 L 23 82 Q 20 82 20 79 L 20 64 L 15 64 Q 13 64 13 62 L 13 46 Q 13 44 15 44 L 20 44 L 20 25 Q 20 22 23 22 Z" fill="#EDEAE2"/>
+          <rect x="28" y="32" width="44" height="30" rx="2" fill="#1A1A1A"/>
+          <rect x="36" y="38" width="6" height="10" fill="#E8773C"/>
+          <rect x="58" y="38" width="6" height="10" fill="#E8773C"/>
+        </svg>
+        <div class="scale-label">16 PX</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="final">
+    <h2>已更新文件</h2>
+    <p style="margin-bottom: 12px;">两个 polished SVG 已就地替换为新版（blocky + path-based silhouette）：</p>
+    <p style="font-family: monospace;">
+      <code>v3-cursor-eyes-polished.svg</code><br>
+      <code>v7-dark-mono-polished.svg</code>
+    </p>
+    <p style="margin-top: 16px;">
+      <strong>下一步可选：</strong><br>
+      · 满意 → 导出 PNG + Phase 4 background showcase<br>
+      · 还想调 → 告诉我具体方向（更 sharp / 更 round / 翅膀更大或更小 / 拐角再细调）
+    </p>
+  </div>
+
+</div>
+
+</body>
+</html>

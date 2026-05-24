@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Wing Connection Fix — Penggie</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", sans-serif;
+    background: #fafaf7;
+    color: #1a1a1a;
+    padding: 60px 40px;
+    line-height: 1.6;
+  }
+  .container { max-width: 1280px; margin: 0 auto; }
+  h1 {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+  }
+  .subtitle {
+    color: #707070;
+    font-size: 15px;
+    margin-bottom: 50px;
+  }
+
+  /* Side by side */
+  .pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+  .pair-card {
+    background: white;
+    border-radius: 12px;
+    padding: 32px;
+    border: 1px solid #ececec;
+  }
+  .pair-card.highlight {
+    border-color: #CC6B2C;
+    box-shadow: 0 0 0 1px #CC6B2C inset;
+  }
+  .pair-card.dark { background: #1f1f1f; color: white; }
+  .pair-card.dark.highlight {
+    border-color: #E8773C;
+    box-shadow: 0 0 0 1px #E8773C inset;
+  }
+  .pair-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #999;
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+  .pair-card.highlight .pair-label { color: #CC6B2C; }
+  .pair-card.dark .pair-label { color: #888; }
+  .pair-card.dark.highlight .pair-label { color: #E8773C; }
+  .logo-hero {
+    width: 240px;
+    height: 240px;
+    margin: 0 auto 16px;
+    display: block;
+  }
+  .pair-notes {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .pair-notes ul { list-style: none; padding-left: 0; }
+  .pair-notes li {
+    padding: 4px 0 4px 14px;
+    position: relative;
+    color: #555;
+  }
+  .pair-card.dark .pair-notes li { color: #aaa; }
+  .pair-notes li::before {
+    content: "·";
+    position: absolute;
+    left: 4px;
+    color: #999;
+  }
+  .pair-card.highlight .pair-notes li::before { color: #CC6B2C; content: "→"; }
+  .pair-card.dark.highlight .pair-notes li::before { color: #E8773C; content: "→"; }
+
+  /* Section */
+  section { margin-bottom: 64px; }
+  h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #ececec;
+  }
+
+  /* Detail magnify */
+  .magnify-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-top: 24px;
+  }
+  .magnify-card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid #ececec;
+    text-align: center;
+  }
+  .magnify-card.dark { background: #1f1f1f; }
+  .magnify-label {
+    font-size: 10px;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 8px;
+  }
+  .magnify-card.dark .magnify-label { color: #888; }
+
+  /* Wireframe view */
+  .wireframe-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 24px;
+  }
+  .wireframe-box {
+    background: #fafafa;
+    border-radius: 12px;
+    padding: 32px;
+    border: 1px solid #ececec;
+  }
+  .wireframe-box svg { width: 100%; height: auto; }
+  .wireframe-caption {
+    font-size: 13px;
+    color: #707070;
+    margin-top: 12px;
+    text-align: center;
+  }
+
+  /* Scale row for both versions */
+  .scale-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid #ececec;
+    align-items: end;
+  }
+  .scale-cell { text-align: center; }
+  .scale-cell .scale-label {
+    font-size: 10px;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <h1>翅膀连接修复</h1>
+  <p class="subtitle">从"三块独立形状"升级为"单一连续轮廓"。同一只企鹅，更和谐的剪影</p>
+
+  <!-- ============ V3 (Light) ============ -->
+  <section>
+    <h2>V3 · 浅色版（Cursor Eyes）</h2>
+
+    <div class="pair">
+      <!-- Before -->
+      <div class="pair-card">
+        <div class="pair-label">Before · 三块独立形状</div>
+        <svg class="logo-hero" viewBox="0 0 100 100">
+          <rect x="20" y="22" width="60" height="60" rx="10" fill="#707070"/>
+          <rect x="15" y="46" width="5" height="16" rx="1.5" fill="#707070"/>
+          <rect x="80" y="46" width="5" height="16" rx="1.5" fill="#707070"/>
+          <rect x="28" y="32" width="44" height="30" rx="4" fill="white"/>
+          <rect x="36" y="38" width="6" height="10" fill="#1A1A1A"/>
+          <rect x="58" y="38" width="6" height="10" fill="#1A1A1A"/>
+          <rect x="46" y="52" width="8" height="3" fill="#CC6B2C"/>
+          <rect x="48" y="55" width="4" height="3" fill="#CC6B2C"/>
+          <rect x="33" y="82" width="11" height="4" rx="1.5" fill="#CC6B2C"/>
+          <rect x="56" y="82" width="11" height="4" rx="1.5" fill="#CC6B2C"/>
+        </svg>
+        <div class="pair-notes">
+          <ul>
+            <li>翅膀是独立 rounded rect 拼接</li>
+            <li>四个角都圆，跟身体接触面有"贴边"感</li>
+            <li>身体侧边 y=46 处突然出现翅膀 → 视觉断裂</li>
+            <li>放大看像两块小积木粘上去</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- After -->
+      <div class="pair-card highlight">
+        <div class="pair-label">After · 单一连续轮廓</div>
+        <svg class="logo-hero" viewBox="0 0 100 100">
+          <path d="M 30 22 L 70 22 Q 80 22 80 32 L 80 44 Q 85 44 85 49 L 85 59 Q 85 64 80 64 L 80 72 Q 80 82 70 82 L 30 82 Q 20 82 20 72 L 20 64 Q 15 64 15 59 L 15 49 Q 15 44 20 44 L 20 32 Q 20 22 30 22 Z" fill="#707070"/>
+          <rect x="28" y="32" width="44" height="30" rx="4" fill="white"/>
+          <rect x="36" y="38" width="6" height="10" fill="#1A1A1A">
+            <animate attributeName="opacity" calcMode="discrete" values="1;0;1" keyTimes="0;0.6;1" dur="1s" repeatCount="indefinite"/>
+          </rect>
+          <rect x="58" y="38" width="6" height="10" fill="#1A1A1A">
+            <animate attributeName="opacity" calcMode="discrete" values="1;0;1" keyTimes="0;0.6;1" dur="1s" repeatCount="indefinite"/>
+          </rect>
+          <rect x="46" y="52" width="8" height="3" fill="#CC6B2C"/>
+          <rect x="48" y="55" width="4" height="3" fill="#CC6B2C"/>
+          <rect x="33" y="82" width="11" height="4" rx="1.5" fill="#CC6B2C"/>
+          <rect x="56" y="82" width="11" height="4" rx="1.5" fill="#CC6B2C"/>
+        </svg>
+        <div class="pair-notes">
+          <ul>
+            <li>身体 + 翅膀是一条连续 path</li>
+            <li>quadratic Bezier 在 4 个翅膀拐角实现切线连续过渡</li>
+            <li>翅膀凸起 = 身体侧边 5px 圆弧外凸，无 break</li>
+            <li>视觉上是"一只企鹅"，不是"身体 + 配件"</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Multi-size verification -->
+    <div class="scale-grid">
+      <div class="scale-cell">
+        <svg width="100" height="100" viewBox="0 0 100 100">
+          <path d="M 30 22 L 70 22 Q 80 22 80 32 L 80 44 Q 85 44 85 49 L 85 59 Q 85 64 80 64 L 80 72 Q 80 82 70 82 L 30 82 Q 20 82 20 72 L 20 64 Q 15 64 15 59 L 15 49 Q 15 44 20 44 L 20 32 Q 20 22 30 22 Z" fill="#707070"/>
+          <rect x="28" y="32" width="44" height="30" rx="4" fill="white"/>
+          <rect x="36" y="38" width="6" height="10" fill="#1A1A1A"/>
+          <rect x="58" y="38" width="6" height="10" fill="#1A1A1A"/>
+          <rect x="46" y="52" width="8" height="3" fill="#CC6B2C"/>
+          <rect x="48" y="55" width="4" height="3" fill="#CC6B2C"/>
+          <rect x="33" y="82" width="11" height="4" rx="1.5" fill="#CC6B2C"/>
+          <rect x="56" y="82" width="11" height="4" rx="1.5" fill="#CC6B2C"/>
+        </svg>
+        <div class="scale-label">100 PX</div>
+      </div>
+      <div class="scale-cell">
+        <svg width="64" height="64" viewBox="0 0 100 100">
+          <path d="M 30 22 L 70 22 Q 80 22 80 32 L 80 44 Q 85 44 85 49 L 85 59 Q 85 64 80 64 L 80 72 Q 80 82 70 82 L 30 82 Q 20 82 20 72 L 20 64 Q 15 64 15 59 L 15 49 Q 15 44 20 44 L 20 32 Q 20 22 30 22 Z" fill="#707070"/>
+          <rect x="28" y="32" width="44" height="30" rx="4" fill="white"/>
+          <rect x="36" y="38" width="6" height="10" fill="#1A1A1A"/>
+          <rect x="58" y="38" width="6" height="10" fill="#1A1A1A"/>
+          <rect x="46" y="52" width="8" height="3" fill="#CC6B2C"/>
+          <rect x="48" y="55" width="4" height="3" fill="#CC6B2C"/>
+          <rect x="33" y="82" width="11" height="4" rx="1.5" fill="#CC6B2C"/>
+          <rect x="56" y="82" width="11" height="4" rx="1.5" fill="#CC6B2C"/>
+        </svg>
+        <div class="scale-label">64 PX</div>
+      </div>
+      <div class="scale-cell">
+        <svg width="48" height="48" viewBox="0 0 100 100">
+          <path d="M 30 22 L 70 22 Q 80 22 80 32 L 80 44 Q 85 44 85 49 L 85 59 Q 85 64 80 64 L 80 72 Q 80 82 70 82 L 30 82 Q 20 82 20 72 L 20 64 Q 15 64 15 59 L 15 49 Q 15 44 20 44 L 20 32 Q 20 22 30 22 Z" fill="#707070"/>
+          <rect x="28" y="32" width="44" height="30" rx="4" fill="white"/>
+          <rect x="36" y="38" width="6" height="10" fill="#1A1A1A"/>
+          <rect x="58" y="38" width="6" height="10" fill="#1A1A1A"/>
+          <rect x="46" y="52" width="8" height="3" fill="#CC6B2C"/>
+          <rect x="48" y="55" width="4" height="3" fill="#CC6B2C"/>
+        </svg>
+        <div class="scale-label">48 PX</div>
+      </div>
+      <div class="scale-cell">
+        <svg width="32" height="32" viewBox="0 0 100 100">
+          <path d="M 30 22 L 70 22 Q 80 22 80 32 L 80 44 Q 85 44 85 49 L 85 59 Q 85 64 80 64 L 80 72 Q 80 82 70 82 L 30 82 Q 20 82 20 72 L 20 64 Q 15 64 15 59 L 15 49 Q 15 44 20 44 L 20 32 Q 20 22 30 22 Z" fill="#707070"/>
+          <rect x="28" y="32" width="44" height="30" rx="4" fill="white"/>
+          <rect x="36" y="38" width="6" height="10" fill="#1A1A1A"/>
+          <rect x="58" y="38" width="6" height="10" fill="#1A1A1A"/>
+          <rect x="46" y="52" width="8" height="3" fill="#CC6B2C"/>
+        </svg>
+        <div class="scale-label">32 PX</div>
+      </div>
+      <div class="scale-cell">
+        <svg width="16" height="16" viewBox="0 0 100 100">
+          <path d="M 30 22 L 70 22 Q 80 22 80 32 L 80 44 Q 85 44 85 49 L 85 59 Q 85 64 80 64 L 80 72 Q 80 82 70 82 L 30 82 Q 20 82 20 72 L 20 64 Q 15 64 15 59 L 15 49 Q 15 44 20 44 L 20 32 Q 20 22 30 22 Z" fill="#707070"/>
+          <rect x="28" y="32" width="44" height="30" rx="4" fill="white"/>
+          <rect x="36" y="38" width="6" height="10" fill="#1A1A1A"/>
+          <rect x="58" y="38" width="6" height="10" fill="#1A1A1A"/>
+          <rect x="46" y="52" width="8" height="3" fill="#CC6B2C"/>
+        </svg>
+        <div class="scale-label">16 PX</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ V7 (Dark) ============ -->
+  <section>
+    <h2>V7 · 深色版（Dark Mono）</h2>
+
+    <div class="pair">
+      <!-- Before -->
+      <div class="pair-card dark">
+        <div class="pair-label">Before · 三块独立形状</div>
+        <svg class="logo-hero" viewBox="0 0 100 100">
+          <defs>
+            <radialGradient id="bgGradOld" cx="50%" cy="38%" r="78%">
+              <stop offset="0%" stop-color="#2A2A2A"/>
+              <stop offset="100%" stop-color="#0F0F0F"/>
+            </radialGradient>
+          </defs>
+          <rect x="0" y="0" width="100" height="100" rx="22" fill="url(#bgGradOld)"/>
+          <rect x="20" y="22" width="60" height="60" rx="10" fill="#EDEAE2"/>
+          <rect x="15" y="46" width="5" height="16" rx="1.5" fill="#EDEAE2"/>
+          <rect x="80" y="46" width="5" height="16" rx="1.5" fill="#EDEAE2"/>
+          <rect x="28" y="32" width="44" height="30" rx="4" fill="#1A1A1A"/>
+          <rect x="36" y="38" width="6" height="10" fill="#E8773C"/>
+          <rect x="58" y="38" width="6" height="10" fill="#E8773C"/>
+          <rect x="46" y="52" width="8" height="3" fill="#E8773C"/>
+          <rect x="48" y="55" width="4" height="3" fill="#E8773C"/>
+          <rect x="33" y="82" width="11" height="4" rx="1.5" fill="#E8773C"/>
+          <rect x="56" y="82" width="11" height="4" rx="1.5" fill="#E8773C"/>
+        </svg>
+      </div>
+
+      <!-- After -->
+      <div class="pair-card dark highlight">
+        <div class="pair-label">After · 单一连续轮廓</div>
+        <svg class="logo-hero" viewBox="0 0 100 100">
+          <defs>
+            <radialGradient id="bgGradNew" cx="50%" cy="38%" r="78%">
+              <stop offset="0%" stop-color="#2A2A2A"/>
+              <stop offset="100%" stop-color="#0F0F0F"/>
+            </radialGradient>
+          </defs>
+          <rect x="0" y="0" width="100" height="100" rx="22" fill="url(#bgGradNew)"/>
+          <path d="M 30 22 L 70 22 Q 80 22 80 32 L 80 44 Q 85 44 85 49 L 85 59 Q 85 64 80 64 L 80 72 Q 80 82 70 82 L 30 82 Q 20 82 20 72 L 20 64 Q 15 64 15 59 L 15 49 Q 15 44 20 44 L 20 32 Q 20 22 30 22 Z" fill="#EDEAE2"/>
+          <rect x="28" y="32" width="44" height="30" rx="4" fill="#1A1A1A"/>
+          <rect x="36" y="38" width="6" height="10" fill="#E8773C">
+            <animate attributeName="opacity" calcMode="discrete" values="1;0;1" keyTimes="0;0.6;1" dur="1s" repeatCount="indefinite"/>
+          </rect>
+          <rect x="58" y="38" width="6" height="10" fill="#E8773C">
+            <animate attributeName="opacity" calcMode="discrete" values="1;0;1" keyTimes="0;0.6;1" dur="1s" repeatCount="indefinite"/>
+          </rect>
+          <rect x="46" y="52" width="8" height="3" fill="#E8773C"/>
+          <rect x="48" y="55" width="4" height="3" fill="#E8773C"/>
+          <rect x="33" y="82" width="11" height="4" rx="1.5" fill="#E8773C"/>
+          <rect x="56" y="82" width="11" height="4" rx="1.5" fill="#E8773C"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Scale row dark -->
+    <div class="scale-grid" style="background:#1f1f1f; border-color:#333;">
+      <div class="scale-cell">
+        <svg width="100" height="100" viewBox="0 0 100 100">
+          <defs><radialGradient id="bg100" cx="50%" cy="38%" r="78%"><stop offset="0%" stop-color="#2A2A2A"/><stop offset="100%" stop-color="#0F0F0F"/></radialGradient></defs>
+          <rect x="0" y="0" width="100" height="100" rx="22" fill="url(#bg100)"/>
+          <path d="M 30 22 L 70 22 Q 80 22 80 32 L 80 44 Q 85 44 85 49 L 85 59 Q 85 64 80 64 L 80 72 Q 80 82 70 82 L 30 82 Q 20 82 20 72 L 20 64 Q 15 64 15 59 L 15 49 Q 15 44 20 44 L 20 32 Q 20 22 30 22 Z" fill="#EDEAE2"/>
+          <rect x="28" y="32" width="44" height="30" rx="4" fill="#1A1A1A"/>
+          <rect x="36" y="38" width="6" height="10" fill="#E8773C"/>
+          <rect x="58" y="38" width="6" height="10" fill="#E8773C"/>
+          <rect x="46" y="52" width="8" height="3" fill="#E8773C"/>
+          <rect x="48" y="55" width="4" height="3" fill="#E8773C"/>
+          <rect x="33" y="82" width="11" height="4" rx="1.5" fill="#E8773C"/>
+          <rect x="56" y="82" width="11" height="4" rx="1.5" fill="#E8773C"/>
+        </svg>
+        <div class="scale-label" style="color:#888;">100 PX</div>
+      </div>
+      <div class="scale-cell">
+        <svg width="64" height="64" viewBox="0 0 100 100">
+          <defs><radialGradient id="bg64" cx="50%" cy="38%" r="78%"><stop offset="0%" stop-color="#2A2A2A"/><stop offset="100%" stop-color="#0F0F0F"/></radialGradient></defs>
+          <rect x="0" y="0" width="100" height="100" rx="22" fill="url(#bg64)"/>
+          <path d="M 30 22 L 70 22 Q 80 22 80 32 L 80 44 Q 85 44 85 49 L 85 59 Q 85 64 80 64 L 80 72 Q 80 82 70 82 L 30 82 Q 20 82 20 72 L 20 64 Q 15 64 15 59 L 15 49 Q 15 44 20 44 L 20 32 Q 20 22 30 22 Z" fill="#EDEAE2"/>
+          <rect x="28" y="32" width="44" height="30" rx="4" fill="#1A1A1A"/>
+          <rect x="36" y="38" width="6" height="10" fill="#E8773C"/>
+          <rect x="58" y="38" width="6" height="10" fill="#E8773C"/>
+          <rect x="46" y="52" width="8" height="3" fill="#E8773C"/>
+          <rect x="48" y="55" width="4" height="3" fill="#E8773C"/>
+          <rect x="33" y="82" width="11" height="4" rx="1.5" fill="#E8773C"/>
+          <rect x="56" y="82" width="11" height="4" rx="1.5" fill="#E8773C"/>
+        </svg>
+        <div class="scale-label" style="color:#888;">64 PX</div>
+      </div>
+      <div class="scale-cell">
+        <svg width="48" height="48" viewBox="0 0 100 100">
+          <defs><radialGradient id="bg48" cx="50%" cy="38%" r="78%"><stop offset="0%" stop-color="#2A2A2A"/><stop offset="100%" stop-color="#0F0F0F"/></radialGradient></defs>
+          <rect x="0" y="0" width="100" height="100" rx="22" fill="url(#bg48)"/>
+          <path d="M 30 22 L 70 22 Q 80 22 80 32 L 80 44 Q 85 44 85 49 L 85 59 Q 85 64 80 64 L 80 72 Q 80 82 70 82 L 30 82 Q 20 82 20 72 L 20 64 Q 15 64 15 59 L 15 49 Q 15 44 20 44 L 20 32 Q 20 22 30 22 Z" fill="#EDEAE2"/>
+          <rect x="28" y="32" width="44" height="30" rx="4" fill="#1A1A1A"/>
+          <rect x="36" y="38" width="6" height="10" fill="#E8773C"/>
+          <rect x="58" y="38" width="6" height="10" fill="#E8773C"/>
+          <rect x="46" y="52" width="8" height="3" fill="#E8773C"/>
+          <rect x="48" y="55" width="4" height="3" fill="#E8773C"/>
+        </svg>
+        <div class="scale-label" style="color:#888;">48 PX</div>
+      </div>
+      <div class="scale-cell">
+        <svg width="32" height="32" viewBox="0 0 100 100">
+          <defs><radialGradient id="bg32" cx="50%" cy="38%" r="78%"><stop offset="0%" stop-color="#2A2A2A"/><stop offset="100%" stop-color="#0F0F0F"/></radialGradient></defs>
+          <rect x="0" y="0" width="100" height="100" rx="22" fill="url(#bg32)"/>
+          <path d="M 30 22 L 70 22 Q 80 22 80 32 L 80 44 Q 85 44 85 49 L 85 59 Q 85 64 80 64 L 80 72 Q 80 82 70 82 L 30 82 Q 20 82 20 72 L 20 64 Q 15 64 15 59 L 15 49 Q 15 44 20 44 L 20 32 Q 20 22 30 22 Z" fill="#EDEAE2"/>
+          <rect x="28" y="32" width="44" height="30" rx="4" fill="#1A1A1A"/>
+          <rect x="36" y="38" width="6" height="10" fill="#E8773C"/>
+          <rect x="58" y="38" width="6" height="10" fill="#E8773C"/>
+          <rect x="46" y="52" width="8" height="3" fill="#E8773C"/>
+        </svg>
+        <div class="scale-label" style="color:#888;">32 PX</div>
+      </div>
+      <div class="scale-cell">
+        <svg width="16" height="16" viewBox="0 0 100 100">
+          <defs><radialGradient id="bg16" cx="50%" cy="38%" r="78%"><stop offset="0%" stop-color="#2A2A2A"/><stop offset="100%" stop-color="#0F0F0F"/></radialGradient></defs>
+          <rect x="0" y="0" width="100" height="100" rx="22" fill="url(#bg16)"/>
+          <path d="M 30 22 L 70 22 Q 80 22 80 32 L 80 44 Q 85 44 85 49 L 85 59 Q 85 64 80 64 L 80 72 Q 80 82 70 82 L 30 82 Q 20 82 20 72 L 20 64 Q 15 64 15 59 L 15 49 Q 15 44 20 44 L 20 32 Q 20 22 30 22 Z" fill="#EDEAE2"/>
+          <rect x="28" y="32" width="44" height="30" rx="4" fill="#1A1A1A"/>
+          <rect x="36" y="38" width="6" height="10" fill="#E8773C"/>
+          <rect x="58" y="38" width="6" height="10" fill="#E8773C"/>
+        </svg>
+        <div class="scale-label" style="color:#888;">16 PX</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Geometry diagram ============ -->
+  <section>
+    <h2>几何图解（why it works）</h2>
+    <div class="wireframe-row">
+      <div class="wireframe-box">
+        <svg viewBox="0 0 200 200">
+          <!-- Body outline -->
+          <rect x="40" y="44" width="120" height="120" rx="20" fill="none" stroke="#ccc" stroke-width="1"/>
+          <!-- Old wings -->
+          <rect x="30" y="92" width="10" height="32" rx="3" fill="none" stroke="#cc3333" stroke-width="2" stroke-dasharray="4 2"/>
+          <rect x="160" y="92" width="10" height="32" rx="3" fill="none" stroke="#cc3333" stroke-width="2" stroke-dasharray="4 2"/>
+          <!-- Annotations -->
+          <text x="100" y="20" font-family="-apple-system, sans-serif" font-size="13" fill="#666" text-anchor="middle" font-weight="600">Before · 3 separate shapes</text>
+          <text x="35" y="92" font-family="monospace" font-size="9" fill="#cc3333" text-anchor="end">↖ wing</text>
+          <text x="100" y="105" font-family="monospace" font-size="9" fill="#999" text-anchor="middle">body</text>
+          <text x="165" y="92" font-family="monospace" font-size="9" fill="#cc3333" text-anchor="start">wing ↗</text>
+          <!-- Break indicators -->
+          <circle cx="40" cy="92" r="3" fill="none" stroke="#cc3333" stroke-width="1.5"/>
+          <circle cx="40" cy="124" r="3" fill="none" stroke="#cc3333" stroke-width="1.5"/>
+          <circle cx="160" cy="92" r="3" fill="none" stroke="#cc3333" stroke-width="1.5"/>
+          <circle cx="160" cy="124" r="3" fill="none" stroke="#cc3333" stroke-width="1.5"/>
+          <text x="100" y="184" font-family="-apple-system, sans-serif" font-size="11" fill="#cc3333" text-anchor="middle">4 个红圈 = 4 个 visual break</text>
+        </svg>
+        <div class="wireframe-caption">三个独立 shape：body rect + 2 wing rects。红圈处轮廓断裂</div>
+      </div>
+      <div class="wireframe-box" style="background:#fff8f3;">
+        <svg viewBox="0 0 200 200">
+          <!-- Single path outline -->
+          <path d="M 60 44 L 140 44 Q 160 44 160 64 L 160 88 Q 170 88 170 98 L 170 118 Q 170 128 160 128 L 160 144 Q 160 164 140 164 L 60 164 Q 40 164 40 144 L 40 128 Q 30 128 30 118 L 30 98 Q 30 88 40 88 L 40 64 Q 40 44 60 44 Z" fill="none" stroke="#CC6B2C" stroke-width="2"/>
+          <!-- Annotations -->
+          <text x="100" y="20" font-family="-apple-system, sans-serif" font-size="13" fill="#CC6B2C" text-anchor="middle" font-weight="600">After · 1 continuous path</text>
+          <text x="100" y="105" font-family="monospace" font-size="9" fill="#999" text-anchor="middle">silhouette</text>
+          <!-- Curve indicators -->
+          <circle cx="40" cy="88" r="4" fill="none" stroke="#27c93f" stroke-width="1.5"/>
+          <circle cx="40" cy="128" r="4" fill="none" stroke="#27c93f" stroke-width="1.5"/>
+          <circle cx="160" cy="88" r="4" fill="none" stroke="#27c93f" stroke-width="1.5"/>
+          <circle cx="160" cy="128" r="4" fill="none" stroke="#27c93f" stroke-width="1.5"/>
+          <text x="100" y="184" font-family="-apple-system, sans-serif" font-size="11" fill="#27c93f" text-anchor="middle">4 个绿圈 = quadratic Bezier 切线连续</text>
+        </svg>
+        <div class="wireframe-caption">单一 path：身体 + 翅膀连成一条线。Q 曲线在拐角实现切线连续</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final files -->
+  <section style="background:#1f1f1f; color:white; padding:32px; border-radius:12px;">
+    <h2 style="border:none; color:white;">已更新文件</h2>
+    <p style="color:#ccc;">两个 polished SVG 已就地替换为新版（path-based silhouette）：</p>
+    <p style="margin-top:12px; font-family:monospace; color:#E8773C;">
+      v3-cursor-eyes-polished.svg<br>
+      v7-dark-mono-polished.svg
+    </p>
+    <p style="color:#ccc; margin-top:16px;">
+      原 polish-showcase.html 里嵌入的 SVG 还是老版（独立 rect 翅膀），如果你之后还要继续用那个对比页，需要让我同步更新。本页 (wing-fix-showcase.html) 已经是最新版。
+    </p>
+  </section>
+
+</div>
+
+</body>
+</html>

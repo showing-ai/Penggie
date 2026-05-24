@@ -1,0 +1,17 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Body (strict rect, no rounding) -->
+  <rect x="22" y="18" width="56" height="64" fill="#707070"/>
+  <!-- Wings -->
+  <rect x="17" y="38" width="5" height="20" fill="#707070"/>
+  <rect x="78" y="38" width="5" height="20" fill="#707070"/>
+  <!-- Face -->
+  <rect x="30" y="28" width="40" height="26" fill="white"/>
+  <!-- Eyes (squares) -->
+  <rect x="36" y="34" width="7" height="7" fill="#1A1A1A"/>
+  <rect x="57" y="34" width="7" height="7" fill="#1A1A1A"/>
+  <!-- Beak (triangle) -->
+  <polygon points="45,46 55,46 50,52" fill="#CC6B2C"/>
+  <!-- Feet (rect) -->
+  <rect x="30" y="84" width="14" height="5" fill="#CC6B2C"/>
+  <rect x="56" y="84" width="14" height="5" fill="#CC6B2C"/>
+</svg>
