@@ -22,13 +22,18 @@ final class PenggieSessionModel: ObservableObject {
     @Published private(set) var lastError: String?
     @Published private(set) var transcriptText = ""
     @Published private(set) var ghosttySession: PenggieGhosttySession?
-    @Published private(set) var nativeInteractionIsActive = false
+    @Published private(set) var nativeInteractionPhase: PenggieNativeInteractionPhase = .inactive
     @Published private(set) var nativeInteractionDisplayText = ""
     @Published private(set) var nativeInteractionRows: [String] = []
     @Published var pendingConfirmation: Confirmation?
 
     let substrate = PenggieGhosttySubstrate()
     private var screenPollTask: Task<Void, Never>?
+    private var nativeInteractionResolvingBeganAt: Date?
+
+    var nativeInteractionIsActive: Bool {
+        nativeInteractionPhase.isActive
+    }
 
     var canStartCodex: Bool {
         switch state {
@@ -174,8 +179,9 @@ final class PenggieSessionModel: ObservableObject {
             return false
         }
 
-        nativeInteractionIsActive = true
+        nativeInteractionPhase = .editing
         nativeInteractionDisplayText = initialText
+        nativeInteractionResolvingBeganAt = nil
         nativeInteractionRows = []
         ghosttySession?.sendText(initialText)
         startScreenPolling()
@@ -184,7 +190,7 @@ final class PenggieSessionModel: ObservableObject {
 
     @discardableResult
     func sendNativeInteractionText(_ text: String) -> Bool {
-        guard nativeInteractionIsActive, !text.isEmpty else { return false }
+        guard nativeInteractionPhase.capturesTextInput, !text.isEmpty else { return false }
         ghosttySession?.sendText(text)
         nativeInteractionDisplayText += text
         startScreenPolling()
@@ -193,7 +199,7 @@ final class PenggieSessionModel: ObservableObject {
 
     @discardableResult
     func sendNativeInteractionCommand(_ command: PenggieInteractionCommand) -> Bool {
-        guard nativeInteractionIsActive else { return false }
+        guard nativeInteractionPhase.acceptsInput else { return false }
 
         let sent = sendNativeKey(command)
         updateNativeDisplayText(after: command)
@@ -208,7 +214,8 @@ final class PenggieSessionModel: ObservableObject {
 
     @discardableResult
     func cancelNativeInteraction() -> Bool {
-        guard nativeInteractionIsActive else { return false }
+        guard nativeInteractionPhase.acceptsInput else { return false }
+        nativeInteractionPhase = .cancelling
         let sent = sendNativeKey(.escape)
         endNativeInteraction()
         return sent
@@ -260,20 +267,25 @@ final class PenggieSessionModel: ObservableObject {
         switch command {
         case .escape:
             endNativeInteraction()
+        case .enter:
+            nativeInteractionPhase = .resolving
+            nativeInteractionDisplayText = ""
+            nativeInteractionResolvingBeganAt = Date()
         case .backspace:
             if nativeInteractionDisplayText.count > 1 {
                 nativeInteractionDisplayText.removeLast()
             } else {
                 endNativeInteraction()
             }
-        case .enter, .tab, .arrowUp, .arrowDown, .arrowLeft, .arrowRight, .delete:
+        case .tab, .arrowUp, .arrowDown, .arrowLeft, .arrowRight, .delete:
             break
         }
     }
 
     private func endNativeInteraction() {
-        nativeInteractionIsActive = false
+        nativeInteractionPhase = .inactive
         nativeInteractionDisplayText = ""
+        nativeInteractionResolvingBeganAt = nil
         nativeInteractionRows = []
     }
 
@@ -283,7 +295,27 @@ final class PenggieSessionModel: ObservableObject {
             return
         }
 
-        nativeInteractionRows = PenggieNativeInteractionProjection.rows(fromVisibleText: visibleText)
+        let rows = PenggieNativeInteractionProjection.rows(fromVisibleText: visibleText)
+
+        switch nativeInteractionPhase {
+        case .editing, .continuation:
+            nativeInteractionRows = rows
+        case .resolving:
+            if PenggieNativeInteractionProjection.containsContinuationMenu(rows) {
+                nativeInteractionPhase = .continuation
+                nativeInteractionRows = rows
+                nativeInteractionResolvingBeganAt = nil
+                return
+            }
+
+            nativeInteractionRows = rows
+            if let beganAt = nativeInteractionResolvingBeganAt,
+               Date().timeIntervalSince(beganAt) >= PenggieNativeInteractionTiming.resolvingSettleInterval {
+                endNativeInteraction()
+            }
+        case .inactive, .cancelling:
+            nativeInteractionRows = []
+        }
     }
 
     private static func keyCode(for command: PenggieInteractionCommand) -> UInt16 {

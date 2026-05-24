@@ -101,6 +101,22 @@ struct PenggieNativeInteractionProjectionTests {
         ])
     }
 
+    @Test
+    func detectsContinuationMenusFromVisibleRows() {
+        #expect(PenggieNativeInteractionProjection.containsContinuationMenu([
+            "Select Model and Effort",
+            "› 1. gpt-5.5",
+            "  2. gpt-5.4",
+            "Press enter to confirm or esc to go back"
+        ]))
+
+        #expect(!PenggieNativeInteractionProjection.containsContinuationMenu([
+            "› /m",
+            "/model choose model",
+            "/memories configure memory"
+        ]))
+    }
+
     private func style(
         text: String,
         selected: Int = 0,

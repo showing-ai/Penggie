@@ -141,6 +141,26 @@ struct PenggieNativeInteractionLine: Identifiable, Equatable {
 }
 
 enum PenggieNativeInteractionProjection {
+    static func containsContinuationMenu(_ rows: [String]) -> Bool {
+        let normalizedRows = rows.map {
+            $0.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+
+        if normalizedRows.contains(where: { row in
+            row.localizedCaseInsensitiveContains("press enter")
+                && row.localizedCaseInsensitiveContains("esc")
+        }) {
+            return true
+        }
+
+        return normalizedRows.contains { row in
+            row.hasPrefix("›")
+        } && normalizedRows.contains { row in
+            row.localizedCaseInsensitiveContains("select ")
+                || row.range(of: #"^\d+\.\s"#, options: .regularExpression) != nil
+        }
+    }
+
     static func rows(fromVisibleText visibleText: String, limit: Int = 10) -> [String] {
         let lines = visibleText
             .components(separatedBy: .newlines)

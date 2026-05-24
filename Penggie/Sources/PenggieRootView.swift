@@ -341,7 +341,7 @@ private struct PenggieReadingChatView: View {
 
                     PenggieInteractionKeyCaptureView(
                         shouldFocus: true,
-                        isEnabled: true,
+                        isEnabled: session.nativeInteractionPhase.acceptsInput,
                         focusRequestID: nativeInteractionFocusRequestID,
                         onCommand: { command, _ in handleNativeInteractionCommand(command) },
                         onTextInput: handleNativeInteractionText
