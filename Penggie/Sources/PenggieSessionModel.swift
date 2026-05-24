@@ -283,12 +283,7 @@ final class PenggieSessionModel: ObservableObject {
             return
         }
 
-        let lines = visibleText
-            .components(separatedBy: .newlines)
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
-
-        nativeInteractionRows = Array(lines.suffix(10))
+        nativeInteractionRows = PenggieNativeInteractionProjection.rows(fromVisibleText: visibleText)
     }
 
     private static func keyCode(for command: PenggieInteractionCommand) -> UInt16 {

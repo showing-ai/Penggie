@@ -24,9 +24,9 @@
 
 ## 4. Native Slash Interaction
 
-- [ ] 4.1 Migrate and rename first-character native trigger rules for `/` and Codex-allowed `$` behavior.
+- [x] 4.1 Migrate and rename first-character native trigger rules for `/` and Codex-allowed `$` behavior.
 - [ ] 4.2 Migrate native interaction phase, timing, focus recovery, and key capture behavior.
-- [ ] 4.3 Migrate Ghostty screen model JSON parsing and native overlay row extraction.
+- [x] 4.3 Migrate Ghostty screen model JSON parsing and native overlay row extraction.
 - [ ] 4.4 Render native slash suggestions as a GUI projection of the real Codex terminal screen model.
 - [x] 4.5 Ensure `/m`, `/model`, arrow keys, Enter, Esc, and Backspace route through the PTY and do not use local command/model state.
 
@@ -39,8 +39,8 @@
 
 ## 6. Verification
 
-- [ ] 6.1 Add or port regression tests for composer native trigger rules and IME placeholder visibility.
-- [ ] 6.2 Add or port regression tests for screen model native overlay row extraction and continuation menus.
+- [x] 6.1 Add or port regression tests for composer native trigger rules and IME placeholder visibility.
+- [x] 6.2 Add or port regression tests for screen model native overlay row extraction and continuation menus.
 - [x] 6.3 Verify Codex installed: start with Codex, enter Reading, send prompt, display Reading output.
 - [ ] 6.4 Verify Codex missing, launch failed, and process exited product states.
 - [x] 6.5 Verify `/`, `/m`, `/model`, arrow/Enter, Esc, and Backspace behavior against real Codex CLI.
