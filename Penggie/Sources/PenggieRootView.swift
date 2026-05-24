@@ -238,6 +238,9 @@ private struct PenggieTopBar: View {
 private struct PenggieReadingChatView: View {
     @EnvironmentObject private var session: PenggieSessionModel
     @State private var composerText = ""
+    @State private var composerTextHeight: CGFloat = 58
+    @State private var composerHasVisibleText = false
+    @State private var nativeInteractionFocusRequestID = 0
 
     var body: some View {
         VStack(spacing: 24) {
@@ -268,20 +271,12 @@ private struct PenggieReadingChatView: View {
             }
 
             VStack(spacing: 0) {
-                TextEditor(text: $composerText)
-                    .font(.system(size: 14))
-                    .scrollContentBackground(.hidden)
-                    .frame(height: 58)
-                    .overlay(alignment: .topLeading) {
-                        if composerText.isEmpty {
-                            Text("Ask Codex anything")
-                                .font(.system(size: 14))
-                                .foregroundStyle(.tertiary)
-                                .padding(.top, 8)
-                                .padding(.leading, 5)
-                                .allowsHitTesting(false)
-                        }
-                    }
+                if session.nativeInteractionIsActive && !session.nativeInteractionRows.isEmpty {
+                    PenggieNativeInteractionOverlay(rows: session.nativeInteractionRows)
+                        .padding(.bottom, 10)
+                }
+
+                composerSurface
 
                 HStack {
                     Button {
@@ -298,19 +293,19 @@ private struct PenggieReadingChatView: View {
                     Spacer()
 
                     Button {
-                        session.sendPrompt(composerText)
-                        composerText = ""
+                        submitComposer()
                     } label: {
                         Image(systemName: "arrow.up")
                             .font(.system(size: 14, weight: .semibold))
                             .frame(width: 34, height: 34)
                             .foregroundStyle(.white)
-                            .background(composerText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.gray : Color.primary)
+                            .background(canSend ? Color.primary : Color.gray)
                             .clipShape(Circle())
                     }
                     .buttonStyle(.plain)
-                    .disabled(composerText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .disabled(!canSend)
                 }
+                .padding(.top, 10)
             }
             .padding(14)
             .frame(width: 620)
@@ -326,6 +321,167 @@ private struct PenggieReadingChatView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(nsColor: .textBackgroundColor).opacity(0.18))
+        .onChange(of: session.nativeInteractionIsActive) { _, isActive in
+            if isActive {
+                nativeInteractionFocusRequestID += 1
+            }
+        }
+    }
+
+    private var composerSurface: some View {
+        Group {
+            if session.nativeInteractionIsActive {
+                ZStack(alignment: .leading) {
+                    Text(session.nativeInteractionDisplayText.isEmpty ? "Command" : session.nativeInteractionDisplayText)
+                        .font(.system(size: 14))
+                        .foregroundStyle(session.nativeInteractionDisplayText.isEmpty ? .tertiary : .primary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    PenggieInteractionKeyCaptureView(
+                        shouldFocus: true,
+                        isEnabled: true,
+                        focusRequestID: nativeInteractionFocusRequestID,
+                        onCommand: { command, _ in handleNativeInteractionCommand(command) },
+                        onTextInput: handleNativeInteractionText
+                    )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+                .frame(height: 58)
+            } else {
+                ZStack(alignment: .topLeading) {
+                    if !composerHasVisibleText {
+                        Text("Ask Codex anything")
+                            .font(.system(size: 14))
+                            .foregroundStyle(.tertiary)
+                            .padding(.top, 6)
+                            .allowsHitTesting(false)
+                    }
+
+                    PenggieComposerTextView(
+                        text: $composerText,
+                        measuredHeight: $composerTextHeight,
+                        hasVisibleText: $composerHasVisibleText,
+                        isEnabled: session.isRunning,
+                        shouldFocus: true,
+                        minHeight: 58,
+                        maxHeight: 140,
+                        onSubmit: submitComposer,
+                        onNativePrefix: { prefix in
+                            let started = session.beginNativeInteraction(prefix: prefix)
+                            if started {
+                                composerText = ""
+                                nativeInteractionFocusRequestID += 1
+                            }
+                            return started
+                        }
+                    )
+                    .frame(height: composerTextHeight)
+                    .onChange(of: composerText) { _, text in
+                        handleComposerTextChange(text)
+                    }
+                }
+                .frame(minHeight: 58)
+            }
+        }
+    }
+
+    private var canSend: Bool {
+        if session.nativeInteractionIsActive {
+            return true
+        }
+
+        return !composerText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    private func submitComposer() {
+        if session.nativeInteractionIsActive {
+            _ = session.sendNativeInteractionEnter()
+            nativeInteractionFocusRequestID += 1
+            return
+        }
+
+        session.sendPrompt(composerText)
+        composerText = ""
+    }
+
+    private func handleComposerTextChange(_ text: String) {
+        guard PenggieComposerNativeTrigger.prefix(for: text) != nil,
+              session.beginNativeInteraction(initialText: text) else {
+            return
+        }
+
+        composerText = ""
+        nativeInteractionFocusRequestID += 1
+    }
+
+    private func handleNativeInteractionCommand(_ command: PenggieInteractionCommand) -> Bool {
+        let sent: Bool
+        if command == .escape {
+            sent = session.cancelNativeInteraction()
+        } else {
+            sent = session.sendNativeInteractionCommand(command)
+        }
+
+        if session.nativeInteractionIsActive {
+            nativeInteractionFocusRequestID += 1
+        }
+
+        return sent
+    }
+
+    private func handleNativeInteractionText(_ text: String) -> Bool {
+        let sent = session.sendNativeInteractionText(text)
+        if sent {
+            nativeInteractionFocusRequestID += 1
+        }
+        return sent
+    }
+}
+
+private struct PenggieNativeInteractionOverlay: View {
+    let rows: [String]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            HStack {
+                Spacer()
+                Text("↑↓ select · Enter accept · Esc cancel")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(.secondary)
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
+                    Text(row)
+                        .font(.system(size: 13, design: .monospaced))
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(nativeRowIsSelected(row) ? Color.black.opacity(0.08) : Color.clear)
+                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                }
+            }
+            .padding(8)
+            .background(Color(nsColor: .textBackgroundColor))
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        }
+        .padding(12)
+        .background(Color(nsColor: .controlBackgroundColor))
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(Color(nsColor: .separatorColor).opacity(0.75), lineWidth: 1)
+        }
+    }
+
+    private func nativeRowIsSelected(_ row: String) -> Bool {
+        let trimmed = row.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.hasPrefix(">") || trimmed.hasPrefix("›") || trimmed.hasPrefix("●")
     }
 }
 

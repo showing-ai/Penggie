@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import SwiftUI
 
@@ -19,6 +20,9 @@ final class PenggieSessionModel: ObservableObject {
     @Published private(set) var lastError: String?
     @Published private(set) var transcriptText = ""
     @Published private(set) var ghosttySession: PenggieGhosttySession?
+    @Published private(set) var nativeInteractionIsActive = false
+    @Published private(set) var nativeInteractionDisplayText = ""
+    @Published private(set) var nativeInteractionRows: [String] = []
     @Published var pendingConfirmation: Confirmation?
 
     let substrate = PenggieGhosttySubstrate()
@@ -155,12 +159,66 @@ final class PenggieSessionModel: ObservableObject {
         startScreenPolling()
     }
 
+    @discardableResult
+    func beginNativeInteraction(prefix: String) -> Bool {
+        beginNativeInteraction(initialText: prefix)
+    }
+
+    @discardableResult
+    func beginNativeInteraction(initialText: String) -> Bool {
+        guard isRunning,
+              !nativeInteractionIsActive,
+              PenggieComposerNativeTrigger.prefix(for: initialText) != nil else {
+            return false
+        }
+
+        nativeInteractionIsActive = true
+        nativeInteractionDisplayText = initialText
+        nativeInteractionRows = []
+        ghosttySession?.sendText(initialText)
+        startScreenPolling()
+        return true
+    }
+
+    @discardableResult
+    func sendNativeInteractionText(_ text: String) -> Bool {
+        guard nativeInteractionIsActive, !text.isEmpty else { return false }
+        ghosttySession?.sendText(text)
+        nativeInteractionDisplayText += text
+        startScreenPolling()
+        return true
+    }
+
+    @discardableResult
+    func sendNativeInteractionCommand(_ command: PenggieInteractionCommand) -> Bool {
+        guard nativeInteractionIsActive else { return false }
+
+        let sent = sendNativeKey(command)
+        updateNativeDisplayText(after: command)
+        startScreenPolling()
+        return sent
+    }
+
+    @discardableResult
+    func sendNativeInteractionEnter() -> Bool {
+        sendNativeInteractionCommand(.enter)
+    }
+
+    @discardableResult
+    func cancelNativeInteraction() -> Bool {
+        guard nativeInteractionIsActive else { return false }
+        let sent = sendNativeKey(.escape)
+        endNativeInteraction()
+        return sent
+    }
+
     private func closeCurrentSession() {
         screenPollTask?.cancel()
         screenPollTask = nil
         ghosttySession?.close()
         ghosttySession = nil
         transcriptText = ""
+        endNativeInteraction()
     }
 
     private func startScreenPolling() {
@@ -170,9 +228,105 @@ final class PenggieSessionModel: ObservableObject {
                 try? await Task.sleep(for: .milliseconds(250))
                 await MainActor.run {
                     guard let self, let session = self.ghosttySession else { return }
-                    self.transcriptText = session.readVisibleText()
+                    let visibleText = session.readVisibleText()
+                    self.transcriptText = visibleText
+                    self.updateNativeInteractionRows(from: visibleText)
                 }
             }
+        }
+    }
+
+    private func sendNativeKey(_ command: PenggieInteractionCommand) -> Bool {
+        guard let ghosttySession else { return false }
+
+        let sent = ghosttySession.sendKeyCode(Self.keyCode(for: command))
+        if sent {
+            return true
+        }
+
+        guard let fallbackText = Self.fallbackText(for: command) else { return false }
+        ghosttySession.sendText(fallbackText)
+        return true
+    }
+
+    private func updateNativeDisplayText(after command: PenggieInteractionCommand) {
+        switch command {
+        case .escape:
+            endNativeInteraction()
+        case .backspace:
+            if nativeInteractionDisplayText.count > 1 {
+                nativeInteractionDisplayText.removeLast()
+            } else {
+                endNativeInteraction()
+            }
+        case .enter, .tab, .arrowUp, .arrowDown, .arrowLeft, .arrowRight, .delete:
+            break
+        }
+    }
+
+    private func endNativeInteraction() {
+        nativeInteractionIsActive = false
+        nativeInteractionDisplayText = ""
+        nativeInteractionRows = []
+    }
+
+    private func updateNativeInteractionRows(from visibleText: String) {
+        guard nativeInteractionIsActive else {
+            nativeInteractionRows = []
+            return
+        }
+
+        let lines = visibleText
+            .components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+
+        nativeInteractionRows = Array(lines.suffix(10))
+    }
+
+    private static func keyCode(for command: PenggieInteractionCommand) -> UInt16 {
+        switch command {
+        case .tab:
+            return 48
+        case .enter:
+            return 36
+        case .escape:
+            return 53
+        case .arrowUp:
+            return 126
+        case .arrowDown:
+            return 125
+        case .arrowLeft:
+            return 123
+        case .arrowRight:
+            return 124
+        case .backspace:
+            return 51
+        case .delete:
+            return 117
+        }
+    }
+
+    private static func fallbackText(for command: PenggieInteractionCommand) -> String? {
+        switch command {
+        case .tab:
+            return "\t"
+        case .enter:
+            return "\r"
+        case .escape:
+            return "\u{1B}"
+        case .arrowUp:
+            return "\u{1B}[A"
+        case .arrowDown:
+            return "\u{1B}[B"
+        case .arrowLeft:
+            return "\u{1B}[D"
+        case .arrowRight:
+            return "\u{1B}[C"
+        case .backspace:
+            return "\u{7F}"
+        case .delete:
+            return "\u{1B}[3~"
         }
     }
 

@@ -7,6 +7,7 @@ import SwiftUI
 final class PenggieGhosttySession: ObservableObject {
     let terminalView: PenggieGhosttyHostView
 
+    private let readingViewportSize = CGSize(width: 960, height: 640)
     private var config: ghostty_config_t?
     private var app: ghostty_app_t?
     private var surface: ghostty_surface_t?
@@ -102,7 +103,7 @@ final class PenggieGhosttySession: ObservableObject {
         }
 
         self.surface = createdSurface
-        resizeSurface(to: terminalView.bounds.size)
+        resizeSurface(to: readingViewportSize)
     }
 
     deinit {
@@ -144,6 +145,22 @@ final class PenggieGhosttySession: ObservableObject {
         }
     }
 
+    @discardableResult
+    func sendKeyCode(_ keyCode: UInt16) -> Bool {
+        guard let surface else { return false }
+
+        var keyEvent = ghostty_input_key_s()
+        keyEvent.action = GHOSTTY_ACTION_PRESS
+        keyEvent.mods = GHOSTTY_MODS_NONE
+        keyEvent.consumed_mods = GHOSTTY_MODS_NONE
+        keyEvent.keycode = UInt32(keyCode)
+        keyEvent.text = nil
+        keyEvent.unshifted_codepoint = 0
+        keyEvent.composing = false
+
+        return ghostty_surface_key(surface, keyEvent)
+    }
+
     func readVisibleText() -> String {
         guard let surface else { return "" }
 
@@ -174,7 +191,8 @@ final class PenggieGhosttySession: ObservableObject {
     func resizeSurface(to size: CGSize) {
         guard let surface else { return }
 
-        let backingSize = terminalView.convertToBacking(CGRect(origin: .zero, size: size)).size
+        let logicalSize = size.width > 8 && size.height > 8 ? size : readingViewportSize
+        let backingSize = terminalView.convertToBacking(CGRect(origin: .zero, size: logicalSize)).size
         let width = max(UInt32(backingSize.width.rounded()), 1)
         let height = max(UInt32(backingSize.height.rounded()), 1)
         let fallbackScale = NSScreen.main?.backingScaleFactor ?? CGFloat(2)

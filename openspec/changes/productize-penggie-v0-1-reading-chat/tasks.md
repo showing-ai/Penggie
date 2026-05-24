@@ -19,7 +19,7 @@
 - [ ] 3.1 Migrate and rename the PoC Reading projection, transcript, and presentation models.
 - [x] 3.2 Build the Reading empty state with centered headline and composer.
 - [ ] 3.3 Build the transcript state with Reading output projection and a bottom/sticky composer after conversation content exists.
-- [ ] 3.4 Migrate the AppKit-backed composer with IME-safe placeholder behavior.
+- [x] 3.4 Migrate the AppKit-backed composer with IME-safe placeholder behavior.
 - [ ] 3.5 Implement ordinary prompt submission to the real Codex PTY and show submitted user input in Reading.
 
 ## 4. Native Slash Interaction
@@ -28,7 +28,7 @@
 - [ ] 4.2 Migrate native interaction phase, timing, focus recovery, and key capture behavior.
 - [ ] 4.3 Migrate Ghostty screen model JSON parsing and native overlay row extraction.
 - [ ] 4.4 Render native slash suggestions as a GUI projection of the real Codex terminal screen model.
-- [ ] 4.5 Ensure `/m`, `/model`, arrow keys, Enter, Esc, and Backspace route through the PTY and do not use local command/model state.
+- [x] 4.5 Ensure `/m`, `/model`, arrow keys, Enter, Esc, and Backspace route through the PTY and do not use local command/model state.
 
 ## 5. Raw Terminal Fallback
 
@@ -43,5 +43,5 @@
 - [ ] 6.2 Add or port regression tests for screen model native overlay row extraction and continuation menus.
 - [ ] 6.3 Verify Codex installed: start with Codex, enter Reading, send prompt, display Reading output.
 - [ ] 6.4 Verify Codex missing, launch failed, and process exited product states.
-- [ ] 6.5 Verify `/`, `/m`, `/model`, arrow/Enter, Esc, and Backspace behavior against real Codex CLI.
+- [x] 6.5 Verify `/`, `/m`, `/model`, arrow/Enter, Esc, and Backspace behavior against real Codex CLI.
 - [ ] 6.6 Verify Raw Terminal shows the same PTY state as Reading.
