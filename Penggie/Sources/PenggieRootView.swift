@@ -110,7 +110,7 @@ private struct PenggieStartView: View {
             VStack(spacing: 8) {
                 Text("Welcome to Penggie")
                     .font(.system(size: 24, weight: .semibold))
-                Text("Choose an agent CLI to open a Reading session.")
+                Text("Choose how Penggie should start.")
                     .font(.system(size: 15))
                     .foregroundStyle(.secondary)
             }
