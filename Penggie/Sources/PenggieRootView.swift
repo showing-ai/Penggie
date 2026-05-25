@@ -166,7 +166,7 @@ private struct PenggieProgressView: View {
             VStack(spacing: 5) {
                 Text(session.state == .checkingCodex ? "Checking Codex" : "Starting local session")
                     .font(.system(size: 17, weight: .semibold))
-                Text(session.state == .checkingCodex ? "Looking in your login shell PATH." : "Preparing Reading with the active Ghostty PTY.")
+                Text(session.state == .checkingCodex ? "Looking in your login shell PATH." : "Opening Reading for this Codex session.")
                     .font(.system(size: 13))
                     .foregroundStyle(.secondary)
             }
