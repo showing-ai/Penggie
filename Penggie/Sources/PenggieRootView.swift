@@ -108,9 +108,9 @@ private struct PenggieStartView: View {
                 .accessibilityHidden(true)
 
             VStack(spacing: 8) {
-                Text("Start a local Codex session")
+                Text("Welcome to Penggie")
                     .font(.system(size: 24, weight: .semibold))
-                Text("Penggie opens Reading first. Raw Terminal stays available as a fallback.")
+                Text("Choose an agent CLI to open a Reading session.")
                     .font(.system(size: 15))
                     .foregroundStyle(.secondary)
             }
@@ -119,17 +119,12 @@ private struct PenggieStartView: View {
                 session.startWithCodex()
             } label: {
                 HStack(spacing: 16) {
-                    Image(systemName: "terminal")
-                        .font(.system(size: 22, weight: .medium))
-                        .frame(width: 52, height: 52)
-                        .foregroundStyle(.primary)
-                        .background(PenggieTheme.surface)
-                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    CodexProviderIcon()
 
                     VStack(alignment: .leading, spacing: 5) {
-                        Text("Start with Codex")
+                        Text("Codex")
                             .font(.system(size: 16, weight: .semibold))
-                        Text("Use the Codex CLI from your login shell.")
+                        Text("Use the local Codex CLI installed on this Mac.")
                             .font(.system(size: 13))
                             .foregroundStyle(.secondary)
                     }
@@ -150,9 +145,32 @@ private struct PenggieStartView: View {
                 }
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Start with Codex")
 
             Spacer(minLength: 100)
         }
+    }
+}
+
+private struct CodexProviderIcon: View {
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(PenggieTheme.surface)
+
+            Image("OpenAIProviderIcon")
+                .resizable()
+                .renderingMode(.template)
+                .scaledToFit()
+                .frame(width: 26, height: 26)
+                .foregroundStyle(.primary)
+        }
+        .frame(width: 52, height: 52)
+        .overlay {
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .stroke(PenggieTheme.quietSeparator, lineWidth: 1)
+        }
+        .accessibilityHidden(true)
     }
 }
 
