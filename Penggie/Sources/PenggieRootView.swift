@@ -404,7 +404,7 @@ private struct PenggieReadingChatView: View {
         VStack(spacing: 20) {
             Spacer()
 
-            Text("What should we work on in \(session.projectDisplayName)?")
+            Text("What should we work on?")
                 .font(.system(size: 27, weight: .medium))
                 .foregroundStyle(.primary)
                 .multilineTextAlignment(.center)

@@ -75,10 +75,6 @@ final class PenggieSessionModel: ObservableObject {
         isRunning && readingTurnStore.canSubmitPrompt
     }
 
-    var projectDisplayName: String {
-        FileManager.default.homeDirectoryForCurrentUser.lastPathComponent
-    }
-
     func startWithCodex() {
         guard canStartCodex else { return }
         state = .checkingCodex
