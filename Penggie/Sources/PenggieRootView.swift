@@ -286,7 +286,7 @@ private struct PenggieModeToggleButton: View {
 
     var body: some View {
         if session.state == .terminal {
-            PenggieChromeIconButton(systemName: "text.alignleft", label: "Show Reading") {
+            PenggieChromeIconButton(systemName: "bubble.left.and.bubble.right", label: "Show Reading") {
                 session.switchToReading()
             }
         } else {
