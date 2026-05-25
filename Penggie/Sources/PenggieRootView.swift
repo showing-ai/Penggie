@@ -108,9 +108,9 @@ private struct PenggieStartView: View {
                 .accessibilityHidden(true)
 
             VStack(spacing: 8) {
-                Text("Welcome to Penggie")
+                Text("Start a local Codex session")
                     .font(.system(size: 24, weight: .semibold))
-                Text("Choose how to start.")
+                Text("Penggie opens Reading first. Raw Terminal stays available as a fallback.")
                     .font(.system(size: 15))
                     .foregroundStyle(.secondary)
             }
@@ -129,7 +129,7 @@ private struct PenggieStartView: View {
                     VStack(alignment: .leading, spacing: 5) {
                         Text("Start with Codex")
                             .font(.system(size: 16, weight: .semibold))
-                        Text("Connect to the Codex CLI from your login shell.")
+                        Text("Use the Codex CLI from your login shell.")
                             .font(.system(size: 13))
                             .foregroundStyle(.secondary)
                     }
@@ -286,7 +286,7 @@ private struct PenggieModeToggleButton: View {
 
     var body: some View {
         if session.state == .terminal {
-            PenggieChromeIconButton(systemName: "doc.text", label: "Show Reading") {
+            PenggieChromeIconButton(systemName: "text.alignleft", label: "Show Reading") {
                 session.switchToReading()
             }
         } else {
