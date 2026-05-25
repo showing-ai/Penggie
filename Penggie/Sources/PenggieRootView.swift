@@ -55,6 +55,7 @@ struct PenggieRootView: View {
                 PenggieSessionView()
             }
         }
+        .background(PenggieWindowConfigurator())
         .alert(item: $session.pendingConfirmation) { confirmation in
             Alert(
                 title: Text(confirmation.title),
@@ -67,6 +68,30 @@ struct PenggieRootView: View {
                 }
             )
         }
+    }
+}
+
+private struct PenggieWindowConfigurator: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        DispatchQueue.main.async {
+            configure(window: view.window)
+        }
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {
+        DispatchQueue.main.async {
+            configure(window: nsView.window)
+        }
+    }
+
+    private func configure(window: NSWindow?) {
+        guard let window else { return }
+        window.titleVisibility = .hidden
+        window.titlebarAppearsTransparent = true
+        window.styleMask.insert(.fullSizeContentView)
+        window.isMovableByWindowBackground = true
     }
 }
 
@@ -192,89 +217,145 @@ private struct PenggieSessionView: View {
     @EnvironmentObject private var session: PenggieSessionModel
 
     var body: some View {
-        VStack(spacing: 0) {
-            PenggieTopBar()
-
-            Divider()
-
-            if session.state == .terminal {
-                PenggieRawTerminalPlaceholder()
-            } else {
-                PenggieReadingChatView()
+        ZStack(alignment: .top) {
+            Group {
+                if session.state == .terminal {
+                    PenggieRawTerminalPlaceholder()
+                } else {
+                    PenggieReadingChatView()
+                }
             }
+            .padding(.top, PenggieChromeMetrics.height)
+
+            PenggieWindowChrome()
         }
+        .ignoresSafeArea(.container, edges: .top)
     }
 }
 
-private struct PenggieTopBar: View {
+private enum PenggieChromeMetrics {
+    static let height: CGFloat = 52
+    static let trafficLightSafeArea: CGFloat = 84
+}
+
+private struct PenggieWindowChrome: View {
     @EnvironmentObject private var session: PenggieSessionModel
 
     var body: some View {
         HStack(spacing: 12) {
+            Color.clear
+                .frame(width: PenggieChromeMetrics.trafficLightSafeArea)
+
             HStack(spacing: 8) {
                 Image(nsImage: NSImage(named: "AppIcon") ?? NSImage())
                     .resizable()
                     .frame(width: 22, height: 22)
                 Text("Penggie")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.system(size: 14, weight: .semibold))
             }
 
             Text("Codex")
-                .font(.system(size: 12, weight: .medium))
+                .font(.system(size: 13, weight: .medium))
                 .foregroundStyle(.secondary)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(PenggieTheme.surface)
-                .clipShape(Capsule())
 
             Spacer()
 
-            Picker("", selection: Binding(
-                get: { session.state == .terminal ? "terminal" : "reading" },
-                set: { value in
-                    value == "terminal" ? session.switchToTerminal() : session.switchToReading()
-                }
-            )) {
-                Text("Reading").tag("reading")
-                Text("Terminal").tag("terminal")
-            }
-            .pickerStyle(.segmented)
-            .frame(width: 176)
+            PenggieModeToggleButton()
 
-            PenggieTopBarIconButton(systemName: "plus", label: "New Chat") {
+            PenggieChromeIconButton(systemName: "plus", label: "New Chat") {
                 session.requestNewChat()
             }
 
-            PenggieTopBarIconButton(systemName: "xmark", label: "Close Session") {
+            PenggieChromeIconButton(systemName: "xmark", label: "Close Session") {
                 session.requestCloseSession()
             }
         }
-        .padding(.horizontal, 18)
-        .frame(height: 52)
+        .padding(.trailing, 18)
+        .frame(height: PenggieChromeMetrics.height)
         .background(PenggieTheme.appBackground)
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(PenggieTheme.quietSeparator)
+                .frame(height: 1)
+        }
     }
 }
 
-private struct PenggieTopBarIconButton: View {
+private struct PenggieModeToggleButton: View {
+    @EnvironmentObject private var session: PenggieSessionModel
+
+    var body: some View {
+        if session.state == .terminal {
+            PenggieChromeIconButton(systemName: "doc.text", label: "Show Reading") {
+                session.switchToReading()
+            }
+        } else {
+            PenggieChromeIconButton(systemName: "terminal", label: "Show Raw Terminal") {
+                session.switchToTerminal()
+            }
+        }
+    }
+}
+
+private struct PenggieChromeIconButton: View {
     let systemName: String
     let label: String
     let action: () -> Void
 
     @State private var isHovering = false
+    @FocusState private var isFocused: Bool
 
     var body: some View {
         Button(action: action) {
-            Image(systemName: systemName)
-                .font(.system(size: 14, weight: .medium))
-                .frame(width: 36, height: 32)
-                .foregroundStyle(.secondary)
-                .background(isHovering ? PenggieTheme.surface : Color.clear)
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            Label(label, systemImage: systemName)
+                .labelStyle(.iconOnly)
+                .font(.system(size: 15, weight: .medium))
+                .frame(width: 44, height: 36)
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel(label)
+        .buttonStyle(PenggieChromeIconButtonStyle(isHovering: isHovering, isFocused: isFocused))
+        .focusable()
+        .focused($isFocused)
+        .accessibilityLabel(Text(label))
         .help(label)
         .onHover { isHovering = $0 }
+    }
+}
+
+private struct PenggieChromeIconButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+
+    let isHovering: Bool
+    let isFocused: Bool
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .foregroundStyle(isEnabled ? PenggieTheme.secondaryText : PenggieTheme.disabledAction)
+            .background(background(isPressed: configuration.isPressed))
+            .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 9, style: .continuous)
+                    .stroke(isFocused ? PenggieTheme.accent.opacity(0.58) : Color.clear, lineWidth: 2)
+            }
+            .scaleEffect(configuration.isPressed ? 0.96 : 1)
+            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+            .animation(.easeOut(duration: 0.12), value: isHovering)
+            .animation(.easeOut(duration: 0.12), value: isFocused)
+    }
+
+    private func background(isPressed: Bool) -> Color {
+        if !isEnabled {
+            return Color.clear
+        }
+
+        if isPressed {
+            return PenggieTheme.selectedBackground
+        }
+
+        if isHovering || isFocused {
+            return PenggieTheme.surface
+        }
+
+        return Color.clear
     }
 }
 
