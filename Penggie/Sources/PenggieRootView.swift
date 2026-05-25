@@ -396,7 +396,8 @@ private struct PenggieReadingChatView: View {
     }
 
     private func contentWidth(for availableWidth: CGFloat) -> CGFloat {
-        min(880, max(520, availableWidth - 112))
+        let reservedHorizontalInset: CGFloat = 56
+        return max(1, min(880, availableWidth - reservedHorizontalInset))
     }
 
     private func emptyState(contentWidth: CGFloat) -> some View {
