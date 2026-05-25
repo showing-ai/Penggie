@@ -134,7 +134,8 @@ final class PenggieGhosttySession: ObservableObject {
     }
 
     func sendPrompt(_ prompt: String) {
-        sendText(prompt + "\n")
+        sendText(prompt)
+        sendEnterKey()
     }
 
     func sendText(_ text: String) {
@@ -161,31 +162,50 @@ final class PenggieGhosttySession: ObservableObject {
         return ghostty_surface_key(surface, keyEvent)
     }
 
-    func readVisibleText() -> String {
-        guard let surface else { return "" }
+    @discardableResult
+    func sendEnterKey() -> Bool {
+        sendKeyCode(36, text: "\r", unshiftedCodepoint: 13)
+    }
 
-        var text = ghostty_text_s()
-        let selection = ghostty_selection_s(
-            top_left: ghostty_point_s(
-                tag: GHOSTTY_POINT_VIEWPORT,
-                coord: GHOSTTY_POINT_COORD_TOP_LEFT,
-                x: 0,
-                y: 0
-            ),
-            bottom_right: ghostty_point_s(
-                tag: GHOSTTY_POINT_VIEWPORT,
-                coord: GHOSTTY_POINT_COORD_BOTTOM_RIGHT,
-                x: 0,
-                y: 0
-            ),
-            rectangle: false
-        )
+    @discardableResult
+    private func sendKeyCode(
+        _ keyCode: UInt16,
+        text: String?,
+        unshiftedCodepoint: UInt32
+    ) -> Bool {
+        guard let surface else { return false }
 
-        guard ghostty_surface_read_text(surface, selection, &text), let rawText = text.text else {
-            return ""
+        func send(textPointer: UnsafePointer<CChar>?) -> Bool {
+            var keyEvent = ghostty_input_key_s()
+            keyEvent.action = GHOSTTY_ACTION_PRESS
+            keyEvent.mods = GHOSTTY_MODS_NONE
+            keyEvent.consumed_mods = GHOSTTY_MODS_NONE
+            keyEvent.keycode = UInt32(keyCode)
+            keyEvent.text = textPointer
+            keyEvent.unshifted_codepoint = unshiftedCodepoint
+            keyEvent.composing = false
+
+            let pressed = ghostty_surface_key(surface, keyEvent)
+            keyEvent.action = GHOSTTY_ACTION_RELEASE
+            let released = ghostty_surface_key(surface, keyEvent)
+            return pressed || released
         }
-        defer { ghostty_surface_free_text(surface, &text) }
-        return String(cString: rawText)
+
+        guard let text else {
+            return send(textPointer: nil)
+        }
+
+        return text.withCString { pointer in
+            send(textPointer: pointer)
+        }
+    }
+
+    func readVisibleText() -> String {
+        readText(pointTag: GHOSTTY_POINT_VIEWPORT)
+    }
+
+    func readScreenText() -> String {
+        readText(pointTag: GHOSTTY_POINT_SCREEN)
     }
 
     func readScreenModelJSON() -> String? {
@@ -215,6 +235,76 @@ final class PenggieGhosttySession: ObservableObject {
         let scale = Double(terminalView.window?.backingScaleFactor ?? fallbackScale)
         ghostty_surface_set_content_scale(surface, scale, scale)
         ghostty_surface_set_size(surface, width, height)
+    }
+
+    func sendMouseScroll(deltaX: Double, deltaY: Double, precision: Bool, momentumPhase: NSEvent.Phase) {
+        guard let surface else { return }
+
+        var x = deltaX
+        var y = deltaY
+        if precision {
+            x *= 2
+            y *= 2
+        }
+
+        ghostty_surface_mouse_scroll(
+            surface,
+            x,
+            y,
+            Self.scrollMods(precision: precision, momentumPhase: momentumPhase)
+        )
+    }
+
+    private func readText(pointTag: ghostty_point_tag_e) -> String {
+        guard let surface else { return "" }
+
+        var text = ghostty_text_s()
+        let selection = ghostty_selection_s(
+            top_left: ghostty_point_s(
+                tag: pointTag,
+                coord: GHOSTTY_POINT_COORD_TOP_LEFT,
+                x: 0,
+                y: 0
+            ),
+            bottom_right: ghostty_point_s(
+                tag: pointTag,
+                coord: GHOSTTY_POINT_COORD_BOTTOM_RIGHT,
+                x: 0,
+                y: 0
+            ),
+            rectangle: false
+        )
+
+        guard ghostty_surface_read_text(surface, selection, &text), let rawText = text.text else {
+            return ""
+        }
+        defer { ghostty_surface_free_text(surface, &text) }
+        return String(cString: rawText)
+    }
+
+    private static func scrollMods(precision: Bool, momentumPhase: NSEvent.Phase) -> ghostty_input_scroll_mods_t {
+        var rawValue: Int32 = precision ? 0b0000_0001 : 0
+        rawValue |= Int32(scrollMomentumRawValue(for: momentumPhase)) << 1
+        return rawValue
+    }
+
+    private static func scrollMomentumRawValue(for phase: NSEvent.Phase) -> UInt8 {
+        switch phase {
+        case .began:
+            return 1
+        case .stationary:
+            return 2
+        case .changed:
+            return 3
+        case .ended:
+            return 4
+        case .cancelled:
+            return 5
+        case .mayBegin:
+            return 6
+        default:
+            return 0
+        }
     }
 
     private func tick() {
@@ -270,6 +360,15 @@ final class PenggieGhosttyHostView: NSView {
             self.window?.makeFirstResponder(self)
             self.session?.resizeSurface(to: self.bounds.size)
         }
+    }
+
+    override func scrollWheel(with event: NSEvent) {
+        session?.sendMouseScroll(
+            deltaX: event.scrollingDeltaX,
+            deltaY: event.scrollingDeltaY,
+            precision: event.hasPreciseScrollingDeltas,
+            momentumPhase: event.momentumPhase
+        )
     }
 }
 

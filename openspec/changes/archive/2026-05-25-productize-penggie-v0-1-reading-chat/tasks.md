@@ -45,3 +45,10 @@
 - [x] 6.4 Verify Codex missing, launch failed, and process exited product states.
 - [x] 6.5 Verify `/`, `/m`, `/model`, arrow/Enter, Esc, and Backspace behavior against real Codex CLI.
 - [x] 6.6 Verify Raw Terminal shows the same PTY state as Reading.
+
+## 7. Reading Transcript Regression Hardening
+
+- [x] 7.1 Prevent Codex idle/status metadata from prematurely freezing an active Reading turn before the answer projection has settled.
+- [x] 7.2 Keep submitted prompts gated until the active turn reaches a stable completed state instead of completing the previous turn on next submit.
+- [x] 7.3 Add regression coverage for partial answer plus idle metadata, local working timer display, and completed-turn transcript preservation.
+- [x] 7.4 Preserve late answer tail content after idle metadata until the next prompt seals the previous Reading turn.

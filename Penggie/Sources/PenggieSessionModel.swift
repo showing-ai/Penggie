@@ -32,8 +32,9 @@ final class PenggieSessionModel: ObservableObject {
     let substrate = PenggieGhosttySubstrate()
     private var screenPollTask: Task<Void, Never>?
     private var nativeInteractionResolvingBeganAt: Date?
-    private var composerSubmissions: [PenggieComposerSubmission] = []
-    private var consumedComposerSubmissionIDs = Set<UUID>()
+    private var readingTurnStore = PenggieReadingTurnStore()
+    private var lastReadingProjectionText = ""
+    private var lastReadingProjectionRefreshSecond: Int?
 
     var nativeInteractionIsActive: Bool {
         nativeInteractionPhase.isActive
@@ -68,6 +69,10 @@ final class PenggieSessionModel: ObservableObject {
         case .idle, .checkingCodex, .launching, .codexMissing, .launchFailed, .exited, .closed:
             return false
         }
+    }
+
+    var canSubmitPrompt: Bool {
+        isRunning && readingTurnStore.canSubmitPrompt
     }
 
     var projectDisplayName: String {
@@ -160,8 +165,8 @@ final class PenggieSessionModel: ObservableObject {
                     self.ghosttySession = session
                     self.transcriptText = ""
                     self.readingBlocks = []
-                    self.composerSubmissions = []
-                    self.consumedComposerSubmissionIDs = []
+                    self.readingTurnStore.reset()
+                    self.resetReadingProjectionCache()
                     self.startScreenPolling()
                     self.state = .reading
                 } catch {
@@ -171,12 +176,15 @@ final class PenggieSessionModel: ObservableObject {
         }
     }
 
-    func sendPrompt(_ prompt: String) {
+    @discardableResult
+    func sendPrompt(_ prompt: String) -> Bool {
         let trimmed = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
-        composerSubmissions.append(.init(text: trimmed, submittedAt: Date()))
+        guard !trimmed.isEmpty, canSubmitPrompt else { return false }
+        readingTurnStore.submitPrompt(trimmed)
+        readingBlocks = readingTurnStore.blocks
         ghosttySession?.sendPrompt(trimmed)
         startScreenPolling()
+        return true
     }
 
     @discardableResult
@@ -241,8 +249,8 @@ final class PenggieSessionModel: ObservableObject {
         ghosttySession = nil
         transcriptText = ""
         readingBlocks = []
-        composerSubmissions = []
-        consumedComposerSubmissionIDs = []
+        readingTurnStore.reset()
+        resetReadingProjectionCache()
         endNativeInteraction()
     }
 
@@ -254,10 +262,11 @@ final class PenggieSessionModel: ObservableObject {
                 await MainActor.run {
                     guard let self, let session = self.ghosttySession else { return }
                     let visibleText = session.readVisibleText()
+                    let readingText = self.nativeInteractionIsActive ? visibleText : session.readScreenText()
                     let screenModelJSON = session.readScreenModelJSON()
                     self.transcriptText = visibleText
                     if !self.nativeInteractionIsActive {
-                        self.updateReadingBlocks(from: visibleText)
+                        self.updateReadingBlocks(from: readingText)
                     }
                     self.updateNativeInteractionRows(
                         from: visibleText,
@@ -273,21 +282,36 @@ final class PenggieSessionModel: ObservableObject {
         }
     }
 
-    private func updateReadingBlocks(from visibleText: String) {
-        readingBlocks = PenggieReadingProjectionModel.blocks(
-            from: visibleText,
+    private func updateReadingBlocks(from projectionText: String, observedAt: Date = Date()) {
+        let refreshSecond = Int(observedAt.timeIntervalSince1970)
+        let needsTimerRefresh = !readingTurnStore.canSubmitPrompt &&
+            lastReadingProjectionRefreshSecond != refreshSecond
+        guard projectionText != lastReadingProjectionText || needsTimerRefresh else {
+            return
+        }
+
+        lastReadingProjectionText = projectionText
+        lastReadingProjectionRefreshSecond = refreshSecond
+
+        readingTurnStore.updateActiveTurn(
+            from: projectionText,
             terminalColumns: nil,
-            previousBlocks: readingBlocks,
-            composerSubmissions: composerSubmissions,
-            consumedComposerSubmissionIDs: consumedComposerSubmissionIDs
+            createdAt: observedAt
         )
-        consumedComposerSubmissionIDs.formUnion(
-            readingBlocks.compactMap(\.composerSubmissionID)
-        )
+        readingBlocks = readingTurnStore.blocks
+    }
+
+    private func resetReadingProjectionCache() {
+        lastReadingProjectionText = ""
+        lastReadingProjectionRefreshSecond = nil
     }
 
     private func sendNativeKey(_ command: PenggieInteractionCommand) -> Bool {
         guard let ghosttySession else { return false }
+
+        if command == .enter {
+            return ghosttySession.sendEnterKey()
+        }
 
         let sent = ghosttySession.sendKeyCode(Self.keyCode(for: command))
         if sent {
@@ -343,7 +367,10 @@ final class PenggieSessionModel: ObservableObject {
                 )
             } ?? []
         let rows = screenModelRows.isEmpty
-            ? PenggieNativeInteractionProjection.rowsFromVisibleText(visibleText)
+            ? PenggieNativeInteractionProjection.rowsFromVisibleText(
+                visibleText,
+                currentInput: nativeInteractionDisplayText
+            )
             : screenModelRows
 
         switch nativeInteractionPhase {
@@ -496,6 +523,15 @@ enum Confirmation: Identifiable {
             return "This ends the current session and starts a fresh Codex session in this window."
         case .closeSession:
             return "This ends the current Codex session and returns to the Penggie start screen."
+        }
+    }
+
+    var confirmationButtonTitle: String {
+        switch self {
+        case .newChat:
+            return "Start New Chat"
+        case .closeSession:
+            return "End Session"
         }
     }
 }

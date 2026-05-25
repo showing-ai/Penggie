@@ -165,20 +165,41 @@ enum PenggieNativeInteractionProjection {
         }
     }
 
-    static func rows(fromVisibleText visibleText: String, limit: Int = 10) -> [String] {
+    static func rows(
+        fromVisibleText visibleText: String,
+        currentInput: String,
+        limit: Int = 10
+    ) -> [String] {
         let lines = visibleText
             .components(separatedBy: .newlines)
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
 
-        return Array(lines.suffix(limit))
+        guard let anchorIndex = lines.lastIndex(where: {
+            isInputAnchor($0, currentInput: currentInput)
+        }) else {
+            return []
+        }
+
+        let following = Array(lines.dropFirst(anchorIndex + 1))
+        guard !following.isEmpty else { return [] }
+
+        let suggestions = following
+            .prefix(limit)
+            .prefix { line in
+                line.trimmingCharacters(in: .whitespacesAndNewlines).hasPrefix(currentInput)
+            }
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+        return Array(suggestions)
     }
 
     static func rowsFromVisibleText(
         _ visibleText: String,
+        currentInput: String,
         limit: Int = 10
     ) -> [PenggieNativeInteractionLine] {
-        rows(fromVisibleText: visibleText, limit: limit)
+        rows(fromVisibleText: visibleText, currentInput: currentInput, limit: limit)
             .enumerated()
             .map { index, text in
                 .visibleTextFallback(index: index, text: text)

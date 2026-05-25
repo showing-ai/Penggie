@@ -1,11 +1,28 @@
 import SwiftUI
 
+private enum PenggieTheme {
+    static let appBackground = Color(nsColor: .windowBackgroundColor)
+    static let contentBackground = Color(nsColor: .textBackgroundColor)
+    static let surface = Color(nsColor: .controlBackgroundColor)
+    static let elevatedSurface = Color(nsColor: .textBackgroundColor)
+    static let separator = Color(nsColor: .separatorColor).opacity(0.6)
+    static let quietSeparator = Color(nsColor: .separatorColor).opacity(0.32)
+    static let secondaryText = Color(nsColor: .secondaryLabelColor)
+    static let accent = Color.accentColor
+    static let accentSoft = Color.accentColor.opacity(0.12)
+    static let selectedBackground = Color.accentColor.opacity(0.16)
+    static let terminalBackground = Color(nsColor: NSColor(calibratedRed: 0.055, green: 0.058, blue: 0.065, alpha: 1))
+    static let disabledAction = Color(nsColor: .tertiaryLabelColor).opacity(0.44)
+    static let shadow = Color(nsColor: .shadowColor).opacity(0.08)
+    static let onAccent = Color(nsColor: .selectedMenuItemTextColor)
+}
+
 struct PenggieRootView: View {
     @EnvironmentObject private var session: PenggieSessionModel
 
     var body: some View {
         ZStack {
-            Color(nsColor: .windowBackgroundColor)
+            PenggieTheme.appBackground
                 .ignoresSafeArea()
 
             switch session.state {
@@ -42,7 +59,7 @@ struct PenggieRootView: View {
             Alert(
                 title: Text(confirmation.title),
                 message: Text(confirmation.message),
-                primaryButton: .destructive(Text("Continue")) {
+                primaryButton: .destructive(Text(confirmation.confirmationButtonTitle)) {
                     session.confirm(confirmation)
                 },
                 secondaryButton: .cancel {
@@ -77,17 +94,17 @@ private struct PenggieStartView: View {
                 session.startWithCodex()
             } label: {
                 HStack(spacing: 16) {
-                    Image(systemName: "sparkles")
+                    Image(systemName: "terminal")
                         .font(.system(size: 22, weight: .medium))
                         .frame(width: 52, height: 52)
                         .foregroundStyle(.primary)
-                        .background(Color(nsColor: .controlBackgroundColor))
+                        .background(PenggieTheme.surface)
                         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 
                     VStack(alignment: .leading, spacing: 5) {
                         Text("Start with Codex")
                             .font(.system(size: 16, weight: .semibold))
-                        Text("Use your local Codex CLI in Reading mode.")
+                        Text("Connect to the Codex CLI from your login shell.")
                             .font(.system(size: 13))
                             .foregroundStyle(.secondary)
                     }
@@ -99,12 +116,12 @@ private struct PenggieStartView: View {
                         .foregroundStyle(.secondary)
                 }
                 .padding(16)
-                .frame(width: 560)
-                .background(Color(nsColor: .textBackgroundColor))
+                .frame(maxWidth: 560)
+                .background(PenggieTheme.elevatedSurface)
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .overlay {
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(Color(nsColor: .separatorColor).opacity(0.7), lineWidth: 1)
+                        .stroke(PenggieTheme.separator, lineWidth: 1)
                 }
             }
             .buttonStyle(.plain)
@@ -118,13 +135,19 @@ private struct PenggieProgressView: View {
     @EnvironmentObject private var session: PenggieSessionModel
 
     var body: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: 18) {
             ProgressView()
                 .controlSize(.large)
-            Text(session.state == .checkingCodex ? "Checking Codex..." : "Starting Codex...")
-                .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(.secondary)
+            VStack(spacing: 5) {
+                Text(session.state == .checkingCodex ? "Checking Codex" : "Starting local session")
+                    .font(.system(size: 17, weight: .semibold))
+                Text(session.state == .checkingCodex ? "Looking in your login shell PATH." : "Preparing Reading with the active Ghostty PTY.")
+                    .font(.system(size: 13))
+                    .foregroundStyle(.secondary)
+            }
         }
+        .padding(32)
+        .frame(maxWidth: 380)
     }
 }
 
@@ -155,6 +178,13 @@ private struct PenggieErrorStateView: View {
                 .buttonStyle(.borderedProminent)
         }
         .padding(40)
+        .frame(maxWidth: 520)
+        .background(PenggieTheme.elevatedSurface)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(PenggieTheme.quietSeparator, lineWidth: 1)
+        }
     }
 }
 
@@ -194,7 +224,7 @@ private struct PenggieTopBar: View {
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
-                .background(Color(nsColor: .controlBackgroundColor))
+                .background(PenggieTheme.surface)
                 .clipShape(Capsule())
 
             Spacer()
@@ -211,27 +241,40 @@ private struct PenggieTopBar: View {
             .pickerStyle(.segmented)
             .frame(width: 176)
 
-            Button {
+            PenggieTopBarIconButton(systemName: "plus", label: "New Chat") {
                 session.requestNewChat()
-            } label: {
-                Image(systemName: "plus")
-                    .frame(width: 28, height: 28)
             }
-            .buttonStyle(.borderless)
-            .help("New Chat")
 
-            Button {
+            PenggieTopBarIconButton(systemName: "xmark", label: "Close Session") {
                 session.requestCloseSession()
-            } label: {
-                Image(systemName: "xmark")
-                    .frame(width: 28, height: 28)
             }
-            .buttonStyle(.borderless)
-            .help("Close Session")
         }
         .padding(.horizontal, 18)
         .frame(height: 52)
-        .background(Color(nsColor: .windowBackgroundColor))
+        .background(PenggieTheme.appBackground)
+    }
+}
+
+private struct PenggieTopBarIconButton: View {
+    let systemName: String
+    let label: String
+    let action: () -> Void
+
+    @State private var isHovering = false
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(.system(size: 14, weight: .medium))
+                .frame(width: 36, height: 32)
+                .foregroundStyle(.secondary)
+                .background(isHovering ? PenggieTheme.surface : Color.clear)
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(label)
+        .help(label)
+        .onHover { isHovering = $0 }
     }
 }
 
@@ -243,94 +286,133 @@ private struct PenggieReadingChatView: View {
     @State private var nativeInteractionFocusRequestID = 0
 
     var body: some View {
-        VStack(spacing: 24) {
-            Spacer()
-
-            let visibleBlocks = PenggieReadingPresentation.visibleBlocks(
+        GeometryReader { geometry in
+            let visibleItems = PenggieReadingPresentation.visibleItems(
                 from: session.readingBlocks,
                 nativeInteractionIsActive: session.nativeInteractionIsActive
             )
-
-            if visibleBlocks.isEmpty {
-                Text("What should we work on in \(session.projectDisplayName)?")
-                    .font(.system(size: 27, weight: .medium))
-                    .foregroundStyle(.primary)
-                    .padding(.bottom, 6)
-            } else {
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 12) {
-                        ForEach(visibleBlocks) { block in
-                            PenggieReadingBlockView(block: block)
-                        }
-                    }
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 20)
-                }
-                .frame(width: 760, height: 380)
-                .background(Color(nsColor: .textBackgroundColor))
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                .overlay {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(Color(nsColor: .separatorColor).opacity(0.65), lineWidth: 1)
-                }
-            }
+            let contentWidth = contentWidth(for: geometry.size.width)
 
             VStack(spacing: 0) {
-                if session.nativeInteractionIsActive && !session.nativeInteractionRows.isEmpty {
-                    PenggieNativeInteractionOverlay(rows: session.nativeInteractionRows)
-                        .padding(.bottom, 10)
+                if visibleItems.isEmpty {
+                    emptyState(contentWidth: contentWidth)
+                } else {
+                    transcriptContent(items: visibleItems, contentWidth: contentWidth)
+                    composerStack(contentWidth: contentWidth)
+                        .padding(.horizontal, 28)
+                        .padding(.bottom, 28)
                 }
-
-                composerSurface
-
-                HStack {
-                    Button {
-                    } label: {
-                        Image(systemName: "plus")
-                            .frame(width: 28, height: 28)
-                    }
-                    .buttonStyle(.borderless)
-
-                    Text("/ commands")
-                        .font(.system(size: 13))
-                        .foregroundStyle(.secondary)
-
-                    Spacer()
-
-                    Button {
-                        submitComposer()
-                    } label: {
-                        Image(systemName: "arrow.up")
-                            .font(.system(size: 14, weight: .semibold))
-                            .frame(width: 34, height: 34)
-                            .foregroundStyle(.white)
-                            .background(canSend ? Color.primary : Color.gray)
-                            .clipShape(Circle())
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(!canSend)
-                }
-                .padding(.top, 10)
             }
-            .padding(14)
-            .frame(width: 620)
-            .background(Color(nsColor: .textBackgroundColor))
-            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .stroke(Color(nsColor: .separatorColor).opacity(0.75), lineWidth: 1)
-            }
-            .shadow(color: Color.black.opacity(0.06), radius: 20, y: 12)
-
-            Spacer()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(nsColor: .textBackgroundColor).opacity(0.18))
+        .background(PenggieTheme.contentBackground)
         .onChange(of: session.nativeInteractionIsActive) { _, isActive in
             if isActive {
                 nativeInteractionFocusRequestID += 1
             }
         }
+    }
+
+    private func contentWidth(for availableWidth: CGFloat) -> CGFloat {
+        min(880, max(520, availableWidth - 112))
+    }
+
+    private func emptyState(contentWidth: CGFloat) -> some View {
+        VStack(spacing: 20) {
+            Spacer()
+
+            Text("What should we work on in \(session.projectDisplayName)?")
+                .font(.system(size: 27, weight: .medium))
+                .foregroundStyle(.primary)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .frame(maxWidth: contentWidth)
+
+            composerStack(contentWidth: contentWidth)
+
+            Spacer(minLength: 96)
+        }
+        .padding(.horizontal, 28)
+    }
+
+    private func transcriptContent(
+        items: [PenggieReadingVisibleItem],
+        contentWidth: CGFloat
+    ) -> some View {
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 18) {
+                ForEach(items) { item in
+                    PenggieReadingVisibleItemView(item: item)
+                }
+            }
+            .frame(width: contentWidth, alignment: .leading)
+            .padding(.top, 44)
+            .padding(.bottom, 24)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private func composerStack(contentWidth: CGFloat) -> some View {
+        let composerWidth = min(contentWidth, 720)
+
+        return VStack(spacing: 0) {
+            if session.nativeInteractionIsActive && !session.nativeInteractionRows.isEmpty {
+                PenggieNativeInteractionOverlay(rows: session.nativeInteractionRows)
+                    .padding(.bottom, 8)
+            }
+
+            composerSurface
+
+            HStack(spacing: 12) {
+                Button {
+                    beginSlashCommand()
+                } label: {
+                    HStack(spacing: 6) {
+                        Text("/")
+                            .font(.system(size: 14, weight: .semibold, design: .monospaced))
+                        Text("commands")
+                            .font(.system(size: 13, weight: .medium))
+                    }
+                    .foregroundStyle(.secondary)
+                    .frame(height: 30)
+                    .padding(.horizontal, 2)
+                }
+                .buttonStyle(.plain)
+                .disabled(session.nativeInteractionIsActive)
+                .accessibilityLabel("Open Commands")
+                .help("Open Commands")
+
+                Spacer()
+
+                Button {
+                    submitComposer()
+                } label: {
+                    Image(systemName: "arrow.up")
+                        .font(.system(size: 15, weight: .semibold))
+                        .frame(width: 38, height: 38)
+                        .foregroundStyle(canSend ? PenggieTheme.onAccent : PenggieTheme.secondaryText)
+                        .background(canSend ? PenggieTheme.accent : PenggieTheme.surface)
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .disabled(!canSend)
+                .accessibilityLabel("Send")
+                .help("Send")
+            }
+            .padding(.top, 8)
+        }
+        .padding(.horizontal, 14)
+        .padding(.top, 12)
+        .padding(.bottom, 10)
+        .frame(maxWidth: composerWidth)
+        .background(PenggieTheme.elevatedSurface)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(PenggieTheme.quietSeparator, lineWidth: 1)
+        }
+        .shadow(color: PenggieTheme.shadow, radius: 14, y: 8)
     }
 
     private var composerSurface: some View {
@@ -397,7 +479,7 @@ private struct PenggieReadingChatView: View {
             return true
         }
 
-        return !composerText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        return session.canSubmitPrompt && !composerText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     private func submitComposer() {
@@ -407,13 +489,24 @@ private struct PenggieReadingChatView: View {
             return
         }
 
-        session.sendPrompt(composerText)
-        composerText = ""
+        if session.sendPrompt(composerText) {
+            composerText = ""
+        }
     }
 
     private func handleComposerTextChange(_ text: String) {
         guard PenggieComposerNativeTrigger.prefix(for: text) != nil,
               session.beginNativeInteraction(initialText: text) else {
+            return
+        }
+
+        composerText = ""
+        nativeInteractionFocusRequestID += 1
+    }
+
+    private func beginSlashCommand() {
+        guard !session.nativeInteractionIsActive,
+              session.beginNativeInteraction(prefix: "/") else {
             return
         }
 
@@ -445,6 +538,19 @@ private struct PenggieReadingChatView: View {
     }
 }
 
+private struct PenggieReadingVisibleItemView: View {
+    let item: PenggieReadingVisibleItem
+
+    var body: some View {
+        switch item {
+        case .block(let block):
+            PenggieReadingBlockView(block: block)
+        case .disclosure(let disclosure):
+            PenggieReadingDisclosureView(disclosure: disclosure)
+        }
+    }
+}
+
 private struct PenggieReadingBlockView: View {
     let block: PenggieReadingBlock
 
@@ -454,12 +560,12 @@ private struct PenggieReadingBlockView: View {
                 Spacer(minLength: 60)
                 Text(PenggieReadingPresentation.promptText(for: block))
                     .font(.system(size: 14))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(PenggieTheme.onAccent)
                     .textSelection(.enabled)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 10)
-                    .background(Color.primary)
-                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .background(PenggieTheme.accent)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
         } else if PenggieReadingPresentation.isToolChromeBlock(block) {
             Text(PenggieReadingPresentation.terminalText(for: block))
@@ -470,16 +576,70 @@ private struct PenggieReadingBlockView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(Color(nsColor: .controlBackgroundColor))
+                .background(PenggieTheme.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         } else {
             Text(PenggieReadingPresentation.chatText(for: block))
                 .font(.system(size: 14))
                 .foregroundStyle(.primary)
                 .textSelection(.enabled)
-                .lineSpacing(4)
+                .lineSpacing(5)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+}
+
+private struct PenggieReadingDisclosureView: View {
+    let disclosure: PenggieReadingDisclosureBlock
+    @State private var isExpanded: Bool
+
+    init(disclosure: PenggieReadingDisclosureBlock) {
+        self.disclosure = disclosure
+        self._isExpanded = State(initialValue: !disclosure.isCollapsedByDefault)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Button {
+                guard disclosure.hasDetails else { return }
+                withAnimation(.easeOut(duration: 0.16)) {
+                    isExpanded.toggle()
+                }
+            } label: {
+                HStack(spacing: 6) {
+                    Text(disclosure.summary)
+                        .font(.system(size: 12, weight: .medium))
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+
+                    if disclosure.hasDetails {
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 10, weight: .semibold))
+                            .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                    }
+                }
+                .foregroundStyle(PenggieTheme.secondaryText)
+                .padding(.vertical, 2)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(disclosure.summary)
+            .accessibilityValue(isExpanded ? "Expanded" : "Collapsed")
+            .help(disclosure.hasDetails ? (isExpanded ? "Hide activity details" : "Show activity details") : disclosure.summary)
+
+            if isExpanded, disclosure.hasDetails {
+                Text(disclosure.detailText)
+                    .font(.system(size: 12, design: .monospaced))
+                    .foregroundStyle(.secondary)
+                    .textSelection(.enabled)
+                    .lineSpacing(3)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(PenggieTheme.surface)
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
@@ -487,7 +647,7 @@ private struct PenggieNativeInteractionOverlay: View {
     let rows: [PenggieNativeInteractionLine]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 7) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Spacer()
                 Text("↑↓ select · Enter accept · Esc cancel")
@@ -500,22 +660,19 @@ private struct PenggieNativeInteractionOverlay: View {
                     nativeInteractionRowView(row)
                 }
             }
-            .padding(8)
-            .background(Color(nsColor: .textBackgroundColor))
-            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         }
-        .padding(12)
-        .background(Color(nsColor: .controlBackgroundColor))
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .padding(10)
+        .background(PenggieTheme.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(Color(nsColor: .separatorColor).opacity(0.75), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(PenggieTheme.quietSeparator, lineWidth: 1)
         }
     }
 
     private func nativeInteractionRowView(_ row: PenggieNativeInteractionLine) -> some View {
-        let foreground = row.isSelected ? Color.primary : Color.primary.opacity(0.92)
-        let background = row.isSelected ? Color.black.opacity(0.08) : Color.clear
+        let foreground = row.isSelected ? Color.primary : Color.primary.opacity(0.9)
+        let background = row.isSelected ? PenggieTheme.selectedBackground : Color.clear
 
         return Text(row.text.isEmpty ? " " : row.text)
             .font(.system(size: 13, design: .monospaced))
@@ -551,6 +708,6 @@ private struct PenggieRawTerminalPlaceholder: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.black)
+        .background(PenggieTheme.terminalBackground)
     }
 }

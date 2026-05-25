@@ -13,12 +13,7 @@ struct PenggieComposerTextView: NSViewRepresentable {
     let onSubmit: () -> Void
     let onNativePrefix: (String) -> Bool
 
-    private static let enabledTextColor = NSColor(
-        calibratedRed: 0.090,
-        green: 0.094,
-        blue: 0.104,
-        alpha: 1
-    )
+    private static let enabledTextColor = NSColor.labelColor
     private static let disabledTextColor = NSColor.secondaryLabelColor
 
     func makeNSView(context: Context) -> NSScrollView {

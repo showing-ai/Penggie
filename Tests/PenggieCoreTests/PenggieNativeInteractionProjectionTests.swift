@@ -144,12 +144,27 @@ struct PenggieNativeInteractionProjectionTests {
           /memories  configure memories
         """
 
-        #expect(PenggieNativeInteractionProjection.rows(fromVisibleText: visibleText) == [
-            "banner",
-            "› /m",
+        #expect(PenggieNativeInteractionProjection.rows(fromVisibleText: visibleText, currentInput: "/m") == [
             "/model     choose model",
             "/memories  configure memories"
         ])
+    }
+
+    @Test
+    func visibleTextProjectionDoesNotUseTerminalHistoryAsMenu() {
+        let visibleText = """
+        >_ OpenAI Codex
+
+        Tip: New For a limited time, Codex is included in your plan.
+
+        › 今天伦敦天气怎么样?
+
+        /
+
+        gpt-5.4 medium · ~
+        """
+
+        #expect(PenggieNativeInteractionProjection.rows(fromVisibleText: visibleText, currentInput: "/").isEmpty)
     }
 
     @Test
