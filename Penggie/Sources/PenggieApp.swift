@@ -8,7 +8,7 @@ struct PenggieApp: App {
         WindowGroup("Penggie") {
             PenggieRootView()
                 .environmentObject(session)
-                .frame(minWidth: 960, minHeight: 680)
+                .frame(minWidth: 720, minHeight: 560)
         }
         .windowStyle(.hiddenTitleBar)
         .commands {
