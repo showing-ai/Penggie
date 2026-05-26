@@ -6,6 +6,7 @@ import SwiftUI
 final class PenggieSessionModel: ObservableObject {
     static let codexCommandEnvironmentKey = "PENGGIE_CODEX_COMMAND"
     static let forceLaunchFailureEnvironmentKey = "PENGGIE_FORCE_LAUNCH_FAILURE"
+    private static let lastWorkingDirectoryDefaultsKey = "PenggieLastWorkingDirectory"
 
     enum State: Equatable {
         case idle
@@ -27,6 +28,8 @@ final class PenggieSessionModel: ObservableObject {
     @Published private(set) var nativeInteractionPhase: PenggieNativeInteractionPhase = .inactive
     @Published private(set) var nativeInteractionDisplayText = ""
     @Published private(set) var nativeInteractionRows: [PenggieNativeInteractionLine] = []
+    @Published private(set) var selectedWorkingDirectory: URL?
+    @Published private(set) var activeWorkingDirectory: URL?
     @Published var pendingConfirmation: Confirmation?
 
     let substrate = PenggieGhosttySubstrate()
@@ -35,6 +38,10 @@ final class PenggieSessionModel: ObservableObject {
     private var readingTurnStore = PenggieReadingTurnStore()
     private var lastReadingProjectionText = ""
     private var lastReadingProjectionRefreshSecond: Int?
+
+    init() {
+        selectedWorkingDirectory = Self.restoreLastWorkingDirectory()
+    }
 
     var nativeInteractionIsActive: Bool {
         nativeInteractionPhase.isActive
@@ -75,8 +82,33 @@ final class PenggieSessionModel: ObservableObject {
         isRunning && readingTurnStore.canSubmitPrompt
     }
 
+    var canStartConfiguredCodex: Bool {
+        guard canStartCodex, let selectedWorkingDirectory else {
+            return false
+        }
+
+        return Self.isUsableWorkingDirectory(selectedWorkingDirectory)
+    }
+
+    var sessionFolderTitle: String {
+        (activeWorkingDirectory ?? selectedWorkingDirectory)?.lastPathComponent.nilIfEmpty ?? "Folder"
+    }
+
+    var sessionFolderDisplayPath: String {
+        guard let url = activeWorkingDirectory ?? selectedWorkingDirectory else {
+            return "Choose a folder"
+        }
+
+        return (url.path as NSString).abbreviatingWithTildeInPath
+    }
+
     func startWithCodex() {
-        guard canStartCodex else { return }
+        guard canStartConfiguredCodex,
+              let workingDirectory = selectedWorkingDirectory else {
+            return
+        }
+
+        Self.storeLastWorkingDirectory(workingDirectory)
         state = .checkingCodex
         lastError = nil
 
@@ -131,9 +163,44 @@ final class PenggieSessionModel: ObservableObject {
         pendingConfirmation = nil
     }
 
+    @discardableResult
+    func chooseWorkingDirectory() -> URL? {
+        guard canStartCodex else {
+            return selectedWorkingDirectory
+        }
+
+        let panel = NSOpenPanel()
+        panel.title = "Choose Session Folder"
+        panel.prompt = "Choose"
+        panel.message = "Penggie will start this agent session in the selected folder."
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.allowsMultipleSelection = false
+        panel.canCreateDirectories = true
+        panel.directoryURL = selectedWorkingDirectory ?? FileManager.default.homeDirectoryForCurrentUser
+
+        guard panel.runModal() == .OK, let url = panel.url else {
+            return nil
+        }
+
+        selectedWorkingDirectory = url
+        Self.storeLastWorkingDirectory(url)
+        return url
+    }
+
     private func launchCodexSession() {
         guard substrate.isAvailable else {
             state = .launchFailed("Penggie could not initialize the terminal session.")
+            return
+        }
+
+        guard let workingDirectory = selectedWorkingDirectory else {
+            state = .closed
+            return
+        }
+
+        guard Self.isUsableWorkingDirectory(workingDirectory) else {
+            state = .launchFailed("Penggie cannot access this session folder: \(workingDirectory.path)")
             return
         }
 
@@ -153,12 +220,13 @@ final class PenggieSessionModel: ObservableObject {
                 do {
                     let session = try PenggieGhosttySession(
                         codexPath: codexPath,
-                        workingDirectory: FileManager.default.homeDirectoryForCurrentUser.path
+                        workingDirectory: workingDirectory.path
                     )
                     session.onExit = { [weak self] in
                         self?.state = .exited
                     }
                     self.ghosttySession = session
+                    self.activeWorkingDirectory = workingDirectory
                     self.transcriptText = ""
                     self.readingBlocks = []
                     self.readingTurnStore.reset()
@@ -243,6 +311,7 @@ final class PenggieSessionModel: ObservableObject {
         screenPollTask = nil
         ghosttySession?.close()
         ghosttySession = nil
+        activeWorkingDirectory = nil
         transcriptText = ""
         readingBlocks = []
         readingTurnStore.reset()
@@ -488,6 +557,33 @@ final class PenggieSessionModel: ObservableObject {
 
     nonisolated private static func shellQuoted(_ value: String) -> String {
         "'" + value.replacingOccurrences(of: "'", with: "'\\''") + "'"
+    }
+
+    nonisolated private static func restoreLastWorkingDirectory() -> URL? {
+        guard let path = UserDefaults.standard.string(forKey: lastWorkingDirectoryDefaultsKey),
+              !path.isEmpty else {
+            return nil
+        }
+
+        let url = URL(fileURLWithPath: path)
+        return isUsableWorkingDirectory(url) ? url : nil
+    }
+
+    nonisolated private static func storeLastWorkingDirectory(_ url: URL) {
+        UserDefaults.standard.set(url.path, forKey: lastWorkingDirectoryDefaultsKey)
+    }
+
+    nonisolated private static func isUsableWorkingDirectory(_ url: URL) -> Bool {
+        var isDirectory: ObjCBool = false
+        return FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory) &&
+            isDirectory.boolValue &&
+            FileManager.default.isReadableFile(atPath: url.path)
+    }
+}
+
+private extension String {
+    var nilIfEmpty: String? {
+        isEmpty ? nil : self
     }
 }
 

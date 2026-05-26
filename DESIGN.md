@@ -49,7 +49,7 @@ Never use pure `#000000` or `#FFFFFF` in new UI code. Tint neutrals slightly and
 
 ### Window Chrome
 
-- Left side: quiet `Penggie` text aligned near the traffic-light region.
+- Left side: quiet current session folder name aligned near the traffic-light region.
 - Right side: one destination mode icon. New Chat and Close Session live in the macOS menu and shortcuts unless a stronger visible affordance is needed.
 - Session chrome should visually align with the macOS traffic lights and use titlebar-scale text and glyphs.
 - Icon buttons need tooltips, accessibility labels, hover, focus, pressed, and disabled states.
@@ -66,7 +66,21 @@ Never use pure `#000000` or `#FFFFFF` in new UI code. Tint neutrals slightly and
 
 - Placeholder must never overlap IME marked text.
 - The send affordance is disabled when there is no submittable text.
-- Slash help is a hint, not a fake button, unless clicking it opens real native slash interaction.
+- Slash commands are triggered by typing `/`; do not add a fake command button in the composer.
+
+### Session Folder
+
+- The session folder is selected before starting an agent session.
+- The first launch should require an explicit folder selection unless a valid last-used folder exists.
+- Once an agent session starts, the folder is read-only for that session.
+- Changing folders requires starting a new session.
+
+### Raw Terminal
+
+- Raw Terminal is a same-session fallback, not a separate product surface.
+- Use the Penggie light terminal theme for embedded Ghostty sessions: lightly tinted background, dark foreground, readable ANSI palette, explicit cursor and selection colors.
+- Do not fake Raw Terminal by rendering Reading transcript text; it must remain the real Ghostty PTY view.
+- Theme changes must be applied through Ghostty configuration before surface creation when possible, not only through outer SwiftUI container color.
 
 ### Native Slash Overlay
 

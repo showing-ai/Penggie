@@ -11,7 +11,7 @@ private enum PenggieTheme {
     static let accent = Color.accentColor
     static let accentSoft = Color.accentColor.opacity(0.12)
     static let selectedBackground = Color.accentColor.opacity(0.16)
-    static let terminalBackground = Color(nsColor: NSColor(calibratedRed: 0.055, green: 0.058, blue: 0.065, alpha: 1))
+    static let terminalBackground = Color(nsColor: NSColor(calibratedWhite: 0.985, alpha: 1))
     static let disabledAction = Color(nsColor: .tertiaryLabelColor).opacity(0.44)
     static let shadow = Color(nsColor: .shadowColor).opacity(0.08)
     static let onAccent = Color(nsColor: .selectedMenuItemTextColor)
@@ -99,7 +99,7 @@ private struct PenggieStartView: View {
     @EnvironmentObject private var session: PenggieSessionModel
 
     var body: some View {
-        VStack(spacing: 28) {
+        VStack(spacing: 24) {
             Spacer(minLength: 80)
 
             Image(nsImage: NSImage(named: "AppIcon") ?? NSImage())
@@ -110,30 +110,28 @@ private struct PenggieStartView: View {
             VStack(spacing: 8) {
                 Text("Welcome to Penggie")
                     .font(.system(size: 24, weight: .semibold))
-                Text("Choose how Penggie should start.")
+                Text("Choose a project folder, then create with Penggie.")
                     .font(.system(size: 15))
                     .foregroundStyle(.secondary)
             }
 
-            Button {
-                session.startWithCodex()
-            } label: {
+            VStack(spacing: 10) {
                 HStack(spacing: 16) {
                     CodexProviderIcon()
 
                     VStack(alignment: .leading, spacing: 5) {
                         Text("Codex")
                             .font(.system(size: 16, weight: .semibold))
-                        Text("Use the local Codex CLI installed on this Mac.")
+                        Text("Local agent CLI")
                             .font(.system(size: 13))
                             .foregroundStyle(.secondary)
                     }
 
                     Spacer()
 
-                    Image(systemName: "chevron.right")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
+                    Text("Selected")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(PenggieTheme.secondaryText)
                 }
                 .padding(16)
                 .frame(maxWidth: 560)
@@ -143,9 +141,65 @@ private struct PenggieStartView: View {
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
                         .stroke(PenggieTheme.separator, lineWidth: 1)
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Codex selected as local agent CLI")
+
+                Button {
+                    _ = session.chooseWorkingDirectory()
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: "folder")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(PenggieTheme.secondaryText)
+                            .frame(width: 28, height: 28)
+
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("Project Folder")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(PenggieTheme.secondaryText)
+                            Text(session.sessionFolderDisplayPath)
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(.primary)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                        }
+
+                        Spacer()
+
+                        Text(session.selectedWorkingDirectory == nil ? "Choose" : "Change")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(PenggieTheme.secondaryText)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: 560)
+                    .background(PenggieTheme.appBackground)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(PenggieTheme.quietSeparator, lineWidth: 1)
+                    }
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Choose Project Folder")
+                .help("Choose the folder where this session will start")
+
+                Button {
+                    session.startWithCodex()
+                } label: {
+                    Text("Create with Penggie")
+                        .font(.system(size: 14, weight: .semibold))
+                        .frame(maxWidth: 560)
+                        .frame(height: 42)
+                        .foregroundStyle(session.canStartConfiguredCodex ? PenggieTheme.onAccent : PenggieTheme.secondaryText)
+                        .background(session.canStartConfiguredCodex ? PenggieTheme.accent : PenggieTheme.surface)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
+                .buttonStyle(.plain)
+                .disabled(!session.canStartConfiguredCodex)
+                .accessibilityLabel("Create with Penggie")
+                .help(session.canStartConfiguredCodex ? "Create with Penggie in the selected folder" : "Choose a project folder to create with Penggie")
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Start with Codex")
 
             Spacer(minLength: 100)
         }
@@ -184,7 +238,7 @@ private struct PenggieProgressView: View {
             VStack(spacing: 5) {
                 Text(session.state == .checkingCodex ? "Checking Codex" : "Starting local session")
                     .font(.system(size: 17, weight: .semibold))
-                Text(session.state == .checkingCodex ? "Looking in your login shell PATH." : "Opening Reading for this Codex session.")
+                Text(session.state == .checkingCodex ? "Looking in your login shell PATH." : "Preparing your Penggie workspace.")
                     .font(.system(size: 13))
                     .foregroundStyle(.secondary)
             }
@@ -264,9 +318,18 @@ private struct PenggieWindowChrome: View {
             Color.clear
                 .frame(width: PenggieChromeMetrics.trafficLightSafeArea)
 
-            Text("Penggie")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.primary)
+            HStack(spacing: 5) {
+                Image(systemName: "folder")
+                    .font(.system(size: 11, weight: .regular))
+                    .foregroundStyle(PenggieTheme.secondaryText)
+
+                Text(session.sessionFolderTitle)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(PenggieTheme.secondaryText)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+            }
+            .help(session.sessionFolderDisplayPath)
 
             Spacer()
 
@@ -443,27 +506,8 @@ private struct PenggieReadingChatView: View {
 
             composerSurface
 
-            HStack(spacing: 12) {
-                Button {
-                    beginSlashCommand()
-                } label: {
-                    HStack(spacing: 6) {
-                        Text("/")
-                            .font(.system(size: 14, weight: .semibold, design: .monospaced))
-                        Text("commands")
-                            .font(.system(size: 13, weight: .medium))
-                    }
-                    .foregroundStyle(.secondary)
-                    .frame(height: 30)
-                    .padding(.horizontal, 2)
-                }
-                .buttonStyle(.plain)
-                .disabled(session.nativeInteractionIsActive)
-                .accessibilityLabel("Open Commands")
-                .help("Open Commands")
-
+            HStack {
                 Spacer()
-
                 Button {
                     submitComposer()
                 } label: {
@@ -576,16 +620,6 @@ private struct PenggieReadingChatView: View {
     private func handleComposerTextChange(_ text: String) {
         guard PenggieComposerNativeTrigger.prefix(for: text) != nil,
               session.beginNativeInteraction(initialText: text) else {
-            return
-        }
-
-        composerText = ""
-        nativeInteractionFocusRequestID += 1
-    }
-
-    private func beginSlashCommand() {
-        guard !session.nativeInteractionIsActive,
-              session.beginNativeInteraction(prefix: "/") else {
             return
         }
 

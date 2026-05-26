@@ -21,10 +21,10 @@ struct PenggieApp: App {
             }
 
             CommandMenu("Session") {
-                Button("Start with Codex") {
+                Button("Create with Penggie") {
                     session.startWithCodex()
                 }
-                .disabled(!session.canStartCodex)
+                .disabled(!session.canStartConfiguredCodex)
 
                 Button("Close Session") {
                     session.requestCloseSession()

@@ -21,6 +21,17 @@ final class PenggieGhosttySession: ObservableObject {
         guard let config = ghostty_config_new() else {
             throw PenggieGhosttySessionError.initializationFailed
         }
+
+        do {
+            let configPath = try Self.writePenggieLightTerminalConfig()
+            configPath.withCString { pathPointer in
+                ghostty_config_load_file(config, pathPointer)
+            }
+        } catch {
+            ghostty_config_free(config)
+            throw PenggieGhosttySessionError.initializationFailed
+        }
+
         ghostty_config_finalize(config)
         self.config = config
 
@@ -326,6 +337,46 @@ final class PenggieGhosttySession: ObservableObject {
         }
         return true
     }
+
+    private static func writePenggieLightTerminalConfig() throws -> String {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("Penggie", isDirectory: true)
+        try FileManager.default.createDirectory(
+            at: directory,
+            withIntermediateDirectories: true
+        )
+
+        let url = directory.appendingPathComponent("ghostty-light-theme.conf")
+        let contents = """
+        window-theme = light
+        background = #FAFAFA
+        foreground = #202124
+        cursor-color = #1F2937
+        cursor-text = #FFFFFF
+        selection-foreground = #111827
+        selection-background = #DCEBFF
+        minimum-contrast = 4.5
+        palette = 0=#1F2328
+        palette = 1=#C93C37
+        palette = 2=#2F7D32
+        palette = 3=#9A6700
+        palette = 4=#2563EB
+        palette = 5=#7C3AED
+        palette = 6=#007B83
+        palette = 7=#E5E7EB
+        palette = 8=#6B7280
+        palette = 9=#DC2626
+        palette = 10=#16A34A
+        palette = 11=#B45309
+        palette = 12=#1D4ED8
+        palette = 13=#9333EA
+        palette = 14=#0891B2
+        palette = 15=#111827
+        """
+
+        try contents.write(to: url, atomically: true, encoding: .utf8)
+        return url.path
+    }
 }
 
 final class PenggieGhosttyHostView: NSView {
@@ -334,7 +385,7 @@ final class PenggieGhosttyHostView: NSView {
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         wantsLayer = true
-        layer?.backgroundColor = NSColor.black.cgColor
+        layer?.backgroundColor = NSColor.textBackgroundColor.cgColor
     }
 
     required init?(coder: NSCoder) {

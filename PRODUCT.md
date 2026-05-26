@@ -28,7 +28,7 @@ Primary users are developers and technical builders on macOS who want the power 
 ## User Experience Boundaries
 
 - First launch shows a Penggie start state, not a terminal.
-- `Start with Codex` is the only v0.1 entry path.
+- `Create with Penggie` is the only v0.1 launch action after the user chooses a project folder.
 - Codex missing, launch failure, and process exit are Penggie product states with retry or recovery paths.
 - Active session chrome should feel native to macOS, close to the traffic-light region, and not like a web toolbar.
 - The composer is always available in Reading after a session starts.
