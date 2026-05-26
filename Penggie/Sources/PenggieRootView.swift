@@ -252,7 +252,7 @@ private struct PenggieSessionView: View {
 }
 
 private enum PenggieChromeMetrics {
-    static let height: CGFloat = 52
+    static let height: CGFloat = 34
     static let trafficLightSafeArea: CGFloat = 84
 }
 
@@ -264,38 +264,17 @@ private struct PenggieWindowChrome: View {
             Color.clear
                 .frame(width: PenggieChromeMetrics.trafficLightSafeArea)
 
-            HStack(spacing: 8) {
-                Image(nsImage: NSImage(named: "AppIcon") ?? NSImage())
-                    .resizable()
-                    .frame(width: 22, height: 22)
-                Text("Penggie")
-                    .font(.system(size: 14, weight: .semibold))
-            }
-
-            Text("Codex")
-                .font(.system(size: 13, weight: .medium))
-                .foregroundStyle(.secondary)
+            Text("Penggie")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.primary)
 
             Spacer()
 
             PenggieModeToggleButton()
-
-            PenggieChromeIconButton(systemName: "plus", label: "New Chat") {
-                session.requestNewChat()
-            }
-
-            PenggieChromeIconButton(systemName: "xmark", label: "Close Session") {
-                session.requestCloseSession()
-            }
         }
-        .padding(.trailing, 18)
+        .padding(.trailing, 22)
         .frame(height: PenggieChromeMetrics.height)
         .background(PenggieTheme.appBackground)
-        .overlay(alignment: .bottom) {
-            Rectangle()
-                .fill(PenggieTheme.quietSeparator)
-                .frame(height: 1)
-        }
     }
 }
 
@@ -327,8 +306,8 @@ private struct PenggieChromeIconButton: View {
         Button(action: action) {
             Label(label, systemImage: systemName)
                 .labelStyle(.iconOnly)
-                .font(.system(size: 15, weight: .medium))
-                .frame(width: 44, height: 36)
+                .font(.system(size: 12, weight: .regular))
+                .frame(width: 28, height: 22)
         }
         .buttonStyle(PenggieChromeIconButtonStyle(isHovering: isHovering, isFocused: isFocused))
         .focusable()

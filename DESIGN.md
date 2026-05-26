@@ -49,9 +49,10 @@ Never use pure `#000000` or `#FFFFFF` in new UI code. Tint neutrals slightly and
 
 ### Window Chrome
 
-- Left side: Penggie icon, `Penggie`, and quiet `Codex` session label.
-- Right side: one destination mode icon, New Chat, Close Session.
-- Icon buttons need 44 pt hit targets, tooltips, accessibility labels, hover, focus, pressed, and disabled states.
+- Left side: quiet `Penggie` text aligned near the traffic-light region.
+- Right side: one destination mode icon. New Chat and Close Session live in the macOS menu and shortcuts unless a stronger visible affordance is needed.
+- Session chrome should visually align with the macOS traffic lights and use titlebar-scale text and glyphs.
+- Icon buttons need tooltips, accessibility labels, hover, focus, pressed, and disabled states.
 - The mode icon shows the destination, not the current state.
 
 ### Reading
