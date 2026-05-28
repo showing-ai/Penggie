@@ -44,6 +44,10 @@ temp/
 # IDE
 .idea/
 .vscode/
+.claude/
+
+# Local/generated presentation artifacts
+docs/penggie-investor-slides*.html
 
 # Node tooling, if used for asset scripts
 node_modules/
