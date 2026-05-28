@@ -15,6 +15,7 @@
 
 # Xcode / Swift
 DerivedData/
+.derived-data/
 build/
 .build/
 *.xcuserstate
