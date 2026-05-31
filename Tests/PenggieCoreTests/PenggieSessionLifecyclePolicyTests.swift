@@ -4,6 +4,29 @@ import Testing
 @Suite
 struct PenggieSessionLifecyclePolicyTests {
     @Test
+    func setupAndRecoveryPhasesAreStartableButNotInspectable() {
+        let startableNonInspectablePhases: [PenggieSessionLifecyclePhase] = [
+            .idle,
+            .closed,
+            .codexMissing,
+            .launchFailed,
+        ]
+
+        for phase in startableNonInspectablePhases {
+            #expect(PenggieSessionLifecyclePolicy.canStartCodex(in: phase))
+            #expect(!PenggieSessionLifecyclePolicy.hasInspectableSession(in: phase))
+            #expect(!PenggieSessionLifecyclePolicy.isRunning(in: phase))
+            #expect(PenggieSessionLifecyclePolicy.displayTransition(from: phase, to: .terminal) == .noOp)
+            #expect(PenggieSessionLifecyclePolicy.displayTransition(from: phase, to: .reading) == .noOp)
+            #expect(!PenggieSessionLifecyclePolicy.canSubmitPrompt(
+                in: phase,
+                isTerminalOwnedInteraction: false,
+                turnStoreCanSubmitPrompt: true
+            ))
+        }
+    }
+
+    @Test
     func nonInspectableStartupPhasesBlockInspectableActionsAndPromptSubmission() {
         let nonInspectableStartupPhases: [PenggieSessionLifecyclePhase] = [
             .checkingCodex,

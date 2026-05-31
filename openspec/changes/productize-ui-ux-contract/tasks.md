@@ -13,7 +13,7 @@
 - [x] 2.4 Harden checking/launching states so prompt input, folder change, Raw Terminal, New Chat, and Close Session are blocked until an inspectable session or recovery state exists.
 - [x] 2.5 Harden missing Codex, launch failed, process exited with terminal surface, and process exited without terminal surface states with specific copy, retry/close/start actions, and correct Raw Terminal availability.
 - [x] 2.6 Validate New Chat and Close Session confirmations: focus trap, destructive copy, cancel restoration, confirm behavior, and no background session discard before confirmation.
-- [ ] 2.7 Add or update unit/manual QA coverage for setup, checking, launching, missing Codex, launch failed, process exited, New Chat, and Close Session.
+- [x] 2.7 Add or update unit/manual QA coverage for setup, checking, launching, missing Codex, launch failed, process exited, New Chat, and Close Session.
 
 ## 3. P0 Terminal-Owned Overlay Reliability
 

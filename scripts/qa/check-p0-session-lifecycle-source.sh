@@ -6,8 +6,9 @@ session_model="$repo_root/Penggie/Sources/PenggieSessionModel.swift"
 session_policy="$repo_root/Penggie/Sources/PenggieSessionLifecyclePolicy.swift"
 app_source="$repo_root/Penggie/Sources/PenggieApp.swift"
 root_view="$repo_root/Penggie/Sources/PenggieRootView.swift"
+lifecycle_qa="$repo_root/openspec/changes/productize-ui-ux-contract/app-shell-lifecycle-qa-matrix.md"
 
-python3 - "$session_model" "$session_policy" "$app_source" "$root_view" <<'PY'
+python3 - "$session_model" "$session_policy" "$app_source" "$root_view" "$lifecycle_qa" <<'PY'
 import re
 import sys
 from pathlib import Path
@@ -16,10 +17,12 @@ session_model_path = Path(sys.argv[1])
 session_policy_path = Path(sys.argv[2])
 app_path = Path(sys.argv[3])
 root_path = Path(sys.argv[4])
+qa_path = Path(sys.argv[5])
 source = session_model_path.read_text()
 policy_source = session_policy_path.read_text()
 app_source = app_path.read_text()
 root_source = root_path.read_text()
+qa_source = qa_path.read_text()
 
 def extract_function(name: str) -> str:
     match = re.search(rf"func\s+{re.escape(name)}\s*\([^)]*\)(?:\s*->[^\{{]+)?\s*\{{", source)
@@ -212,6 +215,29 @@ for required in [
 ]:
     if required not in root_source:
         raise AssertionError(f"Exited recovery must include terminal-surface-aware Raw Terminal inspection: missing {required}")
+
+for required in [
+    "Missing folder setup",
+    "Invalid folder setup",
+    "Valid folder setup",
+    "Create with Penggie",
+    "Checking Codex",
+    "Launching Codex",
+    "Initial Reading hold",
+    "Stable Reading",
+    "Stable Raw Terminal",
+    "Missing Codex",
+    "Launch failed",
+    "Exited with retained terminal surface",
+    "Exited without retained terminal surface",
+    "New Chat cancel",
+    "New Chat confirm",
+    "Close Session cancel",
+    "Close Session confirm",
+    "No terminal transcript fixture is required for task 2.7",
+]:
+    if required not in qa_source:
+        raise AssertionError(f"Task 2.7 lifecycle QA matrix must cover: missing {required}")
 
 print("P0 session lifecycle source guard passed")
 PY
