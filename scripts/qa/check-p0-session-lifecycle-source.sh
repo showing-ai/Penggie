@@ -3,20 +3,26 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 session_model="$repo_root/Penggie/Sources/PenggieSessionModel.swift"
+session_policy="$repo_root/Penggie/Sources/PenggieSessionLifecyclePolicy.swift"
 app_source="$repo_root/Penggie/Sources/PenggieApp.swift"
+root_view="$repo_root/Penggie/Sources/PenggieRootView.swift"
 
-python3 - "$session_model" "$app_source" <<'PY'
+python3 - "$session_model" "$session_policy" "$app_source" "$root_view" <<'PY'
 import re
 import sys
 from pathlib import Path
 
 session_model_path = Path(sys.argv[1])
-app_path = Path(sys.argv[2])
+session_policy_path = Path(sys.argv[2])
+app_path = Path(sys.argv[3])
+root_path = Path(sys.argv[4])
 source = session_model_path.read_text()
+policy_source = session_policy_path.read_text()
 app_source = app_path.read_text()
+root_source = root_path.read_text()
 
 def extract_function(name: str) -> str:
-    match = re.search(rf"func\s+{re.escape(name)}\s*\([^)]*\)\s*\{{", source)
+    match = re.search(rf"func\s+{re.escape(name)}\s*\([^)]*\)(?:\s*->[^\{{]+)?\s*\{{", source)
     if not match:
         raise AssertionError(f"Missing function {name}")
 
@@ -74,6 +80,15 @@ create_command = re.search(
 if not create_command:
     raise AssertionError("App-level Create with Penggie command must call session.startWithCodex() directly")
 
+if ".disabled(!session.canStartConfiguredCodex)" not in app_source:
+    raise AssertionError("App-level Create with Penggie command must be disabled unless the session can start")
+
+if ".disabled(!session.canStartNewChat)" not in app_source:
+    raise AssertionError("New Chat command must be disabled until a session can start a new chat")
+
+if ".disabled(!session.hasInspectableSession)" not in app_source:
+    raise AssertionError("Close Session command must be disabled until an inspectable session exists")
+
 for name in ["switchToReading", "switchToTerminal"]:
     body = extract_function(name)
     if "PenggieSessionLifecyclePolicy.displayTransition" not in body:
@@ -96,6 +111,41 @@ for name in ["switchToReading", "switchToTerminal"]:
 has_inspectable = extract_var("hasInspectableSession")
 if "PenggieSessionLifecyclePolicy.hasInspectableSession" not in has_inspectable:
     raise AssertionError("hasInspectableSession must delegate to PenggieSessionLifecyclePolicy")
+
+can_submit_prompt = re.search(
+    r"static\s+func\s+canSubmitPrompt\s*\([^)]*\)\s*->\s*Bool\s*\{(?P<body>.*?)\n\s*\}",
+    policy_source,
+    re.S,
+)
+if not can_submit_prompt:
+    raise AssertionError("Missing PenggieSessionLifecyclePolicy.canSubmitPrompt")
+
+if "hasInspectableSession(in: phase)" not in can_submit_prompt.group("body"):
+    raise AssertionError("canSubmitPrompt must require an inspectable session before allowing prompt submission")
+
+choose_working_directory = extract_function("chooseWorkingDirectory")
+if "guard canStartCodex else" not in choose_working_directory:
+    raise AssertionError("chooseWorkingDirectory must block folder changes outside startable lifecycle states")
+
+request_new_chat = extract_function("requestNewChat")
+if "guard hasInspectableSession else { return }" not in request_new_chat:
+    raise AssertionError("requestNewChat must block before an inspectable session exists")
+
+request_close_session = extract_function("requestCloseSession")
+if "guard hasInspectableSession else { return }" not in request_close_session:
+    raise AssertionError("requestCloseSession must block before an inspectable session exists")
+
+if ".disabled(!session.canStartCodex)" not in root_source:
+    raise AssertionError("Start view folder picker must be disabled while Codex is checking, launching, or running")
+
+if ".disabled(!session.canStartConfiguredCodex)" not in root_source:
+    raise AssertionError("Start view Create with Penggie button must be disabled while Codex is checking or launching")
+
+if "if session.isHoldingInitialSurface" not in root_source:
+    raise AssertionError("Root view must hold the setup/start surface until the initial terminal surface is inspectable")
+
+if "PenggieSessionView()" not in root_source:
+    raise AssertionError("Root view must keep the active session view as the only Reading/Raw Terminal container")
 
 print("P0 session lifecycle source guard passed")
 PY

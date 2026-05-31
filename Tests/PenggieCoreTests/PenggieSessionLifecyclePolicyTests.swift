@@ -4,17 +4,35 @@ import Testing
 @Suite
 struct PenggieSessionLifecyclePolicyTests {
     @Test
-    func launchPhasesBlockInspectableActionsAndPromptSubmission() {
-        for phase in [PenggieSessionLifecyclePhase.checkingCodex, .launching] {
+    func nonInspectableStartupPhasesBlockInspectableActionsAndPromptSubmission() {
+        let nonInspectableStartupPhases: [PenggieSessionLifecyclePhase] = [
+            .checkingCodex,
+            .launching,
+            .reading(hasStableCodexScreen: false),
+            .terminal(hasStableCodexScreen: false),
+        ]
+
+        for phase in nonInspectableStartupPhases {
             #expect(!PenggieSessionLifecyclePolicy.hasInspectableSession(in: phase))
             #expect(!PenggieSessionLifecyclePolicy.canStartCodex(in: phase))
-            #expect(!PenggieSessionLifecyclePolicy.isRunning(in: phase))
             #expect(PenggieSessionLifecyclePolicy.displayTransition(from: phase, to: .terminal) == .noOp)
+            #expect(PenggieSessionLifecyclePolicy.displayTransition(from: phase, to: .reading) == .noOp)
             #expect(!PenggieSessionLifecyclePolicy.canSubmitPrompt(
                 in: phase,
                 isTerminalOwnedInteraction: false,
                 turnStoreCanSubmitPrompt: true
             ))
+        }
+
+        for phase in [PenggieSessionLifecyclePhase.checkingCodex, .launching] {
+            #expect(!PenggieSessionLifecyclePolicy.isRunning(in: phase))
+        }
+
+        for phase in [
+            PenggieSessionLifecyclePhase.reading(hasStableCodexScreen: false),
+            .terminal(hasStableCodexScreen: false),
+        ] {
+            #expect(PenggieSessionLifecyclePolicy.isRunning(in: phase))
         }
     }
 

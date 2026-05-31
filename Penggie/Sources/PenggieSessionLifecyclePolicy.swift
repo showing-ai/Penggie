@@ -55,7 +55,10 @@ enum PenggieSessionLifecyclePolicy {
         isTerminalOwnedInteraction: Bool,
         turnStoreCanSubmitPrompt: Bool
     ) -> Bool {
-        isRunning(in: phase) && !isTerminalOwnedInteraction && turnStoreCanSubmitPrompt
+        isRunning(in: phase)
+            && hasInspectableSession(in: phase)
+            && !isTerminalOwnedInteraction
+            && turnStoreCanSubmitPrompt
     }
 
     static func displayTransition(
