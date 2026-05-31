@@ -664,6 +664,9 @@ enum PenggieTerminalBehaviorZoner {
             zone(.footerHelp, matching: frame, where: {
                 $0.localizedCaseInsensitiveContains("enter resume") ||
                     $0.localizedCaseInsensitiveContains("esc exit")
+            }),
+            zone(.pagerViewport, matching: frame, where: {
+                resumePagerText(from: $0) != nil
             })
         ].compactMap(\.self)
 
@@ -673,6 +676,12 @@ enum PenggieTerminalBehaviorZoner {
         }
         if let sortText = projection.sortText {
             metadata["sort"] = sortText
+        }
+        if let pagerText = terminalLines(from: frame)
+            .lazy
+            .compactMap({ resumePagerText(from: $0.text) })
+            .first {
+            metadata["pager"] = pagerText
         }
 
         return PenggieTerminalInteractionSurface(
@@ -1177,6 +1186,15 @@ enum PenggieTerminalBehaviorZoner {
         }
 
         return PenggieTerminalScreenZone(kind: kind, lineRange: first...last)
+    }
+
+    private static func resumePagerText(from text: String) -> String? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let pattern = #"^\d+\s*/\s*\d+\s*[·•]\s*\d+%$"#
+        guard trimmed.range(of: pattern, options: .regularExpression) != nil else {
+            return nil
+        }
+        return trimmed
     }
 
     private static func confidence(

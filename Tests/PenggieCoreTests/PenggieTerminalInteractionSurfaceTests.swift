@@ -779,9 +779,25 @@ struct PenggieTerminalInteractionSurfaceTests {
         #expect(surface.kind == .resumePicker)
         #expect(surface.metadata["filter"] == "[Cwd] All")
         #expect(surface.metadata["sort"] == "[Updated] Created")
+        #expect(surface.metadata["pager"] == "1 / 16 · 100%")
         #expect(surface.zones.contains(where: { $0.kind == .header }))
         #expect(surface.zones.contains(where: { $0.kind == .footerHelp }))
-        #expect(snapshot.lines.contains(where: { $0.text.contains("1 / 16") && $0.text.contains("100%") }))
+        #expect(surface.zones.contains(where: { $0.kind == .pagerViewport }))
+        #expect(surface.hasFreshConfirmableSelection)
+    }
+
+    @Test
+    func resumeScrolledFixturePreservesPagerMetadataAndFooterZones() throws {
+        let snapshot = try loadSurfaceFixtureSnapshot(named: "resume-scrolled-selected")
+        let frame = terminalFrame(id: 251, snapshot: snapshot)
+        let surface = try #require(PenggieTerminalBehaviorZoner.classify(frame: frame))
+
+        #expect(surface.kind == .resumePicker)
+        #expect(surface.metadata["filter"] == "[Cwd] All")
+        #expect(surface.metadata["sort"] == "[Updated] Created")
+        #expect(surface.metadata["pager"] == "8 / 16 · 100%")
+        #expect(surface.zones.contains(where: { $0.kind == .footerHelp }))
+        #expect(surface.zones.contains(where: { $0.kind == .pagerViewport }))
         #expect(surface.hasFreshConfirmableSelection)
     }
 

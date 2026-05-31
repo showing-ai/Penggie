@@ -24,7 +24,7 @@
 - [x] 3.5 Implement visible selected-row geometry rules so selected rows are never clipped and the native list scrolls or repositions when selection moves outside the visible region.
 - [x] 3.6 Implement freshness behavior so arrow/Tab/text input routes to PTY, the UI enters waiting-for-terminal-frame state, and selected highlight updates only after fresh terminal evidence.
 - [x] 3.7 Ensure low-confidence rows remain visible when useful, Enter is blocked/consumed, and the syncing message is understandable without hiding the candidate list.
-- [ ] 3.8 Validate overlay metadata rendering for resume filter/sort/pager/help text without causing flashing, layout jump, clipped headers, or footer overlap.
+- [x] 3.8 Validate overlay metadata rendering for resume filter/sort/pager/help text without causing flashing, layout jump, clipped headers, or footer overlap.
 - [ ] 3.9 Add accessibility values for candidate rows: selected/not selected, confirmable/unavailable, syncing/unknown, row text, and non-color selected affordance.
 - [ ] 3.10 Run manual QA for slash/model/resume/approval/permission in Reading and Raw Terminal, including rapid arrow navigation, page/scroll boundaries, Esc, Enter, Tab, Backspace, and typed filtering.
 

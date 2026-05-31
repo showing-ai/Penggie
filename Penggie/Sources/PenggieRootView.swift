@@ -765,11 +765,15 @@ private struct PenggieReadingChatView: View {
                             Text("Filter: \(filterText)")
                                 .font(.system(size: 12, weight: .medium))
                                 .foregroundStyle(theme.secondaryText)
+                                .lineLimit(1)
+                                .truncationMode(.tail)
                         }
                         if let sortText = surface.metadata["sort"] {
                             Text("Sort: \(sortText)")
                                 .font(.system(size: 12, weight: .medium))
                                 .foregroundStyle(theme.secondaryText)
+                                .lineLimit(1)
+                                .truncationMode(.tail)
                         }
                     }
                     .padding(.horizontal, 14)
@@ -822,6 +826,14 @@ private struct PenggieReadingChatView: View {
                             .foregroundStyle(theme.secondaryText)
                         Text("Esc exit")
                             .foregroundStyle(theme.secondaryText)
+                        Spacer(minLength: 0)
+                        if let pagerText = surface.metadata["pager"] {
+                            Text(pagerText)
+                                .foregroundStyle(theme.secondaryText)
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                                .accessibilityLabel("Resume list position \(pagerText)")
+                        }
                     }
                     .font(.system(size: 12, weight: .medium))
                     .frame(maxWidth: .infinity, alignment: .leading)
