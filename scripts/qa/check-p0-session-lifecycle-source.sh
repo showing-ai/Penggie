@@ -143,10 +143,29 @@ if "state == .exited" not in has_exited_terminal_surface or "ghosttySession != n
 request_new_chat = extract_function("requestNewChat")
 if "guard hasInspectableSession else { return }" not in request_new_chat:
     raise AssertionError("requestNewChat must block before an inspectable session exists")
+for forbidden in ["closeCurrentSession()", "startWithCodex()", "state = .closed"]:
+    if forbidden in request_new_chat:
+        raise AssertionError("requestNewChat must only request confirmation and must not discard the session")
 
 request_close_session = extract_function("requestCloseSession")
 if "guard hasInspectableSession else { return }" not in request_close_session:
     raise AssertionError("requestCloseSession must block before an inspectable session exists")
+for forbidden in ["closeCurrentSession()", "startWithCodex()", "state = .closed"]:
+    if forbidden in request_close_session:
+        raise AssertionError("requestCloseSession must only request confirmation and must not discard the session")
+
+confirm = extract_function("confirm")
+if confirm.count("closeCurrentSession()") < 2:
+    raise AssertionError("confirm must be the only lifecycle path that closes New Chat and Close Session")
+if "pendingConfirmation = nil" not in confirm:
+    raise AssertionError("confirm must clear pending confirmation before performing destructive lifecycle actions")
+
+cancel_confirmation = extract_function("cancelConfirmation")
+if "pendingConfirmation = nil" not in cancel_confirmation:
+    raise AssertionError("cancelConfirmation must clear pending confirmation")
+for forbidden in ["closeCurrentSession()", "startWithCodex()", "state = .closed"]:
+    if forbidden in cancel_confirmation:
+        raise AssertionError("cancelConfirmation must preserve the current session and only dismiss confirmation")
 
 if ".disabled(!session.canStartCodex)" not in root_source:
     raise AssertionError("Start view folder picker must be disabled while Codex is checking, launching, or running")
@@ -159,6 +178,27 @@ if "if session.isHoldingInitialSurface" not in root_source:
 
 if "PenggieSessionView()" not in root_source:
     raise AssertionError("Root view must keep the active session view as the only Reading/Raw Terminal container")
+
+for required in [
+    "Start a new chat?",
+    "This ends the current session and starts a fresh Codex session in this window.",
+    "Start New Chat",
+    "End this Codex session?",
+    "This ends the current Codex session and returns to the Penggie start screen.",
+    "End Session",
+]:
+    if required not in source:
+        raise AssertionError(f"Confirmation copy must remain specific and destructive: missing {required}")
+
+for required in [
+    ".alert(item: $session.pendingConfirmation)",
+    "primaryButton: .destructive",
+    "secondaryButton: .cancel",
+    "session.confirm(confirmation)",
+    "session.cancelConfirmation()",
+]:
+    if required not in root_source:
+        raise AssertionError(f"Root confirmation alert must trap confirmation through system modal buttons: missing {required}")
 
 if root_source.count("Choose Folder") < 2:
     raise AssertionError("Missing Codex and launch failure recovery must expose a Choose Folder action")
