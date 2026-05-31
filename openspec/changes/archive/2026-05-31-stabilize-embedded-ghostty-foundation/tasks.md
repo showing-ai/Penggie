@@ -44,7 +44,7 @@
 - [x] 6.5 Rebuild the Ghostty substrate if the embedded patch changes.
 - [x] 6.6 Run `xcodebuild -project Penggie/Penggie.xcodeproj -scheme Penggie -configuration Debug -destination 'platform=macOS' -derivedDataPath .build/XcodeDerivedData build`.
 - [x] 6.7 Manually verify Raw Terminal ANSI probe output in light and dark modes.
-- [ ] 6.8 Manually verify Codex resume picker highlights exactly one terminal-owned selected row when available and blocks Enter when selection is ambiguous.
+- [x] 6.8 Manually verify Codex resume picker highlights exactly one terminal-owned selected row when available and blocks Enter when selection is ambiguous.
 - [x] 6.9 Manually verify slash overlay navigation and model/continuation menus do not regress.
 - [x] 6.10 Manually verify Reading and Raw Terminal still share the same active Codex PTY.
 

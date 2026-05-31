@@ -120,3 +120,66 @@ The system SHALL keep active terminal-owned surfaces outside Reading transcript 
 #### Scenario: Surface ends
 - **WHEN** Codex returns from an active terminal-owned surface to ordinary chat transcript or idle composer state
 - **THEN** Reading resumes transcript projection from terminal output without preserving the inactive surface as current UI state
+
+### Requirement: Display fallback foundation has executable fixtures
+The system SHALL add fixture coverage for Display AST fallback before broad Reading UI productization begins.
+
+#### Scenario: Long session fixture is reviewed
+- **WHEN** long-session fixture coverage is reviewed
+- **THEN** it includes completed turns, later output, working/tool rows, and expected stable Reading blocks without duplicate or polluted turns
+
+#### Scenario: CJK table and code fixture is reviewed
+- **WHEN** terminal-sensitive fixture coverage is reviewed
+- **THEN** it includes CJK prose, CJK-aligned rows, table or box drawing, code/preformatted content, and expected fallback that preserves visible terminal evidence
+
+#### Scenario: Low-confidence display fixture is reviewed
+- **WHEN** a fixture cannot prove semantic Reading classification
+- **THEN** it asserts raw/preformatted fallback rather than invented Markdown or hidden output
+
+### Requirement: Reading transcript pollution is regression-tested
+The system SHALL test that transient terminal UI rows are not sealed as assistant answer content.
+
+#### Scenario: Terminal footer appears
+- **WHEN** terminal footer, status line, model line, active input row, slash menu, resume picker, approval prompt, or permission prompt appears in terminal output
+- **THEN** fixture expectations prevent those rows from becoming ordinary assistant answer blocks
+
+#### Scenario: Raw fallback is required
+- **WHEN** terminal-derived content is low confidence but visible to the user
+- **THEN** Reading preserves it through raw/preformatted fallback and keeps the Raw Terminal audit path available
+
+### Requirement: Native TUI projections use terminal-owned style facts
+The system SHALL derive native Codex TUI projections from terminal marker and style facts exported by the embedded Ghostty screen model.
+
+#### Scenario: Resume picker marker is visible
+- **WHEN** the current viewport contains exactly one visible Codex resume picker marker
+- **THEN** the native resume picker projects the corresponding row as selected
+
+#### Scenario: Screen model style identifies current row
+- **WHEN** the visible marker is unavailable and the screen model exposes a unique current-row style among candidate resume rows
+- **THEN** the native resume picker projects that row as selected
+
+#### Scenario: Selection facts are ambiguous
+- **WHEN** terminal marker and style facts do not identify exactly one selected resume row
+- **THEN** the native resume picker shows projected rows without confirming a resume through Enter
+
+### Requirement: Native TUI projections do not maintain local selected indexes
+The system SHALL NOT maintain local selected-index state for Codex-owned keyboard TUI surfaces.
+
+#### Scenario: User navigates resume picker
+- **WHEN** the user presses arrow keys, Tab, search text, Enter, or Esc in the native resume picker
+- **THEN** Penggie sends input to Codex and waits for terminal-owned marker/style facts to update the projection
+
+#### Scenario: User navigates slash overlay
+- **WHEN** the user navigates a native slash or continuation menu
+- **THEN** Penggie sends input to Codex and derives the selected row from terminal-owned marker/style facts
+
+### Requirement: Resume picker and slash overlay share selection projection primitives
+The system SHALL share terminal-owned selected line or region inference primitives across native Codex TUI projections while preserving each surface's parser.
+
+#### Scenario: Resume picker rows are parsed
+- **WHEN** Penggie parses resume picker rows
+- **THEN** it uses resume-specific row parsing for age and title while using shared terminal selection projection for selected-row inference
+
+#### Scenario: Slash suggestions are parsed
+- **WHEN** Penggie parses slash suggestions or continuation menus
+- **THEN** it uses slash-specific parsing and input anchoring while using shared terminal selection projection for selected-row inference where applicable

@@ -82,6 +82,10 @@ The system SHALL allow GUI confirmation only when the active terminal-owned surf
 - **WHEN** candidate rows are visible and selection confidence is low
 - **THEN** Reading shows the rows and a low-confidence or syncing indication instead of hiding the rows or inventing a highlight
 
+#### Scenario: Confirmation waits after navigation
+- **WHEN** the user navigates or filters a terminal-owned surface and Penggie has not yet received fresh terminal-frame evidence for the resulting selected row
+- **THEN** Enter remains blocked or consumed while useful candidate rows remain visible
+
 ### Requirement: Keyboard interaction remains PTY-routed
 The system SHALL route terminal-owned surface navigation and editing through the active Ghostty/Codex PTY.
 
@@ -107,4 +111,60 @@ The system SHALL keep Reading projections in parity with the selected row displa
 #### Scenario: Parity cannot be proven
 - **WHEN** terminal facts are insufficient for Reading to prove the selected row shown in Raw Terminal
 - **THEN** Reading reports low confidence and does not show a potentially wrong selected row
+
+### Requirement: Terminal-owned confirmation has executable safety tests
+The system SHALL test that terminal-owned confirmation only succeeds with fresh reliable selected-row evidence.
+
+#### Scenario: Fresh selected row exists
+- **WHEN** a terminal-owned surface has exactly one fresh confirmable selected row proven by terminal-frame evidence
+- **THEN** Enter, click, or accessibility activation may route confirmation to the PTY
+
+#### Scenario: Selection is stale
+- **WHEN** the selected row is based on a previous frame or cannot be matched to the current candidate set
+- **THEN** Enter, click, or accessibility activation is blocked or consumed and no local confirmation is performed
+
+#### Scenario: Selection is ambiguous or missing
+- **WHEN** rows exist but selected-row evidence is missing or identifies multiple candidates
+- **THEN** the surface remains visible when useful, confirmation is unavailable, and the UI does not fabricate a selected index
+
+### Requirement: Terminal-owned navigation remains PTY-routed under tests
+The system SHALL test that navigation does not mutate selected state locally before terminal evidence arrives.
+
+#### Scenario: Arrow key is pressed
+- **WHEN** the user presses an arrow key in a terminal-owned surface
+- **THEN** the key is sent to the PTY, the surface may enter waiting-for-terminal-frame state, and selected highlight does not move from a local array index
+
+#### Scenario: Tab or filter text is entered
+- **WHEN** the user presses Tab, Backspace, or filter text in a terminal-owned surface
+- **THEN** the input routes to the PTY and metadata, rows, and selected state update only from a subsequent terminal frame
+
+### Requirement: Terminal-owned fixture coverage includes scrolled and blocked states
+The system SHALL include terminal interaction fixtures for selected, scrolled, paged, low-confidence, stale, and blocked-confirm states.
+
+#### Scenario: Resume fixture set is reviewed
+- **WHEN** resume picker fixture coverage is reviewed
+- **THEN** it includes selected, unselected, ambiguous, low-confidence, filtered, sorted, paged, and scrolled selected-row cases
+
+#### Scenario: Approval and permission fixture set is reviewed
+- **WHEN** approval and permission fixture coverage is reviewed
+- **THEN** it includes visible choices, selected evidence, missing selected evidence, blocked Enter, Esc/cancel, and Raw Terminal parity expectations
+
+#### Scenario: Slash and model fixture set is reviewed
+- **WHEN** slash, model, effort, or continuation fixture coverage is reviewed
+- **THEN** it includes marker selection, style selection, cursor fallback, stale selection, ambiguous selection, and no-local-index expectations
+
+### Requirement: Selected candidate remains visible in native overlays
+The system SHALL keep the terminal-owned selected candidate fully visible when Reading renders a native list projection.
+
+#### Scenario: Selected row is below the visible window
+- **WHEN** a terminal-owned list has more candidates than the native visible row count and the selected candidate is below the initial window
+- **THEN** the native projection scrolls or windows the candidate list so the selected row is fully visible
+
+#### Scenario: Selected row is near a boundary
+- **WHEN** the selected row is near the top or bottom of the candidate list
+- **THEN** the native projection keeps the selected row fully visible and avoids clipping the selected background, marker, or text
+
+#### Scenario: Selection is unavailable
+- **WHEN** rows exist but no selected candidate can be proven
+- **THEN** the native projection may show the first useful rows with a syncing indicator, but it does not fake a selected row
 

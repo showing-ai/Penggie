@@ -34,6 +34,8 @@ The system SHALL route terminal-owned surface navigation and editing through the
 - **WHEN** a terminal-owned input policy blocks a key because confirmation is unsafe or stale
 - **THEN** the key event is consumed and does not continue into ordinary composer input handling
 
+## ADDED Requirements
+
 ### Requirement: Selected candidate remains visible in native overlays
 The system SHALL keep the terminal-owned selected candidate fully visible when Reading renders a native list projection.
 

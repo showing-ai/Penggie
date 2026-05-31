@@ -53,3 +53,62 @@ The system SHALL keep all terminal-owned interaction surface projections and inp
 #### Scenario: User switches views during a picker
 - **WHEN** the user switches between Reading and Raw Terminal while a terminal-owned surface is active
 - **THEN** both views continue observing and controlling the same Codex PTY without restarting Codex or duplicating the surface state
+
+### Requirement: P0 foundation work preserves one Codex session
+The system SHALL keep the first terminal UX QA foundation bound to one real Codex CLI process and Ghostty PTY.
+
+#### Scenario: Fixture or test uses terminal state
+- **WHEN** a fixture, test, or manual QA scenario asserts terminal-owned rows, selected state, prompt readiness, approval, permission, or Raw Terminal parity
+- **THEN** it treats the live Codex/Ghostty terminal frame as the authority and does not introduce a separate user-visible Codex session
+
+#### Scenario: Local mirror is proposed
+- **WHEN** foundation work proposes a local command list, model list, resume list, approval list, permission list, selected index, or second runtime as implementation support
+- **THEN** the work is rejected unless the data is explicitly diagnostic-only and cannot drive user-visible state or confirmation
+
+### Requirement: P0 foundation work gates unsafe confirmation
+The system SHALL ensure unsafe terminal-owned confirmation remains blocked in the first implementation foundation.
+
+#### Scenario: Confirmation is tested
+- **WHEN** Enter, click, or accessibility activation is tested on a terminal-owned choice
+- **THEN** the action confirms only when the current terminal frame proves a fresh exactly-one confirmable selected row
+
+#### Scenario: Confirmation is unsafe
+- **WHEN** selected-row evidence is stale, missing, ambiguous, or low confidence
+- **THEN** the action is blocked or consumed and does not fall through to ordinary composer submission
+
+### Requirement: P0 implementation preserves terminal-owned state authority
+The system SHALL keep Codex CLI and the embedded Ghostty terminal frame as the source of truth for terminal-owned interaction state during the first P0 implementation slice.
+
+#### Scenario: Native projection renders a selectable list
+- **WHEN** Reading renders resume, slash, model, effort, approval, or permission rows natively
+- **THEN** the row list, selected row, confidence, and confirmability come from the current terminal frame and not from a local mirror list or selected index
+
+#### Scenario: Mode switch occurs
+- **WHEN** the user switches Reading to Raw Terminal or Raw Terminal to Reading
+- **THEN** Penggie does not start a second Codex process, replace the Ghostty session, or fork terminal-owned state
+
+#### Scenario: Implementation proposes local state authority
+- **WHEN** a code change introduces a local command/model/resume/approval/permission list, local selected index, or second user-visible Codex runtime
+- **THEN** the change is rejected unless the state is diagnostic-only and cannot drive user-visible selection, confirmation, or session routing
+
+### Requirement: Foundation repairs preserve one Codex PTY
+The system SHALL apply embedded Ghostty environment, theme, and screen-model foundation changes without creating additional Codex sessions or replacing the active PTY.
+
+#### Scenario: Terminal foundation is initialized
+- **WHEN** Penggie starts Codex through embedded Ghostty
+- **THEN** the environment, theme, and screen-model configuration are applied to the same single Codex process and Ghostty surface used by Reading and Raw Terminal
+
+#### Scenario: User switches views after foundation changes
+- **WHEN** the user switches between Reading and Raw Terminal
+- **THEN** both views continue to observe the same active Codex PTY and Ghostty surface
+
+### Requirement: Codex remains the source of TUI-owned state
+The system SHALL keep Codex and the embedded terminal as the source of keyboard-owned TUI state.
+
+#### Scenario: Resume picker is shown
+- **WHEN** Penggie projects the Codex resume picker natively
+- **THEN** the resume rows, filter text, sort text, and selected-row facts are derived from the active Codex/Ghostty terminal state
+
+#### Scenario: TUI navigation occurs
+- **WHEN** the user presses navigation or confirmation keys in a Codex-owned TUI surface
+- **THEN** the input is routed to the active Codex PTY rather than applied to a Penggie-maintained selected index
