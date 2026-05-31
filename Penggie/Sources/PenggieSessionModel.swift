@@ -1221,7 +1221,7 @@ final class PenggieSessionModel: ObservableObject {
         UserDefaults.standard.set(url.path, forKey: lastWorkingDirectoryDefaultsKey)
     }
 
-    nonisolated private static func isUsableWorkingDirectory(_ url: URL) -> Bool {
+    nonisolated static func isUsableWorkingDirectory(_ url: URL) -> Bool {
         var isDirectory: ObjCBool = false
         return FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory) &&
             isDirectory.boolValue &&

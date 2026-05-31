@@ -13,7 +13,7 @@ struct PenggieRootView: View {
             case .idle, .closed:
                 PenggieStartView()
             case .checkingCodex, .launching:
-                PenggieStartView(holdsDuringStartup: true)
+                PenggieStartView(startupState: session.state == .checkingCodex ? .checkingCodex : .launching)
             case .codexMissing:
                 PenggieErrorStateView(
                     title: "Codex CLI not found",
@@ -37,7 +37,7 @@ struct PenggieRootView: View {
                 )
             case .reading, .terminal:
                 if session.isHoldingInitialSurface {
-                    PenggieStartView(holdsDuringStartup: true)
+                    PenggieStartView(startupState: .waitingForCodex)
                 } else {
                     PenggieSessionView()
                 }
@@ -83,10 +83,74 @@ private struct PenggieWindowConfigurator: NSViewRepresentable {
     }
 }
 
+private enum PenggieStartupState {
+    case checkingCodex
+    case launching
+    case waitingForCodex
+
+    var title: String {
+        switch self {
+        case .checkingCodex:
+            return "Checking Codex"
+        case .launching:
+            return "Starting Codex"
+        case .waitingForCodex:
+            return "Preparing Reading"
+        }
+    }
+
+    var message: String {
+        switch self {
+        case .checkingCodex:
+            return "Penggie is checking that the Codex CLI is available."
+        case .launching:
+            return "Penggie is starting the local Codex session."
+        case .waitingForCodex:
+            return "Penggie is waiting for the first stable terminal frame."
+        }
+    }
+}
+
 private struct PenggieStartView: View {
     @EnvironmentObject private var session: PenggieSessionModel
     @Environment(\.penggieTheme) private var theme
-    var holdsDuringStartup = false
+    var startupState: PenggieStartupState?
+
+    private var folderIsMissing: Bool {
+        session.selectedWorkingDirectory == nil
+    }
+
+    private var folderIsUsable: Bool {
+        guard let url = session.selectedWorkingDirectory else { return false }
+        return PenggieSessionModel.isUsableWorkingDirectory(url)
+    }
+
+    private var folderStatusText: String? {
+        if folderIsMissing {
+            return "Choose a project folder before creating a session."
+        }
+        if !folderIsUsable {
+            return "Penggie cannot access this folder. Choose another project folder."
+        }
+        return nil
+    }
+
+    private var createButtonTitle: String {
+        startupState?.title ?? "Create with Penggie"
+    }
+
+    private var createHelpText: String {
+        if let startupState {
+            return startupState.message
+        }
+        if folderIsMissing {
+            return "Choose a project folder to create with Penggie"
+        }
+        if !folderIsUsable {
+            return "Choose an accessible project folder to create with Penggie"
+        }
+        return "Create with Penggie in the selected folder"
+    }
 
     var body: some View {
         VStack(spacing: 24) {
@@ -98,9 +162,9 @@ private struct PenggieStartView: View {
                 .accessibilityHidden(true)
 
             VStack(spacing: 8) {
-                Text("Welcome to Penggie")
+                Text(startupState?.title ?? "Welcome to Penggie")
                     .font(.system(size: 24, weight: .semibold))
-                Text("Choose a project folder, then create with Penggie.")
+                Text(startupState?.message ?? "Choose a project folder, then create with Penggie.")
                     .font(.system(size: 15))
                     .foregroundStyle(.secondary)
             }
@@ -171,26 +235,50 @@ private struct PenggieStartView: View {
                     }
                 }
                 .buttonStyle(.plain)
+                .disabled(!session.canStartCodex)
                 .accessibilityLabel("Choose Project Folder")
-                .help("Choose the folder where this session will start")
+                .accessibilityValue(session.sessionFolderDisplayPath)
+                .accessibilityHint(session.canStartCodex ? "Choose the folder where this session will start" : "Project folder cannot be changed while Codex is starting")
+                .help(session.canStartCodex ? "Choose the folder where this session will start" : "Project folder cannot be changed while Codex is starting")
+
+                if let folderStatusText {
+                    HStack(spacing: 8) {
+                        Image(systemName: folderIsMissing ? "info.circle" : "exclamationmark.triangle")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(folderIsMissing ? theme.secondaryText : theme.semantic.warning.color)
+                        Text(folderStatusText)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(folderIsMissing ? theme.secondaryText : theme.semantic.warning.color)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .frame(maxWidth: 560)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel(folderStatusText)
+                }
 
                 Button {
                     session.startWithCodex()
                 } label: {
-                    let actionLooksEnabled = session.canStartConfiguredCodex || holdsDuringStartup
-
-                    Text("Create with Penggie")
+                    HStack(spacing: 8) {
+                        if startupState != nil {
+                            ProgressView()
+                                .controlSize(.small)
+                                .accessibilityHidden(true)
+                        }
+                        Text(createButtonTitle)
+                    }
                         .font(.system(size: 14, weight: .semibold))
                         .frame(maxWidth: 560)
                         .frame(height: 42)
-                        .foregroundStyle(actionLooksEnabled ? theme.onAccent : theme.secondaryText)
-                        .background(actionLooksEnabled ? theme.accent : theme.surface)
+                        .foregroundStyle(session.canStartConfiguredCodex ? theme.onAccent : theme.secondaryText)
+                        .background(session.canStartConfiguredCodex ? theme.accent : theme.surface)
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
                 .buttonStyle(.plain)
-                .disabled(!session.canStartConfiguredCodex && !holdsDuringStartup)
+                .disabled(!session.canStartConfiguredCodex)
                 .accessibilityLabel("Create with Penggie")
-                .help(session.canStartConfiguredCodex ? "Create with Penggie in the selected folder" : "Choose a project folder to create with Penggie")
+                .accessibilityHint(createHelpText)
+                .help(createHelpText)
             }
 
             Spacer(minLength: 100)
