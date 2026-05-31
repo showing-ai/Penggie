@@ -36,6 +36,7 @@ final class PenggieSessionModel: ObservableObject {
     @Published private(set) var activeTerminalInteractionSurface: PenggieTerminalInteractionSurface?
     @Published private(set) var hasObservedCodexScreen = false
     @Published private(set) var hasReachedStableCodexScreen = false
+    @Published private(set) var isInspectingExitedTerminal = false
     @Published var pendingConfirmation: Confirmation?
 
     let substrate = PenggieGhosttySubstrate()
@@ -107,6 +108,10 @@ final class PenggieSessionModel: ObservableObject {
         }
     }
 
+    var hasExitedTerminalSurface: Bool {
+        state == .exited && ghosttySession != nil
+    }
+
     private var lifecyclePhase: PenggieSessionLifecyclePhase {
         switch state {
         case .idle:
@@ -154,6 +159,10 @@ final class PenggieSessionModel: ObservableObject {
         }
 
         Self.storeLastWorkingDirectory(workingDirectory)
+        if case .exited = state {
+            closeCurrentSession()
+        }
+        isInspectingExitedTerminal = false
         state = .checkingCodex
         lastError = nil
 
@@ -195,6 +204,16 @@ final class PenggieSessionModel: ObservableObject {
     func requestCloseSession() {
         guard hasInspectableSession else { return }
         pendingConfirmation = .closeSession
+    }
+
+    func inspectExitedTerminal() {
+        guard hasExitedTerminalSurface else { return }
+        isInspectingExitedTerminal = true
+    }
+
+    func returnToExitedRecovery() {
+        guard state == .exited else { return }
+        isInspectingExitedTerminal = false
     }
 
     func confirm(_ confirmation: Confirmation) {
@@ -274,8 +293,10 @@ final class PenggieSessionModel: ObservableObject {
                         workingDirectory: workingDirectory.path,
                         themeConfiguration: self.terminalThemeConfiguration
                     )
-                    session.onExit = { [weak self] in
-                        self?.state = .exited
+                    session.onExit = { [weak self, weak session] in
+                        guard let self, let session, self.ghosttySession === session else { return }
+                        self.isInspectingExitedTerminal = false
+                        self.state = .exited
                     }
                     self.ghosttySession = session
                     self.activeWorkingDirectory = workingDirectory
@@ -419,6 +440,7 @@ final class PenggieSessionModel: ObservableObject {
         screenPollTask = nil
         ghosttySession?.close()
         ghosttySession = nil
+        isInspectingExitedTerminal = false
         activeWorkingDirectory = nil
         transcriptText = ""
         readingBlocks = []
@@ -512,6 +534,7 @@ final class PenggieSessionModel: ObservableObject {
                         from: terminalFrame
                     )
                     if session.processExited {
+                        self.isInspectingExitedTerminal = false
                         self.state = .exited
                         self.screenPollTask?.cancel()
                         self.screenPollTask = nil

@@ -15,26 +15,11 @@ struct PenggieRootView: View {
             case .checkingCodex, .launching:
                 PenggieStartView(startupState: session.state == .checkingCodex ? .checkingCodex : .launching)
             case .codexMissing:
-                PenggieErrorStateView(
-                    title: "Codex CLI not found",
-                    message: "Install Codex CLI or make sure it is available in your login shell PATH.",
-                    primaryActionTitle: "Check Again",
-                    primaryAction: session.startWithCodex
-                )
+                codexMissingState
             case .launchFailed(let message):
-                PenggieErrorStateView(
-                    title: "Codex failed to launch",
-                    message: message,
-                    primaryActionTitle: "Try Again",
-                    primaryAction: session.startWithCodex
-                )
+                launchFailedState(message)
             case .exited:
-                PenggieErrorStateView(
-                    title: "Codex session ended",
-                    message: "The Codex process exited. You can start a fresh chat or inspect the raw terminal state.",
-                    primaryActionTitle: "Start Again",
-                    primaryAction: session.startWithCodex
-                )
+                exitedState
             case .reading, .terminal:
                 if session.isHoldingInitialSurface {
                     PenggieStartView(startupState: .waitingForCodex)
@@ -54,6 +39,55 @@ struct PenggieRootView: View {
                 secondaryButton: .cancel {
                     session.cancelConfirmation()
                 }
+            )
+        }
+    }
+
+    private var codexMissingState: some View {
+        PenggieErrorStateView(
+            title: "Codex CLI not found",
+            message: "Install Codex CLI or make sure it is available in your login shell PATH.",
+            primaryActionTitle: "Check Again",
+            primaryAction: session.startWithCodex,
+            secondaryActionTitle: "Choose Folder",
+            secondaryAction: { _ = session.chooseWorkingDirectory() }
+        )
+    }
+
+    private func launchFailedState(_ message: String) -> some View {
+        PenggieErrorStateView(
+            title: "Codex failed to launch",
+            message: message,
+            primaryActionTitle: "Try Again",
+            primaryAction: session.startWithCodex,
+            secondaryActionTitle: "Choose Folder",
+            secondaryAction: { _ = session.chooseWorkingDirectory() }
+        )
+    }
+
+    @ViewBuilder
+    private var exitedState: some View {
+        if session.isInspectingExitedTerminal {
+            PenggieExitedTerminalInspectionView()
+        } else if session.hasExitedTerminalSurface {
+            PenggieErrorStateView(
+                title: "Codex session ended",
+                message: "The Codex process exited. You can start a fresh chat, inspect the raw terminal output, or close this session.",
+                primaryActionTitle: "Start Again",
+                primaryAction: session.startWithCodex,
+                secondaryActionTitle: "Inspect Raw Terminal",
+                secondaryAction: session.inspectExitedTerminal,
+                tertiaryActionTitle: "Close Session",
+                tertiaryAction: session.requestCloseSession
+            )
+        } else {
+            PenggieErrorStateView(
+                title: "Codex session ended",
+                message: "The Codex process exited. You can start a fresh chat or close this session.",
+                primaryActionTitle: "Start Again",
+                primaryAction: session.startWithCodex,
+                tertiaryActionTitle: "Close Session",
+                tertiaryAction: session.requestCloseSession
             )
         }
     }
@@ -337,6 +371,10 @@ private struct PenggieErrorStateView: View {
     let message: String
     let primaryActionTitle: String
     let primaryAction: () -> Void
+    var secondaryActionTitle: String? = nil
+    var secondaryAction: (() -> Void)? = nil
+    var tertiaryActionTitle: String? = nil
+    var tertiaryAction: (() -> Void)? = nil
 
     var body: some View {
         VStack(spacing: 20) {
@@ -354,9 +392,23 @@ private struct PenggieErrorStateView: View {
                     .frame(maxWidth: 460)
             }
 
-            Button(primaryActionTitle, action: primaryAction)
-                .controlSize(.large)
-                .buttonStyle(.borderedProminent)
+            HStack(spacing: 10) {
+                if let tertiaryActionTitle, let tertiaryAction {
+                    Button(tertiaryActionTitle, role: .destructive, action: tertiaryAction)
+                        .controlSize(.large)
+                        .buttonStyle(.bordered)
+                }
+
+                if let secondaryActionTitle, let secondaryAction {
+                    Button(secondaryActionTitle, action: secondaryAction)
+                        .controlSize(.large)
+                        .buttonStyle(.bordered)
+                }
+
+                Button(primaryActionTitle, action: primaryAction)
+                    .controlSize(.large)
+                    .buttonStyle(.borderedProminent)
+            }
         }
         .padding(40)
         .frame(maxWidth: 520)
@@ -366,6 +418,43 @@ private struct PenggieErrorStateView: View {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .stroke(theme.quietSeparator, lineWidth: 1)
         }
+    }
+}
+
+private struct PenggieExitedTerminalInspectionView: View {
+    @EnvironmentObject private var session: PenggieSessionModel
+    @Environment(\.penggieTheme) private var theme
+
+    var body: some View {
+        ZStack(alignment: .top) {
+            PenggieRawTerminalPlaceholder(isActive: true)
+                .padding(.top, PenggieChromeMetrics.height)
+
+            HStack(spacing: 12) {
+                Color.clear
+                    .frame(width: PenggieChromeMetrics.trafficLightSafeArea)
+
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Codex session ended")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(theme.secondaryText)
+                    Text("Raw Terminal inspection")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(theme.disabledAction)
+                }
+
+                Spacer()
+
+                PenggieChromeIconButton(systemName: "arrow.uturn.left", label: "Show Recovery") {
+                    session.returnToExitedRecovery()
+                }
+            }
+            .padding(.trailing, 22)
+            .frame(height: PenggieChromeMetrics.height)
+            .background(theme.components.windowChrome.terminal.background.color)
+        }
+        .background(theme.terminalBackground)
+        .ignoresSafeArea(.container, edges: .top)
     }
 }
 

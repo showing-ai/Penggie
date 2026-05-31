@@ -69,6 +69,12 @@ launch = extract_function("launchCodexSession")
 for label, body in [("startWithCodex", start), ("launchCodexSession", launch)]:
     assert_not_contains(label, body, [r"\bcodex\s+resume\b", r"--last\b", r"\bresume\b"])
 
+if "if case .exited = state" not in start or "closeCurrentSession()" not in start:
+    raise AssertionError("startWithCodex must clean up an exited terminal surface before starting again")
+
+if "self.ghosttySession === session" not in launch:
+    raise AssertionError("launchCodexSession onExit callback must ignore stale closed/replaced Ghostty sessions")
+
 if 'Button("Create with Penggie")' not in app_source:
     raise AssertionError("Missing app-level Create with Penggie command")
 
@@ -127,6 +133,13 @@ choose_working_directory = extract_function("chooseWorkingDirectory")
 if "guard canStartCodex else" not in choose_working_directory:
     raise AssertionError("chooseWorkingDirectory must block folder changes outside startable lifecycle states")
 
+for name in ["inspectExitedTerminal", "returnToExitedRecovery"]:
+    _ = extract_function(name)
+
+has_exited_terminal_surface = extract_var("hasExitedTerminalSurface")
+if "state == .exited" not in has_exited_terminal_surface or "ghosttySession != nil" not in has_exited_terminal_surface:
+    raise AssertionError("hasExitedTerminalSurface must require both exited state and a retained terminal surface")
+
 request_new_chat = extract_function("requestNewChat")
 if "guard hasInspectableSession else { return }" not in request_new_chat:
     raise AssertionError("requestNewChat must block before an inspectable session exists")
@@ -146,6 +159,19 @@ if "if session.isHoldingInitialSurface" not in root_source:
 
 if "PenggieSessionView()" not in root_source:
     raise AssertionError("Root view must keep the active session view as the only Reading/Raw Terminal container")
+
+if root_source.count("Choose Folder") < 2:
+    raise AssertionError("Missing Codex and launch failure recovery must expose a Choose Folder action")
+
+for required in [
+    "session.hasExitedTerminalSurface",
+    "session.isInspectingExitedTerminal",
+    "PenggieExitedTerminalInspectionView()",
+    "Inspect Raw Terminal",
+    "Show Recovery",
+]:
+    if required not in root_source:
+        raise AssertionError(f"Exited recovery must include terminal-surface-aware Raw Terminal inspection: missing {required}")
 
 print("P0 session lifecycle source guard passed")
 PY

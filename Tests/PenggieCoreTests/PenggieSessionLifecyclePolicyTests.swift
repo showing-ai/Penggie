@@ -55,6 +55,18 @@ struct PenggieSessionLifecyclePolicyTests {
     }
 
     @Test
+    func exitedSessionIsInspectableButNotRunningOrPromptSubmittable() {
+        #expect(PenggieSessionLifecyclePolicy.hasInspectableSession(in: .exited))
+        #expect(!PenggieSessionLifecyclePolicy.isRunning(in: .exited))
+        #expect(PenggieSessionLifecyclePolicy.canStartCodex(in: .exited))
+        #expect(!PenggieSessionLifecyclePolicy.canSubmitPrompt(
+            in: .exited,
+            isTerminalOwnedInteraction: false,
+            turnStoreCanSubmitPrompt: true
+        ))
+    }
+
+    @Test
     func readingTerminalSwitchesAreModeOnlyAfterStableInspectableSession() {
         #expect(PenggieSessionLifecyclePolicy.displayTransition(
             from: .reading(hasStableCodexScreen: false),
