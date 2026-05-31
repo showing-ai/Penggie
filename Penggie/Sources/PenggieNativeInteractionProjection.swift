@@ -399,6 +399,40 @@ enum PenggieTerminalSurfaceFreshness: String, Equatable {
     case stale
 }
 
+struct PenggieTerminalFrameContentSignature: Equatable {
+    let visibleText: String
+    let screenText: String
+    let screenModelJSON: String?
+    let processExited: Bool
+
+    init(frame: PenggieTerminalFrame) {
+        self.visibleText = frame.visibleText
+        self.screenText = frame.screenText
+        self.screenModelJSON = frame.screenModelJSON
+        self.processExited = frame.processExited
+    }
+}
+
+enum PenggieTerminalSurfaceFreshnessGate {
+    static func resolve(
+        pendingBaseline: PenggieTerminalFrameContentSignature?,
+        previousSurface: PenggieTerminalInteractionSurface?,
+        currentSurface: PenggieTerminalInteractionSurface?,
+        currentSignature: PenggieTerminalFrameContentSignature
+    ) -> (surface: PenggieTerminalInteractionSurface?, pendingBaseline: PenggieTerminalFrameContentSignature?) {
+        guard let pendingBaseline else {
+            return (currentSurface, nil)
+        }
+
+        guard currentSignature != pendingBaseline else {
+            let waitingSurface = previousSurface ?? currentSurface
+            return (waitingSurface?.withFreshness(.waitingForTerminalFrame), pendingBaseline)
+        }
+
+        return (currentSurface, nil)
+    }
+}
+
 enum PenggieTerminalSelectionConfidence: String, Equatable {
     case reliable
     case low

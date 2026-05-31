@@ -51,6 +51,7 @@ final class PenggieSessionModel: ObservableObject {
     private var pendingDisplayReadyPollCount = 0
     private var resumePickerRequiresFreshSelection = false
     private var terminalFrameID = 0
+    private var pendingTerminalSurfaceRefreshBaseline: PenggieTerminalFrameContentSignature?
     private var terminalThemeConfiguration = TerminalThemeConfiguration.fallback
 #if DEBUG
     private var lastResumePickerDiagnosticSignature = ""
@@ -451,6 +452,7 @@ final class PenggieSessionModel: ObservableObject {
         hasObservedCodexScreen = false
         hasReachedStableCodexScreen = false
         resumePickerRequiresFreshSelection = false
+        pendingTerminalSurfaceRefreshBaseline = nil
         resetDisplayReadyGate()
         readingTurnStore.reset()
         readingResumeHydrator.reset()
@@ -548,18 +550,26 @@ final class PenggieSessionModel: ObservableObject {
     private func updateActiveTerminalInteractionSurface(
         from frame: PenggieTerminalFrame
     ) -> PenggieTerminalInteractionSurface? {
-        let surface = PenggieTerminalBehaviorZoner.classify(
+        let currentSurface = PenggieTerminalBehaviorZoner.classify(
             frame: frame,
             currentInput: nativeInteractionIsActive ? nativeInteractionDisplayText : nil
         )
-        if activeTerminalInteractionSurface != surface {
-            activeTerminalInteractionSurface = surface
+        let resolved = PenggieTerminalSurfaceFreshnessGate.resolve(
+            pendingBaseline: pendingTerminalSurfaceRefreshBaseline,
+            previousSurface: activeTerminalInteractionSurface,
+            currentSurface: currentSurface,
+            currentSignature: PenggieTerminalFrameContentSignature(frame: frame)
+        )
+        pendingTerminalSurfaceRefreshBaseline = resolved.pendingBaseline
+        if activeTerminalInteractionSurface != resolved.surface {
+            activeTerminalInteractionSurface = resolved.surface
         }
-        return surface
+        return resolved.surface
     }
 
     private func markActiveTerminalInteractionSurfaceWaitingForFrame() {
         guard let activeTerminalInteractionSurface else { return }
+        pendingTerminalSurfaceRefreshBaseline = latestTerminalFrame.map(PenggieTerminalFrameContentSignature.init)
         self.activeTerminalInteractionSurface = activeTerminalInteractionSurface
             .withFreshness(.waitingForTerminalFrame)
     }

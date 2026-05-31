@@ -1034,6 +1034,69 @@ struct PenggieTerminalInteractionSurfaceTests {
     }
 
     @Test
+    func freshnessGateWaitsForChangedTerminalContentBeforeAcceptingFreshSurface() {
+        let baselineFrame = PenggieTerminalFrame(
+            id: 710,
+            observedAt: Date(timeIntervalSince1970: 1_800_000_710),
+            visibleText: """
+            Resume a previous session
+            › 1h ago    First session
+              2h ago    Second session
+            """,
+            screenText: "",
+            screenModelJSON: nil,
+            processExited: false
+        )
+        let baselineSurface = try! #require(PenggieTerminalBehaviorZoner.classify(frame: baselineFrame))
+        let baseline = PenggieTerminalFrameContentSignature(frame: baselineFrame)
+
+        let unchangedFrame = PenggieTerminalFrame(
+            id: 711,
+            observedAt: Date(timeIntervalSince1970: 1_800_000_711),
+            visibleText: baselineFrame.visibleText,
+            screenText: baselineFrame.screenText,
+            screenModelJSON: baselineFrame.screenModelJSON,
+            processExited: false
+        )
+        let unchangedSurface = PenggieTerminalBehaviorZoner.classify(frame: unchangedFrame)
+        let unchanged = PenggieTerminalSurfaceFreshnessGate.resolve(
+            pendingBaseline: baseline,
+            previousSurface: baselineSurface.withFreshness(.waitingForTerminalFrame),
+            currentSurface: unchangedSurface,
+            currentSignature: PenggieTerminalFrameContentSignature(frame: unchangedFrame)
+        )
+
+        #expect(unchanged.pendingBaseline == baseline)
+        #expect(unchanged.surface?.freshness == .waitingForTerminalFrame)
+        #expect(unchanged.surface?.selection == baselineSurface.selection)
+
+        let changedFrame = PenggieTerminalFrame(
+            id: 712,
+            observedAt: Date(timeIntervalSince1970: 1_800_000_712),
+            visibleText: """
+            Resume a previous session
+              1h ago    First session
+            › 2h ago    Second session
+            """,
+            screenText: "",
+            screenModelJSON: nil,
+            processExited: false
+        )
+        let changedSurface = try! #require(PenggieTerminalBehaviorZoner.classify(frame: changedFrame))
+        let changed = PenggieTerminalSurfaceFreshnessGate.resolve(
+            pendingBaseline: unchanged.pendingBaseline,
+            previousSurface: unchanged.surface,
+            currentSurface: changedSurface,
+            currentSignature: PenggieTerminalFrameContentSignature(frame: changedFrame)
+        )
+
+        #expect(changed.pendingBaseline == nil)
+        #expect(changed.surface?.freshness == .fresh)
+        #expect(changed.surface?.selection == changedSurface.selection)
+        #expect(changed.surface?.selection != baselineSurface.selection)
+    }
+
+    @Test
     func nonConfirmingNavigationStaysPTYRoutedAndDoesNotMutateSelectionPolicy() throws {
         let surface = try surfaceFixture(named: "resume-low-confidence")
         #expect(surface.selectionConfidence == .low)
