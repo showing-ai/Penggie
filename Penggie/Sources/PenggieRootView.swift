@@ -1260,46 +1260,59 @@ private struct PenggieTerminalSurfaceCandidateListView: View {
     var maxVisibleRows = 9
 
     var body: some View {
-        let viewport = PenggieTerminalInteractionCandidateViewport.derive(
-            candidates: candidates,
-            selectedRowID: selectedRowID,
-            maxVisibleCount: maxVisibleRows
+        let geometry = PenggieTerminalInteractionCandidateListGeometry.derive(
+            candidateCount: candidates.count,
+            maxVisibleCount: maxVisibleRows,
+            rowHeight: Double(PenggieTerminalSurfaceCandidateRowView.height),
+            rowSpacing: Double(rowSpacing),
+            verticalPadding: 10
         )
 
-        VStack(spacing: rowSpacing) {
-            if viewport.hasLeadingOverflow {
-                overflowIndicator("More above")
+        ScrollViewReader { proxy in
+            ScrollView(.vertical) {
+                LazyVStack(spacing: rowSpacing) {
+                    ForEach(candidates) { candidate in
+                        PenggieTerminalSurfaceCandidateRowView(
+                            candidate: candidate,
+                            isSelected: selectedRowID == candidate.id
+                        )
+                        .id(candidate.id)
+                    }
+                }
+                .padding(10)
             }
-
-            ForEach(viewport.candidates) { candidate in
-                PenggieTerminalSurfaceCandidateRowView(
-                    candidate: candidate,
-                    isSelected: selectedRowID == candidate.id
-                )
+            .scrollIndicators(candidates.count > geometry.visibleRowCount ? .visible : .hidden)
+            .frame(height: CGFloat(geometry.viewportHeight))
+            .onAppear {
+                scrollSelectedCandidate(with: proxy)
             }
-
-            if viewport.hasTrailingOverflow {
-                overflowIndicator("More below")
+            .onChange(of: selectedRowID) { _, _ in
+                scrollSelectedCandidate(with: proxy)
+            }
+            .onChange(of: candidates.map(\.id)) { _, _ in
+                scrollSelectedCandidate(with: proxy)
             }
         }
-        .padding(10)
     }
 
-    private func overflowIndicator(_ label: String) -> some View {
-        HStack(spacing: 6) {
-            Capsule()
-                .fill(Color.secondary.opacity(0.28))
-                .frame(width: 22, height: 3)
-            Text(label)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(.secondary)
-            Capsule()
-                .fill(Color.secondary.opacity(0.28))
-                .frame(width: 22, height: 3)
+    private func scrollSelectedCandidate(with proxy: ScrollViewProxy) {
+        let targetID: String?
+        if let selectedRowID,
+           candidates.contains(where: { $0.id == selectedRowID }) {
+            targetID = selectedRowID
+        } else {
+            targetID = candidates.first?.id
         }
-        .frame(maxWidth: .infinity)
-        .frame(height: 14)
-        .accessibilityHidden(true)
+
+        guard let targetID else { return }
+
+        DispatchQueue.main.async {
+            var transaction = Transaction()
+            transaction.animation = nil
+            withTransaction(transaction) {
+                proxy.scrollTo(targetID, anchor: selectedRowID == targetID ? .center : .top)
+            }
+        }
     }
 }
 

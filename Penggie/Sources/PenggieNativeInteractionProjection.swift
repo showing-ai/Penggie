@@ -469,6 +469,30 @@ struct PenggieTerminalInteractionCandidateViewport: Equatable {
     }
 }
 
+struct PenggieTerminalInteractionCandidateListGeometry: Equatable {
+    let visibleRowCount: Int
+    let viewportHeight: Double
+
+    static func derive(
+        candidateCount: Int,
+        maxVisibleCount: Int,
+        rowHeight: Double,
+        rowSpacing: Double,
+        verticalPadding: Double
+    ) -> Self {
+        let visibleRowCount = max(0, min(candidateCount, max(1, maxVisibleCount)))
+        guard visibleRowCount > 0 else {
+            return Self(visibleRowCount: 0, viewportHeight: 0)
+        }
+
+        let rowHeights = Double(visibleRowCount) * rowHeight
+        let spacing = Double(max(0, visibleRowCount - 1)) * rowSpacing
+        let viewportHeight = rowHeights + spacing + (verticalPadding * 2)
+
+        return Self(visibleRowCount: visibleRowCount, viewportHeight: viewportHeight)
+    }
+}
+
 struct PenggieTerminalInteractionSurface: Equatable, Identifiable {
     let id: String
     let kind: PenggieTerminalInteractionSurfaceKind

@@ -468,6 +468,39 @@ struct PenggieTerminalInteractionSurfaceTests {
     }
 
     @Test
+    func candidateListGeometryBudgetsOnlyWholeRows() {
+        let empty = PenggieTerminalInteractionCandidateListGeometry.derive(
+            candidateCount: 0,
+            maxVisibleCount: 7,
+            rowHeight: 38,
+            rowSpacing: 6,
+            verticalPadding: 10
+        )
+        #expect(empty.visibleRowCount == 0)
+        #expect(empty.viewportHeight == 0)
+
+        let shortList = PenggieTerminalInteractionCandidateListGeometry.derive(
+            candidateCount: 3,
+            maxVisibleCount: 7,
+            rowHeight: 38,
+            rowSpacing: 6,
+            verticalPadding: 10
+        )
+        #expect(shortList.visibleRowCount == 3)
+        #expect(shortList.viewportHeight == 146)
+
+        let clippedList = PenggieTerminalInteractionCandidateListGeometry.derive(
+            candidateCount: 12,
+            maxVisibleCount: 5,
+            rowHeight: 38,
+            rowSpacing: 2,
+            verticalPadding: 10
+        )
+        #expect(clippedList.visibleRowCount == 5)
+        #expect(clippedList.viewportHeight == 218)
+    }
+
+    @Test
     func transcriptMentionsApprovalWithoutChoicesDoesNotBecomeActiveSurface() {
         let frame = PenggieTerminalFrame(
             id: 13,

@@ -21,7 +21,7 @@
 - [x] 3.2 Add or update fixtures for resume selected, resume unselected, resume ambiguous, resume filtered, resume sorted, resume paged, resume scrolled, and resume low-confidence states.
 - [x] 3.3 Add or update fixtures for slash suggestions, slash continuation, model picker, effort picker, marker-selected rows, style-selected rows, cursor fallback, ambiguous selection, and stale selection.
 - [x] 3.4 Add or update fixtures for approval, permission, and safety-sensitive modal choices with visible choices, selected evidence, confirmable state, blocked Enter, Esc/cancel behavior, and Raw Terminal parity.
-- [ ] 3.5 Implement visible selected-row geometry rules so selected rows are never clipped and the native list scrolls or repositions when selection moves outside the visible region.
+- [x] 3.5 Implement visible selected-row geometry rules so selected rows are never clipped and the native list scrolls or repositions when selection moves outside the visible region.
 - [ ] 3.6 Implement freshness behavior so arrow/Tab/text input routes to PTY, the UI enters waiting-for-terminal-frame state, and selected highlight updates only after fresh terminal evidence.
 - [ ] 3.7 Ensure low-confidence rows remain visible when useful, Enter is blocked/consumed, and the syncing message is understandable without hiding the candidate list.
 - [ ] 3.8 Validate overlay metadata rendering for resume filter/sort/pager/help text without causing flashing, layout jump, clipped headers, or footer overlap.
