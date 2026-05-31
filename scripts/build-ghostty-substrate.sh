@@ -23,10 +23,6 @@ fingerprint() {
     shasum -a 256 "$ROOT_DIR/scripts/build-ghostty-substrate.sh"
     echo "patches:"
     find "$PATCH_DIR" -type f -name '*.patch' -print0 | sort -z | xargs -0 shasum -a 256
-    echo "vendor-diff:"
-    git diff -- include src macos
-    echo "vendor-status:"
-    git status --short -- include src macos
   } | shasum -a 256 | awk '{print $1}'
 }
 
@@ -39,10 +35,21 @@ if [[ -f "$ARTIFACT" && -f "$STAMP_FILE" ]]; then
   fi
 fi
 
+applied_patches=()
+restore_applied_patches() {
+  local index
+  for (( index=${#applied_patches[@]}-1; index>=0; index-- )); do
+    git apply --reverse "${applied_patches[$index]}"
+  done
+}
+
+trap restore_applied_patches EXIT
+
 for patch in "$PATCH_DIR"/*.patch; do
   [[ -e "$patch" ]] || continue
   if git apply --check "$patch" >/dev/null 2>&1; then
     git apply "$patch"
+    applied_patches+=("$patch")
   elif git apply --reverse --check "$patch" >/dev/null 2>&1; then
     echo "Ghostty patch already applied: $(basename "$patch")"
   else
