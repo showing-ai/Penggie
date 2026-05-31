@@ -31,18 +31,31 @@ Rules for adding fixtures:
 | Markdown/prose | `markdown-prose` | Covered for ordinary prose and Reading snapshot. |
 | Slash negative | `slash-negative` | Covered for terminal-looking slash text that must not become an active overlay. |
 | CJK/table/box drawing | `table-box-cjk` | Covered with raw text, Ghostty screen, Display AST, and Reading snapshot. |
+| CJK prose + table + code | `cjk-table-code` | Covered for mixed CJK prose, terminal-sensitive table output, and code-fence text that must preserve visible evidence. |
 | Theme/style rows | `theme-style` | Covered with styled screen and Reading snapshot. |
 | Warning/status/tool rows | `warning-status-tools` | Covered for warning and status style preservation. |
+| Tool-heavy hierarchy | `tool-heavy-warning-hierarchy` | Covered for repeated activity/tool/status rows, warning rows, and final answer text that must remain visible. |
+| Long sessions | `long-session-stable` | Covered for completed answer text followed by later status/prompt-ready output without polluting stable turns. |
+| Low-confidence fallback | `low-confidence-fallback` | Covered for intentionally weak semantic classification that must preserve raw/preformatted terminal evidence. |
 | Approval prompt | `approval-prompt` | Covered at Display AST layer. Missing Reading snapshot and low-confidence fallback variant. |
 
-## Coverage Gaps For `harden-terminal-ux-qa-foundation`
+## Remaining Coverage Gaps
 
-- Long sessions: add a fixture with completed turns, later output, active prompt readiness, and no duplicate or polluted turns.
-- CJK/table/code: add a fixture that combines CJK prose, table or box drawing, and code/preformatted content in one terminal-sensitive output.
-- Tool-heavy output: add a fixture with repeated tool/status rows and a final answer hierarchy.
 - Warning/status: add explicit prevention for footer, model line, active input row, and transient status rows becoming assistant answer content.
-- Low-confidence fallback: add raw/preformatted fallback fixture where semantic classification is intentionally weak.
 - Approval/permission display: add Reading snapshot coverage to ensure prompts remain visible but are not sealed as assistant answer content.
+
+## Productize UI/UX Task Coverage
+
+`productize-ui-ux-contract` task `5.4` requires Display AST fixture coverage for CJK prose, CJK tables, box drawing, code blocks, warnings, tool-heavy output, low-confidence classification, and long transcripts. The required fixture set is:
+
+- `cjk-table-code`: CJK prose, table output, box drawing, and code-fence text.
+- `table-box-cjk`: CJK table and terminal cell-width preservation from raw text and Ghostty screen model.
+- `warning-status-tools`: warning, activity, tool event, status, and final answer preservation.
+- `tool-heavy-warning-hierarchy`: tool-heavy output with repeated progress rows and final answer hierarchy.
+- `low-confidence-fallback`: fallback classification that keeps visible terminal evidence.
+- `long-session-stable`: long-session stability pressure with completed output and later status/prompt-ready rows.
+
+These fixtures are snapshot-tested by `PenggieDisplayFixtureTests` against Display AST output. Reading visual breadth, footer pollution prevention, and traceable fallback presentation remain covered by later tasks.
 
 ## Review Rule
 
