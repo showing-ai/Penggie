@@ -7,7 +7,7 @@
 
 ## 2. P0 App Shell, Setup, And Session Lifecycle
 
-- [ ] 2.1 Review `PenggieApp.swift`, `PenggieRootView.swift`, and `PenggieSessionModel.swift` against the app-shell state matrix; document any mismatch in visible UI, blocked actions, keyboard owner, Raw Terminal availability, and recovery path.
+- [x] 2.1 Review `PenggieApp.swift`, `PenggieRootView.swift`, and `PenggieSessionModel.swift` against the app-shell state matrix; document any mismatch in visible UI, blocked actions, keyboard owner, Raw Terminal availability, and recovery path.
 - [ ] 2.2 Implement setup/start acceptance criteria: valid folder, invalid folder, missing folder, `Create with Penggie`, disabled/enabled states, keyboard order, VoiceOver labels, and no startup terminal noise leakage.
 - [ ] 2.3 Verify `Create with Penggie` starts the intended create/new-session path and does not enter resume picker unless Codex is explicitly launched in resume mode or the user chooses a resume path.
 - [ ] 2.4 Harden checking/launching states so prompt input, folder change, Raw Terminal, New Chat, and Close Session are blocked until an inspectable session or recovery state exists.
