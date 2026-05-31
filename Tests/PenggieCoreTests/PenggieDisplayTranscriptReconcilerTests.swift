@@ -132,7 +132,54 @@ struct PenggieDisplayTranscriptReconcilerTests {
         #expect(assistantTurn.blocks.last?.fallback?.code == "unclassified-terminal-output")
     }
 
-    private func document(_ blocks: [DisplayBlock]) -> DisplayDocument {
+    @Test
+    func sealedTurnsSurviveResizeRepaintRawSwitchLikeProjectionAndSubsequentPrompt() {
+        var reconciler = DisplayTranscriptReconciler()
+
+        reconciler.submitPrompt("总结长会话", id: "prompt.long")
+        reconciler.updateActiveTurn(from: document([
+            block(id: "long.answer.1", kind: .paragraph, text: "第一段稳定答案。"),
+            block(id: "long.answer.2", kind: .paragraph, text: "第二段稳定答案。"),
+            block(id: "long.fallback", kind: .rawFallback, text: "Raw table-like output preserved.")
+        ]))
+        reconciler.sealActiveTurn()
+        let frozenTurns = reconciler.displayDocument.turns
+
+        reconciler.updateActiveTurn(from: document(
+            [
+                block(id: "repaint.answer.1", kind: .paragraph, text: "第一段稳定答案。"),
+                block(id: "repaint.answer.2", kind: .paragraph, text: "第二段稳定答案。"),
+                block(id: "repaint.fallback", kind: .rawFallback, text: "Raw table-like output preserved."),
+                block(id: "raw.overlay", kind: .overlay, text: "/model choose what model to use")
+            ],
+            terminalColumns: 132,
+            terminalRows: 40
+        ))
+
+        #expect(reconciler.displayDocument.turns == frozenTurns)
+
+        reconciler.submitPrompt("继续下一步", id: "prompt.next")
+        reconciler.updateActiveTurn(from: document([
+            block(id: "mutated.history", kind: .paragraph, text: "被重绘或滚动污染的旧答案。"),
+            block(id: "echo.next", kind: .userPrompt, role: .user, text: "› 继续下一步"),
+            block(id: "next.answer", kind: .paragraph, text: "新的回答只进入第二个 assistant turn。")
+        ]))
+
+        #expect(visibleText(from: reconciler.displayDocument) == [
+            "总结长会话",
+            "第一段稳定答案。",
+            "第二段稳定答案。",
+            "Raw table-like output preserved.",
+            "继续下一步",
+            "新的回答只进入第二个 assistant turn。"
+        ])
+    }
+
+    private func document(
+        _ blocks: [DisplayBlock],
+        terminalColumns: Int = 100,
+        terminalRows: Int = 32
+    ) -> DisplayDocument {
         DisplayDocument(
             turns: [
                 DisplayTurn(
@@ -144,7 +191,11 @@ struct PenggieDisplayTranscriptReconcilerTests {
                     isSealed: false
                 )
             ],
-            metadata: .init(source: .terminalProjection, terminalColumns: 100, terminalRows: 32)
+            metadata: .init(
+                source: .terminalProjection,
+                terminalColumns: terminalColumns,
+                terminalRows: terminalRows
+            )
         )
     }
 
