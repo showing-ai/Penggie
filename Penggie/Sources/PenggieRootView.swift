@@ -795,6 +795,7 @@ private struct PenggieReadingChatView: View {
                             PenggieTerminalSurfaceCandidateListView(
                                 candidates: surface.candidates,
                                 selectedRowID: surface.selection.confirmableRowID,
+                                surfaceIsSyncing: !hasReliableSelection,
                                 maxVisibleRows: 7
                             )
 
@@ -889,6 +890,7 @@ private struct PenggieReadingChatView: View {
                     PenggieTerminalSurfaceCandidateListView(
                         candidates: surface.candidates,
                         selectedRowID: surface.selection.confirmableRowID,
+                        surfaceIsSyncing: !surface.hasFreshConfirmableSelection,
                         maxVisibleRows: 5
                     )
                     .frame(minHeight: 120, maxHeight: 260)
@@ -1240,6 +1242,7 @@ private struct PenggieTerminalSurfaceCandidateRowView: View {
 
     let candidate: PenggieTerminalInteractionCandidate
     let isSelected: Bool
+    let surfaceIsSyncing: Bool
 
     var body: some View {
         let overlay = theme.components.nativeTuiOverlay
@@ -1262,12 +1265,26 @@ private struct PenggieTerminalSurfaceCandidateRowView: View {
         .frame(height: Self.height)
         .background(isSelected ? overlay.selectedBackground.color : Color.clear)
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(candidate.text)
+        .accessibilityValue(PenggieTerminalSurfaceCandidateAccessibility.value(
+            isSelected: isSelected,
+            isConfirmable: candidate.isConfirmable,
+            surfaceIsSyncing: surfaceIsSyncing
+        ))
+        .accessibilityHint(PenggieTerminalSurfaceCandidateAccessibility.hint(
+            isSelected: isSelected,
+            isConfirmable: candidate.isConfirmable,
+            surfaceIsSyncing: surfaceIsSyncing
+        ))
+        .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     }
 }
 
 private struct PenggieTerminalSurfaceCandidateListView: View {
     let candidates: [PenggieTerminalInteractionCandidate]
     let selectedRowID: String?
+    let surfaceIsSyncing: Bool
     var rowSpacing: CGFloat = 6
     var maxVisibleRows = 9
 
@@ -1286,7 +1303,8 @@ private struct PenggieTerminalSurfaceCandidateListView: View {
                     ForEach(candidates) { candidate in
                         PenggieTerminalSurfaceCandidateRowView(
                             candidate: candidate,
-                            isSelected: selectedRowID == candidate.id
+                            isSelected: selectedRowID == candidate.id,
+                            surfaceIsSyncing: surfaceIsSyncing
                         )
                         .id(candidate.id)
                     }
@@ -1527,6 +1545,7 @@ private struct PenggieTerminalSurfaceOverlay: View {
             PenggieTerminalSurfaceCandidateListView(
                 candidates: surface.candidates,
                 selectedRowID: surface.selection.confirmableRowID,
+                surfaceIsSyncing: !surface.hasFreshConfirmableSelection,
                 rowSpacing: 2,
                 maxVisibleRows: 5
             )

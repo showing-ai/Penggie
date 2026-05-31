@@ -1165,6 +1165,48 @@ struct PenggieTerminalInteractionSurfaceTests {
     }
 
     @Test
+    func candidateAccessibilityValuesDescribeSelectionConfirmabilityAndSyncing() throws {
+        let selectedValue = PenggieTerminalSurfaceCandidateAccessibility.value(
+            isSelected: true,
+            isConfirmable: true,
+            surfaceIsSyncing: false
+        )
+        let syncingUnavailableValue = PenggieTerminalSurfaceCandidateAccessibility.value(
+            isSelected: false,
+            isConfirmable: false,
+            surfaceIsSyncing: true
+        )
+
+        #expect(selectedValue == "Selected, Confirmable")
+        #expect(syncingUnavailableValue == "Not selected, Unavailable, Selection syncing")
+        #expect(PenggieTerminalSurfaceCandidateAccessibility.hint(
+            isSelected: true,
+            isConfirmable: true,
+            surfaceIsSyncing: false
+        ).contains("Press Enter"))
+        #expect(PenggieTerminalSurfaceCandidateAccessibility.hint(
+            isSelected: false,
+            isConfirmable: true,
+            surfaceIsSyncing: true
+        ).contains("syncing with the terminal"))
+        #expect(PenggieTerminalSurfaceCandidateAccessibility.hint(
+            isSelected: false,
+            isConfirmable: false,
+            surfaceIsSyncing: false
+        ).contains("not currently available"))
+
+        let lowConfidenceSurface = try surfaceFixture(named: "resume-low-confidence")
+        let candidate = try #require(lowConfidenceSurface.candidates.first)
+        let value = PenggieTerminalSurfaceCandidateAccessibility.value(
+            isSelected: lowConfidenceSurface.selection.confirmableRowID == candidate.id,
+            isConfirmable: candidate.isConfirmable,
+            surfaceIsSyncing: !lowConfidenceSurface.hasFreshConfirmableSelection
+        )
+
+        #expect(value.contains("Selection syncing"))
+    }
+
+    @Test
     func unsafeEnterConsumesEventInsteadOfFallingThroughToComposerSubmission() throws {
         let ambiguousSlash = try surfaceFixture(named: "slash-ambiguous", currentInput: "/")
         let decision = PenggieTerminalInputPolicy.commandDecision(.enter, surface: ambiguousSlash)

@@ -373,6 +373,45 @@ enum PenggieTerminalSurfaceStatusCopy {
     static let syncingSelection = "Syncing selection; use ↑/↓ to refresh the selected row."
 }
 
+enum PenggieTerminalSurfaceCandidateAccessibility {
+    static func value(
+        isSelected: Bool,
+        isConfirmable: Bool,
+        surfaceIsSyncing: Bool
+    ) -> String {
+        var parts = [
+            isSelected ? "Selected" : "Not selected",
+            isConfirmable ? "Confirmable" : "Unavailable"
+        ]
+
+        if surfaceIsSyncing {
+            parts.append("Selection syncing")
+        }
+
+        return parts.joined(separator: ", ")
+    }
+
+    static func hint(
+        isSelected: Bool,
+        isConfirmable: Bool,
+        surfaceIsSyncing: Bool
+    ) -> String {
+        if surfaceIsSyncing {
+            return "Selection is syncing with the terminal. Use arrow keys and wait for the selected row to refresh before confirming."
+        }
+
+        if isSelected && isConfirmable {
+            return "Press Enter to confirm the terminal selected row."
+        }
+
+        if !isConfirmable {
+            return "This terminal row is not currently available for confirmation."
+        }
+
+        return "Use arrow keys to move the terminal-owned selection."
+    }
+}
+
 enum PenggieTerminalInputPolicy {
     static func commandDecision(
         _ command: PenggieInteractionCommand,
