@@ -1,0 +1,10 @@
+{
+  "columns": 100,
+  "rows": 24,
+  "cursor": { "x": 0, "y": 2, "visible": true },
+  "lines": [
+    { "index": 0, "text": "Approve command?", "terminalTextSelected": false },
+    { "index": 1, "text": "  Approve", "terminalTextSelected": false },
+    { "index": 2, "text": "› Reject", "terminalTextSelected": false }
+  ]
+}

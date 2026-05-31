@@ -1,0 +1,27 @@
+{
+  "columns": 100,
+  "rows": 24,
+  "cursor": null,
+  "lines": [
+    { "index": 0, "text": "Approve command?", "terminalTextSelected": false },
+    {
+      "index": 1,
+      "text": "  Allow once",
+      "terminalTextSelected": false,
+      "styleSummary": {
+        "textCellCount": 10,
+        "selectedCellCount": 10,
+        "selectedTextCellCount": 10,
+        "boldTextCellCount": 0,
+        "faintTextCellCount": 0,
+        "inverseTextCellCount": 0,
+        "backgroundTextCellCount": 10,
+        "foregroundTextCellCount": 0,
+        "backgroundCellCount": 10,
+        "backgroundOnlyCellCount": 0,
+        "foregroundCellCount": 0
+      }
+    },
+    { "index": 2, "text": "  Deny", "terminalTextSelected": false }
+  ]
+}

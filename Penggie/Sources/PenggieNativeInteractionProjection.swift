@@ -796,7 +796,16 @@ enum PenggieTerminalBehaviorZoner {
             return lower.contains("permission") || lower.contains("allow this")
         } ? .permissionPrompt : .approvalPrompt
 
+        let promptLineIndices = Set(lines.filter { line in
+            let lower = line.text.lowercased()
+            return lower.contains("approve command") ||
+                lower.contains("permission") ||
+                lower.contains("allow this") ||
+                lower.contains("allow command")
+        }.map(\.index))
+
         let choiceLines = lines.filter { line in
+            guard !promptLineIndices.contains(line.index) else { return false }
             let text = stripMarker(line.text)
             let lower = text.lowercased()
             return lower.hasPrefix("allow") ||
@@ -836,20 +845,12 @@ enum PenggieTerminalBehaviorZoner {
             evidencePrefix: kind.rawValue
         )
 
-        let promptLineIndices = lines.filter { line in
-            let lower = line.text.lowercased()
-            return lower.contains("approve") ||
-                lower.contains("permission") ||
-                lower.contains("allow this") ||
-                lower.contains("allow command")
-        }.map(\.index)
-
         return PenggieTerminalInteractionSurface(
             id: "\(kind.rawValue):\(frame.id)",
             kind: kind,
             frameID: frame.id,
             zones: [
-                zone(.modalChoice, covering: promptLineIndices),
+                zone(.modalChoice, covering: Array(promptLineIndices)),
                 zone(.keyboardSelectableList, covering: choiceLines.map(\.index))
             ].compactMap(\.self),
             candidates: candidates,

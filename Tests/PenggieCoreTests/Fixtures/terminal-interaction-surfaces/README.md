@@ -42,16 +42,26 @@ model or in nearby test expectations:
 | Effort picker | `effort-picker.json` | Covered for basic selectable effort list. |
 | Effort cursor fallback | `effort-cursor-fallback.json` | Covered for cursor-backed selected evidence. |
 | Effort missing selection | `effort-stale-unselected.json` | Covered for visible rows with no reliable selected evidence. |
-| Approval prompt | `approval-prompt.json`, `approval-cancel-selected.json`, `approval-missing-selection.json` | Covered for visible choices, selected cancel, and missing selected evidence. |
-| Permission prompt | `permission-prompt.json`, `permission-cancel-selected.json`, `permission-missing-selection.json` | Covered for visible choices, selected cancel, and missing selected evidence. |
+| Approval prompt | `approval-prompt.json`, `approval-cancel-selected.json`, `approval-style-selected.json`, `approval-ambiguous.json`, `approval-reject-selected.json`, `approval-missing-selection.json` | Covered for visible choices, marker-selected rows, style-selected rows, cancel/reject choices, ambiguous evidence, missing selected evidence, blocked Enter, and Raw Terminal parity expectations. |
+| Permission prompt | `permission-prompt.json`, `permission-cancel-selected.json`, `permission-allow-this-selected.json`, `permission-missing-selection.json` | Covered for visible choices, permission prompt classification, selected cancel, missing selected evidence, blocked Enter, Esc/cancel routing, and Raw Terminal parity expectations. |
 | Historical transcript negative | `negative-historical-transcript.txt` | Covered for non-active text that mentions terminal-owned surfaces. |
 
 ## Coverage Gaps For `harden-terminal-ux-qa-foundation`
 
 - Resume: add filtered and sorted variants that explicitly assert metadata and confirmability.
 - Slash/model/effort: add more stale selection variants with explicit prior-frame metadata once the fixture schema stores frame history.
-- Approval/permission: add stale selected evidence, blocked Enter, Esc/cancel, and Raw Terminal parity expectations once the fixture schema stores input actions.
+- Approval/permission: add frame-history fixture metadata if future stale-state fixtures need to preserve multiple terminal frames in one JSON file.
 - Pager/viewport: add explicit visible-window or pager metadata expectations for scrolled and paged lists.
+
+## Modal Choice Safety Expectations
+
+Approval, permission, and safety-sensitive modal choices remain terminal-owned:
+
+- Candidate labels and selected state must come from terminal facts: marker rows, explicit selected style, cursor row, or low-confidence absence of proof.
+- Enter is allowed to route to the PTY only when the current surface has a fresh exactly-one confirmable selected row.
+- Ambiguous, stale, waiting-for-frame, or missing selection states must consume Enter and keep the visible candidate rows available for audit.
+- Esc, arrow navigation, Tab, and text-editing keys must route to the PTY; Penggie must not locally move a selected index.
+- Raw Terminal parity is represented by candidate `sourceLineIndex`, frame evidence, and selected-source evidence. Tests must assert those facts when fixtures change.
 
 ## Review Rule
 

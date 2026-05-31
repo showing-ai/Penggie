@@ -1,0 +1,10 @@
+{
+  "columns": 100,
+  "rows": 24,
+  "cursor": null,
+  "lines": [
+    { "index": 0, "text": "Approve command?", "terminalTextSelected": false },
+    { "index": 1, "text": "› Allow once", "terminalTextSelected": false },
+    { "index": 2, "text": "› Deny", "terminalTextSelected": false }
+  ]
+}

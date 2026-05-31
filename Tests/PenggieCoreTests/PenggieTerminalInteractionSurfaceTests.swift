@@ -695,9 +695,13 @@ struct PenggieTerminalInteractionSurfaceTests {
             ("effort-stale-unselected", nil, .effortPicker, .low),
             ("approval-prompt", nil, .approvalPrompt, .reliable),
             ("approval-cancel-selected", nil, .approvalPrompt, .reliable),
+            ("approval-style-selected", nil, .approvalPrompt, .reliable),
+            ("approval-ambiguous", nil, .approvalPrompt, .ambiguous),
+            ("approval-reject-selected", nil, .approvalPrompt, .reliable),
             ("approval-missing-selection", nil, .approvalPrompt, .low),
             ("permission-prompt", nil, .permissionPrompt, .reliable),
             ("permission-cancel-selected", nil, .permissionPrompt, .reliable),
+            ("permission-allow-this-selected", nil, .permissionPrompt, .reliable),
             ("permission-missing-selection", nil, .permissionPrompt, .low)
         ]
 
@@ -775,6 +779,93 @@ struct PenggieTerminalInteractionSurfaceTests {
         guard case .blocked = PenggieTerminalInputPolicy.commandDecision(.enter, surface: missingPermission) else {
             Issue.record("Expected missing permission selection to block Enter")
             return
+        }
+    }
+
+    @Test
+    func modalChoiceFixturesPreserveTerminalEvidenceAndRawParity() throws {
+        let styleApproval = try surfaceFixture(named: "approval-style-selected")
+        #expect(styleApproval.kind == .approvalPrompt)
+        #expect(styleApproval.candidates.map(\.text) == ["Allow once", "Deny"])
+        #expect(styleApproval.hasFreshConfirmableSelection)
+        #expect(styleApproval.zones.contains { $0.kind == .modalChoice })
+        #expect(styleApproval.zones.contains { $0.kind == .keyboardSelectableList })
+        #expect(styleApproval.evidence.contains("frame=300"))
+        guard case let .single(styleRowID, styleSource, styleEvidence) = styleApproval.selection else {
+            Issue.record("Expected style-backed approval fixture to carry one selected row")
+            return
+        }
+        #expect(styleSource == .explicitSelectedCells)
+        #expect(styleRowID == styleApproval.candidates[0].id)
+        #expect(styleEvidence.contains { $0.contains("line=1") })
+        #expect(styleApproval.candidates[0].sourceLineIndex == 1)
+        #expect(styleApproval.candidates[1].sourceLineIndex == 2)
+
+        let allowThisPermission = try surfaceFixture(named: "permission-allow-this-selected")
+        #expect(allowThisPermission.kind == .permissionPrompt)
+        #expect(allowThisPermission.candidates.map(\.text) == ["Allow once", "Deny"])
+        #expect(allowThisPermission.hasFreshConfirmableSelection)
+        guard case let .single(permissionRowID, permissionSource, permissionEvidence) = allowThisPermission.selection else {
+            Issue.record("Expected allow-this permission fixture to carry one selected row")
+            return
+        }
+        #expect(permissionSource == .screenModelMarker)
+        #expect(permissionRowID == allowThisPermission.candidates[0].id)
+        #expect(permissionEvidence.contains { $0.contains("line=1") })
+
+        let rejectApproval = try surfaceFixture(named: "approval-reject-selected")
+        #expect(rejectApproval.kind == .approvalPrompt)
+        #expect(rejectApproval.candidates.map(\.text) == ["Approve", "Reject"])
+        guard case let .single(rejectRowID, rejectSource, rejectEvidence) = rejectApproval.selection else {
+            Issue.record("Expected reject approval fixture to carry one selected row")
+            return
+        }
+        #expect(rejectSource == .screenModelMarker)
+        #expect(rejectRowID == rejectApproval.candidates[1].id)
+        #expect(rejectEvidence.contains { $0.contains("line=2") })
+        #expect(PenggieTerminalInputPolicy.commandDecision(.enter, surface: rejectApproval) == .unhandled)
+    }
+
+    @Test
+    func modalChoiceConfirmationGateBlocksUnsafeEnterAndRoutesCancelToPTY() throws {
+        let ambiguousApproval = try surfaceFixture(named: "approval-ambiguous")
+        #expect(ambiguousApproval.kind == .approvalPrompt)
+        #expect(ambiguousApproval.selectionConfidence == .ambiguous)
+        #expect(!ambiguousApproval.hasFreshConfirmableSelection)
+        guard case .blocked = PenggieTerminalInputPolicy.commandDecision(.enter, surface: ambiguousApproval) else {
+            Issue.record("Expected ambiguous approval fixture to block Enter")
+            return
+        }
+        #expect(PenggieTerminalInputPolicy.commandDecision(.escape, surface: ambiguousApproval) == .unhandled)
+        #expect(PenggieTerminalInputPolicy.commandDecision(.arrowDown, surface: ambiguousApproval) == .unhandled)
+
+        let approval = try surfaceFixture(named: "approval-prompt")
+        #expect(PenggieTerminalInputPolicy.commandDecision(.enter, surface: approval) == .unhandled)
+        for freshness in [PenggieTerminalSurfaceFreshness.stale, .waitingForTerminalFrame] {
+            let unsafeSurface = approval.withFreshness(freshness)
+            #expect(unsafeSurface.candidates == approval.candidates)
+            #expect(unsafeSurface.selection == approval.selection)
+            guard case .blocked = PenggieTerminalInputPolicy.commandDecision(.enter, surface: unsafeSurface) else {
+                Issue.record("Expected \(freshness.rawValue) approval fixture to block Enter")
+                return
+            }
+            #expect(PenggieTerminalInputPolicy.commandDecision(.escape, surface: unsafeSurface) == .unhandled)
+        }
+
+        let permission = try surfaceFixture(named: "permission-allow-this-selected")
+        #expect(PenggieTerminalInputPolicy.commandDecision(.enter, surface: permission) == .unhandled)
+        let waitingPermission = permission.withFreshness(.waitingForTerminalFrame)
+        guard case .blocked = PenggieTerminalInputPolicy.commandDecision(.enter, surface: waitingPermission) else {
+            Issue.record("Expected waiting-for-frame permission fixture to block Enter")
+            return
+        }
+        #expect(PenggieTerminalInputPolicy.commandDecision(.escape, surface: waitingPermission) == .unhandled)
+
+        for cancelFixture in ["approval-cancel-selected", "permission-cancel-selected"] {
+            let surface = try surfaceFixture(named: cancelFixture)
+            #expect(surface.hasFreshConfirmableSelection)
+            #expect(PenggieTerminalInputPolicy.commandDecision(.enter, surface: surface) == .unhandled)
+            #expect(PenggieTerminalInputPolicy.commandDecision(.escape, surface: surface) == .unhandled)
         }
     }
 
