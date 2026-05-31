@@ -17,7 +17,7 @@
 
 ## 3. P0 Terminal-Owned Overlay Reliability
 
-- [ ] 3.1 Review `PenggieNativeInteractionProjection.swift`, `PenggieNativeInteractionPhase.swift`, `PenggieCodexScreenKind.swift`, `PenggieTerminalFrameNormalizer.swift`, `PenggieSessionModel.swift`, and `PenggieRootView.swift` against the terminal-owned surface contract.
+- [x] 3.1 Review `PenggieNativeInteractionProjection.swift`, `PenggieNativeInteractionPhase.swift`, `PenggieCodexScreenKind.swift`, `PenggieTerminalFrameNormalizer.swift`, `PenggieSessionModel.swift`, and `PenggieRootView.swift` against the terminal-owned surface contract.
 - [ ] 3.2 Add or update fixtures for resume selected, resume unselected, resume ambiguous, resume filtered, resume sorted, resume paged, resume scrolled, and resume low-confidence states.
 - [ ] 3.3 Add or update fixtures for slash suggestions, slash continuation, model picker, effort picker, marker-selected rows, style-selected rows, cursor fallback, ambiguous selection, and stale selection.
 - [ ] 3.4 Add or update fixtures for approval, permission, and safety-sensitive modal choices with visible choices, selected evidence, confirmable state, blocked Enter, Esc/cancel behavior, and Raw Terminal parity.
