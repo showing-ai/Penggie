@@ -614,7 +614,7 @@ private struct PenggieReadingChatView: View {
                             PenggieTerminalSurfaceCandidateListView(
                                 candidates: surface.candidates,
                                 selectedRowID: surface.selection.confirmableRowID,
-                                maxVisibleRows: 8
+                                maxVisibleRows: 7
                             )
 
                             if !hasReliableSelection {
@@ -1015,7 +1015,7 @@ private struct PenggieReadingChatView: View {
             return decision
         }
 
-        let sent = session.sendResumePickerCommand(command)
+        let sent = session.sendTerminalSurfaceCommand(command)
         if sent {
             resumePickerFocusRequestID += 1
         }
@@ -1023,7 +1023,7 @@ private struct PenggieReadingChatView: View {
     }
 
     private func handleTerminalSurfaceText(_ text: String) -> Bool {
-        let sent = session.sendResumePickerText(text)
+        let sent = session.sendTerminalSurfaceText(text)
         if sent {
             resumePickerFocusRequestID += 1
         }

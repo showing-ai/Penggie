@@ -65,12 +65,7 @@ final class PenggieSessionModel: ObservableObject {
     }
 
     var canStartCodex: Bool {
-        switch state {
-        case .idle, .codexMissing, .launchFailed, .exited, .closed:
-            return true
-        case .checkingCodex, .launching, .reading, .terminal:
-            return false
-        }
+        PenggieSessionLifecyclePolicy.canStartCodex(in: lifecyclePhase)
     }
 
     var canStartNewChat: Bool {
@@ -78,27 +73,19 @@ final class PenggieSessionModel: ObservableObject {
     }
 
     var hasInspectableSession: Bool {
-        switch state {
-        case .reading, .terminal:
-            return hasReachedStableCodexScreen
-        case .exited:
-            return true
-        case .idle, .checkingCodex, .launching, .codexMissing, .launchFailed, .closed:
-            return false
-        }
+        PenggieSessionLifecyclePolicy.hasInspectableSession(in: lifecyclePhase)
     }
 
     var isRunning: Bool {
-        switch state {
-        case .reading, .terminal:
-            return true
-        case .idle, .checkingCodex, .launching, .codexMissing, .launchFailed, .exited, .closed:
-            return false
-        }
+        PenggieSessionLifecyclePolicy.isRunning(in: lifecyclePhase)
     }
 
     var canSubmitPrompt: Bool {
-        isRunning && !codexScreenKind.isTerminalOwnedInteraction && readingTurnStore.canSubmitPrompt
+        PenggieSessionLifecyclePolicy.canSubmitPrompt(
+            in: lifecyclePhase,
+            isTerminalOwnedInteraction: codexScreenKind.isTerminalOwnedInteraction,
+            turnStoreCanSubmitPrompt: readingTurnStore.canSubmitPrompt
+        )
     }
 
     var canStartConfiguredCodex: Bool {
@@ -117,6 +104,29 @@ final class PenggieSessionModel: ObservableObject {
             return !hasReachedStableCodexScreen
         case .idle, .terminal, .codexMissing, .launchFailed, .exited, .closed:
             return false
+        }
+    }
+
+    private var lifecyclePhase: PenggieSessionLifecyclePhase {
+        switch state {
+        case .idle:
+            return .idle
+        case .checkingCodex:
+            return .checkingCodex
+        case .launching:
+            return .launching
+        case .reading:
+            return .reading(hasStableCodexScreen: hasReachedStableCodexScreen)
+        case .terminal:
+            return .terminal(hasStableCodexScreen: hasReachedStableCodexScreen)
+        case .codexMissing:
+            return .codexMissing
+        case .launchFailed:
+            return .launchFailed
+        case .exited:
+            return .exited
+        case .closed:
+            return .closed
         }
     }
 
@@ -162,12 +172,18 @@ final class PenggieSessionModel: ObservableObject {
     }
 
     func switchToReading() {
-        guard hasInspectableSession else { return }
+        guard PenggieSessionLifecyclePolicy.displayTransition(
+            from: lifecyclePhase,
+            to: .reading
+        ) == .setDisplayMode(.reading) else { return }
         state = .reading
     }
 
     func switchToTerminal() {
-        guard hasInspectableSession else { return }
+        guard PenggieSessionLifecyclePolicy.displayTransition(
+            from: lifecyclePhase,
+            to: .terminal
+        ) == .setDisplayMode(.terminal) else { return }
         state = .terminal
     }
 
@@ -324,6 +340,7 @@ final class PenggieSessionModel: ObservableObject {
         guard nativeInteractionPhase.capturesTextInput, !text.isEmpty else { return false }
         ghosttySession?.sendText(text)
         nativeInteractionDisplayText += text
+        markActiveTerminalInteractionSurfaceWaitingForFrame()
         startScreenPolling()
         return true
     }
@@ -334,6 +351,9 @@ final class PenggieSessionModel: ObservableObject {
 
         let sent = sendNativeKey(command)
         updateNativeDisplayText(after: command)
+        if sent {
+            markActiveTerminalInteractionSurfaceWaitingForFrame()
+        }
         startScreenPolling()
         return sent
     }
@@ -344,6 +364,7 @@ final class PenggieSessionModel: ObservableObject {
         let sent = sendNativeKey(command)
         if sent {
             resumePickerRequiresFreshSelection = true
+            markActiveTerminalInteractionSurfaceWaitingForFrame()
         }
         startScreenPolling()
         return sent
@@ -354,6 +375,7 @@ final class PenggieSessionModel: ObservableObject {
         guard isRunning, codexScreenKind == .resumePicker, !text.isEmpty else { return false }
         ghosttySession?.sendText(text)
         resumePickerRequiresFreshSelection = true
+        markActiveTerminalInteractionSurfaceWaitingForFrame()
         startScreenPolling()
         return true
     }
@@ -362,6 +384,9 @@ final class PenggieSessionModel: ObservableObject {
     func sendTerminalSurfaceCommand(_ command: PenggieInteractionCommand) -> Bool {
         guard isRunning, activeTerminalInteractionSurface != nil else { return false }
         let sent = sendNativeKey(command)
+        if sent {
+            markActiveTerminalInteractionSurfaceWaitingForFrame()
+        }
         startScreenPolling()
         return sent
     }
@@ -370,6 +395,7 @@ final class PenggieSessionModel: ObservableObject {
     func sendTerminalSurfaceText(_ text: String) -> Bool {
         guard isRunning, activeTerminalInteractionSurface != nil, !text.isEmpty else { return false }
         ghosttySession?.sendText(text)
+        markActiveTerminalInteractionSurfaceWaitingForFrame()
         startScreenPolling()
         return true
     }
@@ -507,6 +533,12 @@ final class PenggieSessionModel: ObservableObject {
             activeTerminalInteractionSurface = surface
         }
         return surface
+    }
+
+    private func markActiveTerminalInteractionSurfaceWaitingForFrame() {
+        guard let activeTerminalInteractionSurface else { return }
+        self.activeTerminalInteractionSurface = activeTerminalInteractionSurface
+            .withFreshness(.waitingForTerminalFrame)
     }
 
     private func updateResumePickerProjection(

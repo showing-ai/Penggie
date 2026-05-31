@@ -34,6 +34,7 @@ let package = Package(
                 "PenggieNativeInteractionPhase.swift",
                 "PenggieNativeInteractionProjection.swift",
                 "PenggieReadingTranscript.swift",
+                "PenggieSessionLifecyclePolicy.swift",
                 "PenggieTerminalFrameNormalizer.swift",
                 "PenggieTheme.swift"
             ]

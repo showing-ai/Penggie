@@ -450,6 +450,15 @@ struct PenggieTerminalInteractionSurfaceTests {
         #expect(nearBottom.hasLeadingOverflow == true)
         #expect(nearBottom.hasTrailingOverflow == true)
 
+        let finalRow = PenggieTerminalInteractionCandidateViewport.derive(
+            candidates: candidates,
+            selectedRowID: "row-11",
+            maxVisibleCount: 5
+        )
+        #expect(finalRow.candidates.map(\.id) == ["row-7", "row-8", "row-9", "row-10", "row-11"])
+        #expect(finalRow.hasLeadingOverflow == true)
+        #expect(finalRow.hasTrailingOverflow == false)
+
         let missingSelection = PenggieTerminalInteractionCandidateViewport.derive(
             candidates: candidates,
             selectedRowID: nil,
@@ -800,6 +809,48 @@ struct PenggieTerminalInteractionSurfaceTests {
         let decision = PenggieTerminalInputPolicy.commandDecision(.enter, surface: surface)
         guard case .blocked = decision else {
             Issue.record("Expected stale selected row to block confirmation")
+            return
+        }
+        #expect(decision.consumesEvent)
+    }
+
+    @Test
+    func waitingForTerminalFrameBlocksEnterWhileKeepingRowsVisible() {
+        let freshSurface = PenggieTerminalInteractionSurface(
+            id: "fixture.waiting",
+            kind: .resumePicker,
+            frameID: 701,
+            zones: [
+                PenggieTerminalScreenZone(kind: .keyboardSelectableList, lineRange: 1...2)
+            ],
+            candidates: [
+                PenggieTerminalInteractionCandidate(
+                    id: "resume:1:first",
+                    sourceLineIndex: 1,
+                    text: "1h ago    First session",
+                    isConfirmable: true
+                )
+            ],
+            selection: .single(
+                rowID: "resume:1:first",
+                source: .visibleMarker,
+                evidence: ["current-frame-marker"]
+            ),
+            selectionConfidence: .reliable,
+            freshness: .fresh,
+            evidence: ["frame=701"]
+        )
+
+        #expect(freshSurface.hasFreshConfirmableSelection)
+
+        let waitingSurface = freshSurface.withFreshness(.waitingForTerminalFrame)
+        #expect(waitingSurface.candidates.map(\.id) == freshSurface.candidates.map(\.id))
+        #expect(waitingSurface.selection == freshSurface.selection)
+        #expect(!waitingSurface.hasFreshConfirmableSelection)
+
+        let decision = PenggieTerminalInputPolicy.commandDecision(.enter, surface: waitingSurface)
+        guard case .blocked = decision else {
+            Issue.record("Expected waiting-for-frame selected row to block confirmation")
             return
         }
         #expect(decision.consumesEvent)

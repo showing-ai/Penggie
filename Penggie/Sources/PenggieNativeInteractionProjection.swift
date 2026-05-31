@@ -514,6 +514,21 @@ struct PenggieTerminalInteractionSurface: Equatable, Identifiable {
 
         return selectedCandidate.isConfirmable
     }
+
+    func withFreshness(_ freshness: PenggieTerminalSurfaceFreshness) -> Self {
+        Self(
+            id: id,
+            kind: kind,
+            frameID: frameID,
+            zones: zones,
+            candidates: candidates,
+            selection: selection,
+            selectionConfidence: selectionConfidence,
+            freshness: freshness,
+            evidence: evidence,
+            metadata: metadata
+        )
+    }
 }
 
 enum PenggieTerminalBehaviorZoner {
