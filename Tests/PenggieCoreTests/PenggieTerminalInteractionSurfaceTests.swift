@@ -1126,6 +1126,29 @@ struct PenggieTerminalInteractionSurfaceTests {
     }
 
     @Test
+    func lowConfidenceSurfaceKeepsRowsVisibleBlocksEnterAndExplainsRefresh() throws {
+        let surface = try surfaceFixture(named: "resume-low-confidence")
+
+        #expect(!surface.candidates.isEmpty)
+        #expect(surface.candidates.contains { $0.isConfirmable })
+        #expect(surface.selectionConfidence == .low)
+        #expect(surface.selection.confirmableRowID == nil)
+        #expect(!surface.hasFreshConfirmableSelection)
+
+        let decision = PenggieTerminalInputPolicy.commandDecision(.enter, surface: surface)
+        guard case let .blocked(reason) = decision else {
+            Issue.record("Expected low-confidence surface to block unsafe Enter confirmation")
+            return
+        }
+
+        #expect(decision.consumesEvent)
+        #expect(reason.contains("confirmation requires one fresh terminal-owned selected row"))
+        #expect(PenggieTerminalSurfaceStatusCopy.syncingSelection.contains("Syncing selection"))
+        #expect(PenggieTerminalSurfaceStatusCopy.syncingSelection.contains("↑/↓"))
+        #expect(PenggieTerminalSurfaceStatusCopy.syncingSelection.contains("selected row"))
+    }
+
+    @Test
     func unsafeEnterConsumesEventInsteadOfFallingThroughToComposerSubmission() throws {
         let ambiguousSlash = try surfaceFixture(named: "slash-ambiguous", currentInput: "/")
         let decision = PenggieTerminalInputPolicy.commandDecision(.enter, surface: ambiguousSlash)

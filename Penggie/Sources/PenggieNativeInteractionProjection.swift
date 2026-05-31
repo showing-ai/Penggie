@@ -369,6 +369,10 @@ enum PenggieTerminalInputDecision: Equatable {
     }
 }
 
+enum PenggieTerminalSurfaceStatusCopy {
+    static let syncingSelection = "Syncing selection; use ↑/↓ to refresh the selected row."
+}
+
 enum PenggieTerminalInputPolicy {
     static func commandDecision(
         _ command: PenggieInteractionCommand,

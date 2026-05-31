@@ -799,7 +799,7 @@ private struct PenggieReadingChatView: View {
                                 HStack(spacing: 8) {
                                     ProgressView()
                                         .controlSize(.small)
-                                    Text("Syncing selection; use ↑/↓ to refresh the selected row.")
+                                    Text(PenggieTerminalSurfaceStatusCopy.syncingSelection)
                                         .font(.system(size: 12, weight: .medium))
                                         .foregroundStyle(theme.secondaryText)
                                     Spacer(minLength: 0)
@@ -1211,7 +1211,7 @@ private struct PenggieReadingChatView: View {
         HStack(spacing: 8) {
             ProgressView()
                 .controlSize(.small)
-            Text("Syncing selection; use ↑/↓ to refresh the selected row.")
+            Text(PenggieTerminalSurfaceStatusCopy.syncingSelection)
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(theme.secondaryText)
             Spacer(minLength: 0)
@@ -1524,7 +1524,7 @@ private struct PenggieTerminalSurfaceOverlay: View {
                 HStack(spacing: 8) {
                     ProgressView()
                         .controlSize(.small)
-                    Text("Syncing selection; use ↑/↓ to refresh the selected row.")
+                    Text(PenggieTerminalSurfaceStatusCopy.syncingSelection)
                         .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(overlay.mutedForeground.color)
                     Spacer(minLength: 0)
