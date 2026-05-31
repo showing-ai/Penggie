@@ -9,7 +9,7 @@
 
 - [x] 2.1 Review `PenggieApp.swift`, `PenggieRootView.swift`, and `PenggieSessionModel.swift` against the app-shell state matrix; document any mismatch in visible UI, blocked actions, keyboard owner, Raw Terminal availability, and recovery path.
 - [x] 2.2 Implement setup/start acceptance criteria: valid folder, invalid folder, missing folder, `Create with Penggie`, disabled/enabled states, keyboard order, VoiceOver labels, and no startup terminal noise leakage.
-- [ ] 2.3 Verify `Create with Penggie` starts the intended create/new-session path and does not enter resume picker unless Codex is explicitly launched in resume mode or the user chooses a resume path.
+- [x] 2.3 Verify `Create with Penggie` starts the intended create/new-session path and does not enter resume picker unless Codex is explicitly launched in resume mode or the user chooses a resume path.
 - [ ] 2.4 Harden checking/launching states so prompt input, folder change, Raw Terminal, New Chat, and Close Session are blocked until an inspectable session or recovery state exists.
 - [ ] 2.5 Harden missing Codex, launch failed, process exited with terminal surface, and process exited without terminal surface states with specific copy, retry/close/start actions, and correct Raw Terminal availability.
 - [ ] 2.6 Validate New Chat and Close Session confirmations: focus trap, destructive copy, cancel restoration, confirm behavior, and no background session discard before confirmation.

@@ -3,14 +3,17 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 session_model="$repo_root/Penggie/Sources/PenggieSessionModel.swift"
+app_source="$repo_root/Penggie/Sources/PenggieApp.swift"
 
-python3 - "$session_model" <<'PY'
+python3 - "$session_model" "$app_source" <<'PY'
 import re
 import sys
 from pathlib import Path
 
-path = Path(sys.argv[1])
-source = path.read_text()
+session_model_path = Path(sys.argv[1])
+app_path = Path(sys.argv[2])
+source = session_model_path.read_text()
+app_source = app_path.read_text()
 
 def extract_function(name: str) -> str:
     match = re.search(rf"func\s+{re.escape(name)}\s*\([^)]*\)\s*\{{", source)
@@ -59,6 +62,17 @@ start = extract_function("startWithCodex")
 launch = extract_function("launchCodexSession")
 for label, body in [("startWithCodex", start), ("launchCodexSession", launch)]:
     assert_not_contains(label, body, [r"\bcodex\s+resume\b", r"--last\b", r"\bresume\b"])
+
+if 'Button("Create with Penggie")' not in app_source:
+    raise AssertionError("Missing app-level Create with Penggie command")
+
+create_command = re.search(
+    r'Button\("Create with Penggie"\)\s*\{\s*session\.startWithCodex\(\)\s*\}',
+    app_source,
+    re.MULTILINE,
+)
+if not create_command:
+    raise AssertionError("App-level Create with Penggie command must call session.startWithCodex() directly")
 
 for name in ["switchToReading", "switchToTerminal"]:
     body = extract_function(name)
