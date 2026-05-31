@@ -1,0 +1,12 @@
+{
+  "columns": 120,
+  "rows": 30,
+  "cursor": null,
+  "lines": [
+    { "index": 0, "text": "Resume a previous session", "terminalTextSelected": false },
+    { "index": 1, "text": "Type to search", "terminalTextSelected": false },
+    { "index": 2, "text": "› 3h ago    对比一下伦敦和巴黎", "terminalTextSelected": false },
+    { "index": 3, "text": "› 4h ago    伦敦天气怎么样?", "terminalTextSelected": false },
+    { "index": 4, "text": "enter resume  esc exit", "terminalTextSelected": false }
+  ]
+}

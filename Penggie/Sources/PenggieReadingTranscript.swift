@@ -56,6 +56,24 @@ struct PenggieTranscriptFeatures: Equatable {
     var containsBlankRows: Bool
 }
 
+fileprivate enum PenggieReadingLocalProgress {
+    static let hintID = "penggie.local-progress"
+
+    static func features(for text: String) -> PenggieTranscriptFeatures {
+        let lines = text.components(separatedBy: .newlines)
+        return PenggieTranscriptFeatures(
+            marker: .none,
+            indentLevel: 0,
+            dividerBefore: false,
+            dividerAfter: false,
+            wrapDetected: false,
+            hintIDs: [hintID],
+            lineCount: max(1, lines.count),
+            containsBlankRows: lines.contains { $0.isEmpty }
+        )
+    }
+}
+
 struct PenggieReadingBlock: Identifiable, Equatable {
     var id: UUID
     let kind: PenggieReadingBlockKind
@@ -113,6 +131,7 @@ struct PenggieReadingDisclosureBlock: Identifiable, Equatable {
 
     var detailText: String {
         blocks
+            .filter { !PenggieReadingPresentation.isLocalProgressBlock($0) }
             .map { PenggieReadingPresentation.terminalText(for: $0) }
             .filter { !$0.isEmpty }
             .joined(separator: "\n\n")
@@ -147,6 +166,19 @@ enum PenggieReadingVisibleItem: Identifiable, Equatable {
     }
 }
 
+struct PenggieReadingDisplaySegment: Equatable {
+    enum Kind: Equatable {
+        case prose
+        case preformatted
+    }
+
+    var kind: Kind
+    var text: String
+    var renderHints: DisplayRenderHints = .init()
+    var sourceRange: DisplaySourceRange?
+    var displayBlockKind: DisplayBlock.Kind?
+}
+
 struct PenggieReadingTurn: Identifiable, Equatable {
     enum Status: Equatable {
         case running
@@ -173,9 +205,8 @@ struct PenggieReadingTurn: Identifiable, Equatable {
         var blocks = outputBlocks
 
         if status == .running,
-           !blocks.contains(where: Self.isAnswerBlock),
-           !blocks.contains(where: Self.isActiveWorkingBlock) {
-            blocks.append(localWorkingBlock)
+           !blocks.contains(where: Self.isAnswerBlock) || blocks.contains(where: Self.isActiveWorkingBlock) {
+            blocks.insert(localWorkingBlock, at: 0)
         }
 
         if status == .completed,
@@ -196,6 +227,7 @@ struct PenggieReadingTurn: Identifiable, Equatable {
             updatedAt: latestObservedAt,
             variant: .activity,
             confidence: .high,
+            transcriptFeatures: PenggieReadingLocalProgress.features(for: "Working (\(elapsed)s)"),
             isLiveProjection: false
         )
     }
@@ -211,6 +243,7 @@ struct PenggieReadingTurn: Identifiable, Equatable {
             updatedAt: end,
             variant: .status,
             confidence: .high,
+            transcriptFeatures: PenggieReadingLocalProgress.features(for: "Worked for \(elapsed)s"),
             isLiveProjection: false
         )
     }
@@ -234,6 +267,10 @@ struct PenggieReadingTurnStore: Equatable {
 
     var blocks: [PenggieReadingBlock] {
         turns.flatMap(\.blocks)
+    }
+
+    var isEmpty: Bool {
+        turns.isEmpty
     }
 
     var canSubmitPrompt: Bool {
@@ -325,6 +362,25 @@ struct PenggieReadingTurnStore: Equatable {
             parsedBlocks: parsedBlocks,
             outputBlocks: turns[activeIndex].outputBlocks
         )
+    }
+
+    mutating func refreshActiveTurnTiming(at observedAt: Date = Date()) {
+        guard let activeIndex = turns.lastIndex(where: { !$0.isSealed }) else {
+            return
+        }
+
+        turns[activeIndex].latestObservedAt = observedAt
+
+        guard turns[activeIndex].status == .running,
+              turns[activeIndex].idleCandidateObservedAt != nil else {
+            return
+        }
+
+        turns[activeIndex].idleStableFrameCount += 1
+        if turns[activeIndex].idleStableFrameCount >= 1 {
+            turns[activeIndex].status = .completed
+            turns[activeIndex].completedAt = observedAt
+        }
     }
 
     private mutating func sealCompletedTurns() {
@@ -731,6 +787,31 @@ struct PenggieReadingTurnStore: Equatable {
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .joined(separator: "\n")
             .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+}
+
+struct PenggieReadingResumeHydrator: Equatable {
+    private(set) var blocks: [PenggieReadingBlock] = []
+
+    mutating func update(
+        from projection: String,
+        terminalColumns: Int?,
+        createdAt: Date = Date()
+    ) {
+        blocks = PenggieReadingProjectionModel.blocks(
+            from: projection,
+            terminalColumns: terminalColumns,
+            previousBlocks: blocks,
+            createdAt: createdAt
+        )
+    }
+
+    mutating func reset() {
+        blocks = []
+    }
+
+    func combined(with turnBlocks: [PenggieReadingBlock]) -> [PenggieReadingBlock] {
+        blocks + turnBlocks
     }
 }
 
@@ -1599,10 +1680,6 @@ enum PenggieReadingPresentation {
             return .init(workBlocks: [], answerBlocks: [])
         }
 
-        if containsActiveWorkingStatus(contentBlocks) {
-            return .init(workBlocks: contentBlocks, answerBlocks: [])
-        }
-
         guard contentBlocks.contains(where: isDisclosureDetailBlock) else {
             return .init(workBlocks: [], answerBlocks: contentBlocks)
         }
@@ -1616,13 +1693,6 @@ enum PenggieReadingPresentation {
             : []
 
         return .init(workBlocks: workBlocks, answerBlocks: answerBlocks)
-    }
-
-    private static func containsActiveWorkingStatus(_ blocks: [PenggieReadingBlock]) -> Bool {
-        blocks.contains { block in
-            let text = terminalText(for: block)
-            return text.hasPrefix("Working") && !text.hasPrefix("Worked for")
-        }
     }
 
     static func visibleBlocks(
@@ -1678,6 +1748,11 @@ enum PenggieReadingPresentation {
         }
     }
 
+    static func isLocalProgressBlock(_ block: PenggieReadingBlock) -> Bool {
+        block.kind == .output &&
+            block.transcriptFeatures.hintIDs.contains(PenggieReadingLocalProgress.hintID)
+    }
+
     static func isTerminalPromptEchoBlock(_ block: PenggieReadingBlock) -> Bool {
         block.kind == .output && block.variant == .prompt
     }
@@ -1716,6 +1791,148 @@ enum PenggieReadingPresentation {
         return displayLines(from: visibleLines)
             .joined(separator: "\n")
             .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    static func displaySegments(for block: PenggieReadingBlock) -> [PenggieReadingDisplaySegment] {
+        if isPromptBlock(block) {
+            return [.init(kind: .prose, text: promptText(for: block))]
+        }
+
+        let sourceLines = normalizedLines(from: block.displayText)
+            .filter { !isCodexSessionMetadataLine($0.trimmingCharacters(in: .whitespacesAndNewlines)) }
+
+        if let displayASTSegments = displaySegmentsUsingDisplayAST(from: sourceLines) {
+            return displayASTSegments
+        }
+
+        guard sourceLines.contains(where: isPreformattedTableLine) else {
+            let text = chatText(for: block)
+            return text.isEmpty ? [] : [.init(kind: .prose, text: text)]
+        }
+
+        var segments: [PenggieReadingDisplaySegment] = []
+        var proseLines: [String] = []
+        var preformattedLines: [String] = []
+
+        func flushProse() {
+            let text = displayLines(from: proseLines.filter { !isDividerOnlyText($0) })
+                .joined(separator: "\n")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            if !text.isEmpty {
+                segments.append(.init(kind: .prose, text: text))
+            }
+            proseLines = []
+        }
+
+        func flushPreformatted() {
+            let text = preformattedLines
+                .joined(separator: "\n")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            if !text.isEmpty {
+                segments.append(.init(kind: .preformatted, text: text))
+            }
+            preformattedLines = []
+        }
+
+        for line in sourceLines {
+            if isPreformattedTableLine(line) {
+                flushProse()
+                preformattedLines.append(line)
+            } else {
+                flushPreformatted()
+                proseLines.append(line)
+            }
+        }
+
+        flushPreformatted()
+        flushProse()
+        return segments
+    }
+
+    private static func displaySegmentsUsingDisplayAST(from sourceLines: [String]) -> [PenggieReadingDisplaySegment]? {
+        let snapshot = terminalStyledSnapshot(from: sourceLines)
+        let document = CodexAdapter().compile(snapshot: snapshot)
+        let astSegments = PenggieDisplayASTRenderer().segments(from: document)
+
+        guard astSegments.contains(where: isDisplayASTPreformattedSegment) else {
+            return nil
+        }
+
+        var segments: [PenggieReadingDisplaySegment] = []
+        var proseLines: [String] = []
+
+        func flushProse() {
+            let text = displayLines(from: proseLines.filter { !isDividerOnlyText($0) })
+                .joined(separator: "\n")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            if !text.isEmpty {
+                segments.append(.init(kind: .prose, text: text))
+            }
+            proseLines = []
+        }
+
+        for segment in astSegments {
+            if isDisplayASTPreformattedSegment(segment) {
+                flushProse()
+                segments.append(segment)
+            } else {
+                proseLines.append(contentsOf: normalizedLines(from: segment.text))
+            }
+        }
+
+        flushProse()
+        return segments
+    }
+
+    private static func isDisplayASTPreformattedSegment(_ segment: PenggieReadingDisplaySegment) -> Bool {
+        segment.kind == .preformatted ||
+        segment.renderHints.cellAware ||
+        segment.renderHints.horizontalScroll
+    }
+
+    private static func terminalStyledSnapshot(from lines: [String]) -> TerminalStyledSnapshot {
+        TerminalStyledSnapshot(
+            columns: max(1, lines.map(displayWidth).max() ?? 1),
+            rows: lines.count,
+            cursor: nil,
+            lines: lines.enumerated().map { rowIndex, text in
+                TerminalStyledSnapshot.Line(
+                    rowIndex: rowIndex,
+                    cells: terminalStyledCells(from: text),
+                    isWrapped: false
+                )
+            }
+        )
+    }
+
+    private static func terminalStyledCells(from text: String) -> [TerminalStyledCell] {
+        var column = 0
+        return text.map { character in
+            let width = displayWidth(of: character)
+            defer { column += width }
+            return TerminalStyledCell(
+                column: column,
+                text: String(character),
+                displayWidth: width,
+                style: .init()
+            )
+        }
+    }
+
+    private static func displayWidth(of character: Character) -> Int {
+        character.unicodeScalars.contains { scalar in
+            scalar.value >= 0x1100
+        } ? 2 : 1
+    }
+
+    private static func displayWidth(of text: String) -> Int {
+        text.reduce(0) { $0 + displayWidth(of: $1) }
+    }
+
+    static func isPreformattedOutputBlock(_ block: PenggieReadingBlock) -> Bool {
+        guard block.kind == .output else { return false }
+        guard !isToolChromeBlock(block) else { return false }
+        return normalizedLines(from: block.displayText).contains(where: isPreformattedTableLine)
     }
 
     static func terminalText(for block: PenggieReadingBlock) -> String {
@@ -1972,6 +2189,36 @@ enum PenggieReadingPresentation {
     private static func isTableLine(_ line: String) -> Bool {
         line.first == "|" && line.last == "|"
     }
+
+    private static func isPreformattedTableLine(_ line: String) -> Bool {
+        let trimmed = line.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return false }
+
+        if trimmed.unicodeScalars.contains(where: { tableBoxDrawingScalars.contains($0) }) {
+            return true
+        }
+
+        if isTableLine(trimmed) {
+            return true
+        }
+
+        let pipeCount = trimmed.filter { $0 == "|" }.count
+        if pipeCount >= 3 {
+            return true
+        }
+
+        if trimmed.hasPrefix("+"),
+           trimmed.hasSuffix("+"),
+           trimmed.filter({ $0 == "+" }).count >= 3,
+           trimmed.unicodeScalars.allSatisfy({ asciiTableScalars.contains($0) }) {
+            return true
+        }
+
+        return false
+    }
+
+    private static let tableBoxDrawingScalars = CharacterSet(charactersIn: "┌┐└┘├┤┬┴┼─│╭╮╰╯═║╔╗╚╝╠╣╦╩╬")
+    private static let asciiTableScalars = CharacterSet(charactersIn: "+-|=:. ")
 
     private static func isLabelLikeLine(_ line: String) -> Bool {
         guard let punctuationIndex = line.firstIndex(where: { $0 == ":" || $0 == "：" }) else {

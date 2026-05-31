@@ -1,23 +1,11 @@
 import AppKit
 import SwiftUI
 
-enum PenggieInteractionCommand {
-    case tab
-    case enter
-    case escape
-    case arrowUp
-    case arrowDown
-    case arrowLeft
-    case arrowRight
-    case backspace
-    case delete
-}
-
 struct PenggieInteractionKeyCaptureView: NSViewRepresentable {
     let shouldFocus: Bool
     let isEnabled: Bool
     let focusRequestID: Int
-    let onCommand: (PenggieInteractionCommand, NSEvent) -> Bool
+    let onCommand: (PenggieInteractionCommand, NSEvent) -> PenggieTerminalInputDecision
     let onTextInput: (String) -> Bool
 
     func makeNSView(context: Context) -> PenggieInteractionKeyCaptureNSView {
@@ -43,7 +31,7 @@ struct PenggieInteractionKeyCaptureView: NSViewRepresentable {
 final class PenggieInteractionKeyCaptureNSView: NSView {
     var isEnabled = true
     var focusRequestID = 0
-    var onCommand: ((PenggieInteractionCommand, NSEvent) -> Bool)?
+    var onCommand: ((PenggieInteractionCommand, NSEvent) -> PenggieTerminalInputDecision)?
     var onTextInput: ((String) -> Bool)?
     private var wantsFocus = false
 
@@ -86,9 +74,13 @@ final class PenggieInteractionKeyCaptureNSView: NSView {
             return
         }
 
-        if let command = penggieInteractionCommand(for: event),
-           onCommand?(command, event) == true {
-            return
+        if let command = penggieInteractionCommand(for: event) {
+            switch onCommand?(command, event) ?? .unhandled {
+            case .handled, .blocked:
+                return
+            case .unhandled:
+                break
+            }
         }
 
         guard let characters = penggieInteractionText(for: event),

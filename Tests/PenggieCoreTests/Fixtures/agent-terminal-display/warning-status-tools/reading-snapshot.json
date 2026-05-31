@@ -1,0 +1,51 @@
+[
+  {
+    "kind": "prose",
+    "text": "Working... 2s >",
+    "cellAware": false,
+    "horizontalScroll": false,
+    "displayBlockKind": "status"
+  },
+  {
+    "kind": "prose",
+    "text": "⚠ Skill descriptions were shortened to fit the 2% skills context budget. Codex can still see every skill.",
+    "cellAware": false,
+    "horizontalScroll": false,
+    "displayBlockKind": "warning"
+  },
+  {
+    "kind": "prose",
+    "text": "Searching the web",
+    "cellAware": false,
+    "horizontalScroll": false,
+    "displayBlockKind": "activity"
+  },
+  {
+    "kind": "prose",
+    "text": "Searched weather: London, UK",
+    "cellAware": false,
+    "horizontalScroll": false,
+    "displayBlockKind": "toolEvent"
+  },
+  {
+    "kind": "prose",
+    "text": "今天伦敦天气大致是晴到多云。",
+    "cellAware": false,
+    "horizontalScroll": false,
+    "displayBlockKind": null
+  },
+  {
+    "kind": "prose",
+    "text": "Worked for 17s",
+    "cellAware": false,
+    "horizontalScroll": false,
+    "displayBlockKind": "status"
+  },
+  {
+    "kind": "prose",
+    "text": "最终答案不会被隐藏。",
+    "cellAware": false,
+    "horizontalScroll": false,
+    "displayBlockKind": null
+  }
+]

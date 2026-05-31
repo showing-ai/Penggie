@@ -1,0 +1,55 @@
+{
+  "source": "terminalProjection",
+  "terminalColumns": 120,
+  "terminalRows": 4,
+  "blocks": [
+    {
+      "kind": "rawFallback",
+      "role": "unknown",
+      "text": "Approve command?",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.raw.visible_text"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": "generic.visible_text"
+    },
+    {
+      "kind": "rawFallback",
+      "role": "unknown",
+      "text": "  Run shell command: git status",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.raw.visible_text"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": "generic.visible_text"
+    },
+    {
+      "kind": "rawFallback",
+      "role": "unknown",
+      "text": "  Allow once",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.raw.visible_text"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": "generic.visible_text"
+    },
+    {
+      "kind": "rawFallback",
+      "role": "unknown",
+      "text": "  Deny",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.raw.visible_text"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": "generic.visible_text"
+    }
+  ]
+}

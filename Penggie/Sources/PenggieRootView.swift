@@ -1,35 +1,19 @@
 import SwiftUI
 
-private enum PenggieTheme {
-    static let appBackground = Color(nsColor: .windowBackgroundColor)
-    static let contentBackground = Color(nsColor: .textBackgroundColor)
-    static let surface = Color(nsColor: .controlBackgroundColor)
-    static let elevatedSurface = Color(nsColor: .textBackgroundColor)
-    static let separator = Color(nsColor: .separatorColor).opacity(0.6)
-    static let quietSeparator = Color(nsColor: .separatorColor).opacity(0.32)
-    static let secondaryText = Color(nsColor: .secondaryLabelColor)
-    static let accent = Color.accentColor
-    static let accentSoft = Color.accentColor.opacity(0.12)
-    static let selectedBackground = Color.accentColor.opacity(0.16)
-    static let terminalBackground = Color(nsColor: NSColor(calibratedWhite: 0.985, alpha: 1))
-    static let disabledAction = Color(nsColor: .tertiaryLabelColor).opacity(0.44)
-    static let shadow = Color(nsColor: .shadowColor).opacity(0.08)
-    static let onAccent = Color(nsColor: .selectedMenuItemTextColor)
-}
-
 struct PenggieRootView: View {
     @EnvironmentObject private var session: PenggieSessionModel
+    @Environment(\.penggieTheme) private var theme
 
     var body: some View {
         ZStack {
-            PenggieTheme.appBackground
+            theme.appBackground
                 .ignoresSafeArea()
 
             switch session.state {
             case .idle, .closed:
                 PenggieStartView()
             case .checkingCodex, .launching:
-                PenggieProgressView()
+                PenggieStartView(holdsDuringStartup: true)
             case .codexMissing:
                 PenggieErrorStateView(
                     title: "Codex CLI not found",
@@ -52,7 +36,11 @@ struct PenggieRootView: View {
                     primaryAction: session.startWithCodex
                 )
             case .reading, .terminal:
-                PenggieSessionView()
+                if session.isHoldingInitialSurface {
+                    PenggieStartView(holdsDuringStartup: true)
+                } else {
+                    PenggieSessionView()
+                }
             }
         }
         .background(PenggieWindowConfigurator())
@@ -97,6 +85,8 @@ private struct PenggieWindowConfigurator: NSViewRepresentable {
 
 private struct PenggieStartView: View {
     @EnvironmentObject private var session: PenggieSessionModel
+    @Environment(\.penggieTheme) private var theme
+    var holdsDuringStartup = false
 
     var body: some View {
         VStack(spacing: 24) {
@@ -131,15 +121,15 @@ private struct PenggieStartView: View {
 
                     Text("Selected")
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(PenggieTheme.secondaryText)
+                        .foregroundStyle(theme.secondaryText)
                 }
                 .padding(16)
                 .frame(maxWidth: 560)
-                .background(PenggieTheme.elevatedSurface)
+                .background(theme.elevatedSurface)
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .overlay {
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(PenggieTheme.separator, lineWidth: 1)
+                        .stroke(theme.separator, lineWidth: 1)
                 }
                 .accessibilityElement(children: .combine)
                 .accessibilityLabel("Codex selected as local agent CLI")
@@ -150,13 +140,13 @@ private struct PenggieStartView: View {
                     HStack(spacing: 12) {
                         Image(systemName: "folder")
                             .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(PenggieTheme.secondaryText)
+                            .foregroundStyle(theme.secondaryText)
                             .frame(width: 28, height: 28)
 
                         VStack(alignment: .leading, spacing: 3) {
                             Text("Project Folder")
                                 .font(.system(size: 12, weight: .medium))
-                                .foregroundStyle(PenggieTheme.secondaryText)
+                                .foregroundStyle(theme.secondaryText)
                             Text(session.sessionFolderDisplayPath)
                                 .font(.system(size: 13, weight: .medium))
                                 .foregroundStyle(.primary)
@@ -168,16 +158,16 @@ private struct PenggieStartView: View {
 
                         Text(session.selectedWorkingDirectory == nil ? "Choose" : "Change")
                             .font(.system(size: 12, weight: .medium))
-                            .foregroundStyle(PenggieTheme.secondaryText)
+                            .foregroundStyle(theme.secondaryText)
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
                     .frame(maxWidth: 560)
-                    .background(PenggieTheme.appBackground)
+                    .background(theme.appBackground)
                     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                     .overlay {
                         RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .stroke(PenggieTheme.quietSeparator, lineWidth: 1)
+                            .stroke(theme.quietSeparator, lineWidth: 1)
                     }
                 }
                 .buttonStyle(.plain)
@@ -187,16 +177,18 @@ private struct PenggieStartView: View {
                 Button {
                     session.startWithCodex()
                 } label: {
+                    let actionLooksEnabled = session.canStartConfiguredCodex || holdsDuringStartup
+
                     Text("Create with Penggie")
                         .font(.system(size: 14, weight: .semibold))
                         .frame(maxWidth: 560)
                         .frame(height: 42)
-                        .foregroundStyle(session.canStartConfiguredCodex ? PenggieTheme.onAccent : PenggieTheme.secondaryText)
-                        .background(session.canStartConfiguredCodex ? PenggieTheme.accent : PenggieTheme.surface)
+                        .foregroundStyle(actionLooksEnabled ? theme.onAccent : theme.secondaryText)
+                        .background(actionLooksEnabled ? theme.accent : theme.surface)
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
                 .buttonStyle(.plain)
-                .disabled(!session.canStartConfiguredCodex)
+                .disabled(!session.canStartConfiguredCodex && !holdsDuringStartup)
                 .accessibilityLabel("Create with Penggie")
                 .help(session.canStartConfiguredCodex ? "Create with Penggie in the selected folder" : "Choose a project folder to create with Penggie")
             }
@@ -207,10 +199,12 @@ private struct PenggieStartView: View {
 }
 
 private struct CodexProviderIcon: View {
+    @Environment(\.penggieTheme) private var theme
+
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(PenggieTheme.surface)
+                .fill(theme.surface)
 
             Image("OpenAIProviderIcon")
                 .resizable()
@@ -222,7 +216,7 @@ private struct CodexProviderIcon: View {
         .frame(width: 52, height: 52)
         .overlay {
             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .stroke(PenggieTheme.quietSeparator, lineWidth: 1)
+                .stroke(theme.quietSeparator, lineWidth: 1)
         }
         .accessibilityHidden(true)
     }
@@ -249,6 +243,8 @@ private struct PenggieProgressView: View {
 }
 
 private struct PenggieErrorStateView: View {
+    @Environment(\.penggieTheme) private var theme
+
     let title: String
     let message: String
     let primaryActionTitle: String
@@ -276,31 +272,36 @@ private struct PenggieErrorStateView: View {
         }
         .padding(40)
         .frame(maxWidth: 520)
-        .background(PenggieTheme.elevatedSurface)
+        .background(theme.elevatedSurface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(PenggieTheme.quietSeparator, lineWidth: 1)
+                .stroke(theme.quietSeparator, lineWidth: 1)
         }
     }
 }
 
 private struct PenggieSessionView: View {
     @EnvironmentObject private var session: PenggieSessionModel
+    @Environment(\.penggieTheme) private var theme
 
     var body: some View {
         ZStack(alignment: .top) {
-            Group {
-                if session.state == .terminal {
-                    PenggieRawTerminalPlaceholder()
-                } else {
-                    PenggieReadingChatView()
-                }
-            }
-            .padding(.top, PenggieChromeMetrics.height)
+            PenggieRawTerminalPlaceholder(isActive: session.state == .terminal)
+                .opacity(session.state == .terminal ? 1 : 0)
+                .allowsHitTesting(session.state == .terminal)
+                .accessibilityHidden(session.state != .terminal)
+                .padding(.top, PenggieChromeMetrics.height)
+
+            PenggieReadingChatView()
+                .opacity(session.state == .terminal ? 0 : 1)
+                .allowsHitTesting(session.state != .terminal)
+                .accessibilityHidden(session.state == .terminal)
+                .padding(.top, PenggieChromeMetrics.height)
 
             PenggieWindowChrome()
         }
+        .background(session.state == .terminal ? theme.terminalBackground : theme.contentBackground)
         .ignoresSafeArea(.container, edges: .top)
     }
 }
@@ -312,6 +313,11 @@ private enum PenggieChromeMetrics {
 
 private struct PenggieWindowChrome: View {
     @EnvironmentObject private var session: PenggieSessionModel
+    @Environment(\.penggieTheme) private var theme
+
+    private var chromeTheme: PenggieChromeTheme {
+        session.state == .terminal ? theme.components.windowChrome.terminal : theme.components.windowChrome.reading
+    }
 
     var body: some View {
         HStack(spacing: 12) {
@@ -321,11 +327,11 @@ private struct PenggieWindowChrome: View {
             HStack(spacing: 5) {
                 Image(systemName: "folder")
                     .font(.system(size: 11, weight: .regular))
-                    .foregroundStyle(PenggieTheme.secondaryText)
+                    .foregroundStyle(chromeTheme.foreground.color)
 
                 Text(session.sessionFolderTitle)
                     .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(PenggieTheme.secondaryText)
+                    .foregroundStyle(chromeTheme.foreground.color)
                     .lineLimit(1)
                     .truncationMode(.middle)
             }
@@ -337,7 +343,7 @@ private struct PenggieWindowChrome: View {
         }
         .padding(.trailing, 22)
         .frame(height: PenggieChromeMetrics.height)
-        .background(PenggieTheme.appBackground)
+        .background(chromeTheme.background.color)
     }
 }
 
@@ -383,18 +389,19 @@ private struct PenggieChromeIconButton: View {
 
 private struct PenggieChromeIconButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.penggieTheme) private var theme
 
     let isHovering: Bool
     let isFocused: Bool
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .foregroundStyle(isEnabled ? PenggieTheme.secondaryText : PenggieTheme.disabledAction)
+            .foregroundStyle(isEnabled ? theme.secondaryText : theme.disabledAction)
             .background(background(isPressed: configuration.isPressed))
             .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
             .overlay {
                 RoundedRectangle(cornerRadius: 9, style: .continuous)
-                    .stroke(isFocused ? PenggieTheme.accent.opacity(0.58) : Color.clear, lineWidth: 2)
+                    .stroke(isFocused ? theme.accent.opacity(0.58) : Color.clear, lineWidth: 2)
             }
             .scaleEffect(configuration.isPressed ? 0.96 : 1)
             .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
@@ -408,11 +415,11 @@ private struct PenggieChromeIconButtonStyle: ButtonStyle {
         }
 
         if isPressed {
-            return PenggieTheme.selectedBackground
+            return theme.selectedBackground
         }
 
         if isHovering || isFocused {
-            return PenggieTheme.surface
+            return theme.surface
         }
 
         return Color.clear
@@ -421,10 +428,12 @@ private struct PenggieChromeIconButtonStyle: ButtonStyle {
 
 private struct PenggieReadingChatView: View {
     @EnvironmentObject private var session: PenggieSessionModel
+    @Environment(\.penggieTheme) private var theme
     @State private var composerText = ""
     @State private var composerTextHeight: CGFloat = 58
     @State private var composerHasVisibleText = false
     @State private var nativeInteractionFocusRequestID = 0
+    @State private var resumePickerFocusRequestID = 0
 
     var body: some View {
         GeometryReader { geometry in
@@ -433,13 +442,21 @@ private struct PenggieReadingChatView: View {
                 nativeInteractionIsActive: session.nativeInteractionIsActive
             )
             let contentWidth = contentWidth(for: geometry.size.width)
+            let activeSurface = session.activeTerminalInteractionSurface
 
             VStack(spacing: 0) {
-                if visibleItems.isEmpty {
-                    emptyState(contentWidth: contentWidth)
+                if !session.hasObservedCodexScreen {
+                    terminalOwnedInteractionState(contentWidth: contentWidth)
+                } else if let activeSurface,
+                          rendersAsFullPage(surface: activeSurface) {
+                    terminalInteractionSurfaceState(activeSurface, contentWidth: contentWidth)
+                } else if session.codexScreenKind.isTerminalOwnedInteraction {
+                    terminalOwnedInteractionState(contentWidth: contentWidth)
+                } else if visibleItems.isEmpty {
+                    emptyState(contentWidth: contentWidth, activeSurface: activeSurface)
                 } else {
                     transcriptContent(items: visibleItems, contentWidth: contentWidth)
-                    composerStack(contentWidth: contentWidth)
+                    composerStack(contentWidth: contentWidth, activeSurface: activeSurface)
                         .padding(.horizontal, 28)
                         .padding(.bottom, 28)
                 }
@@ -447,10 +464,17 @@ private struct PenggieReadingChatView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(PenggieTheme.contentBackground)
+        .background(theme.contentBackground)
         .onChange(of: session.nativeInteractionIsActive) { _, isActive in
-            if isActive {
+            if session.state == .reading,
+               isActive,
+               !session.codexScreenKind.isTerminalOwnedInteraction {
                 nativeInteractionFocusRequestID += 1
+            }
+        }
+        .onChange(of: session.codexScreenKind) { _, screenKind in
+            if session.state == .reading, screenKind == .resumePicker {
+                resumePickerFocusRequestID += 1
             }
         }
     }
@@ -460,7 +484,19 @@ private struct PenggieReadingChatView: View {
         return max(1, min(880, availableWidth - reservedHorizontalInset))
     }
 
-    private func emptyState(contentWidth: CGFloat) -> some View {
+    private func rendersAsFullPage(surface: PenggieTerminalInteractionSurface) -> Bool {
+        switch surface.kind {
+        case .resumePicker, .approvalPrompt, .permissionPrompt, .modalChoice:
+            return true
+        case .transcript, .startup, .slashSuggestions, .slashContinuation, .modelPicker, .effortPicker, .pager, .opaqueTerminal:
+            return false
+        }
+    }
+
+    private func emptyState(
+        contentWidth: CGFloat,
+        activeSurface: PenggieTerminalInteractionSurface? = nil
+    ) -> some View {
         VStack(spacing: 20) {
             Spacer()
 
@@ -471,11 +507,250 @@ private struct PenggieReadingChatView: View {
                 .lineLimit(2)
                 .frame(maxWidth: contentWidth)
 
-            composerStack(contentWidth: contentWidth)
+            composerStack(contentWidth: contentWidth, activeSurface: activeSurface)
 
             Spacer(minLength: 96)
         }
         .padding(.horizontal, 28)
+    }
+
+    private func terminalOwnedInteractionState(contentWidth: CGFloat) -> some View {
+        let copy = terminalOwnedInteractionCopy
+
+        return VStack(spacing: 14) {
+            Spacer()
+
+            ProgressView()
+                .controlSize(.small)
+
+            VStack(spacing: 8) {
+                Text(copy.title)
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundStyle(.primary)
+                Text(copy.message)
+                    .font(.system(size: 14))
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: min(contentWidth, 560))
+            }
+
+            Spacer(minLength: 96)
+        }
+        .padding(.horizontal, 28)
+    }
+
+    private func terminalInteractionSurfaceState(
+        _ surface: PenggieTerminalInteractionSurface,
+        contentWidth: CGFloat
+    ) -> some View {
+        switch surface.kind {
+        case .resumePicker:
+            AnyView(resumePickerState(surface: surface, contentWidth: contentWidth))
+        case .approvalPrompt, .permissionPrompt, .modalChoice:
+            AnyView(modalChoiceState(surface: surface, contentWidth: contentWidth))
+        case .transcript, .startup, .slashSuggestions, .slashContinuation, .modelPicker, .effortPicker, .pager, .opaqueTerminal:
+            AnyView(terminalOwnedInteractionState(contentWidth: contentWidth))
+        }
+    }
+
+    private func resumePickerState(
+        surface: PenggieTerminalInteractionSurface,
+        contentWidth: CGFloat
+    ) -> some View {
+        let hasReliableSelection = surface.hasFreshConfirmableSelection
+
+        return ZStack {
+            VStack(spacing: 20) {
+                Spacer(minLength: 72)
+
+                VStack(spacing: 8) {
+                    Image(systemName: "clock.arrow.circlepath")
+                        .font(.system(size: 30, weight: .regular))
+                        .foregroundStyle(theme.secondaryText)
+                    Text("Resume a previous session")
+                        .font(.system(size: 25, weight: .semibold))
+                        .foregroundStyle(.primary)
+                    Text("Type to search, use ↑/↓ to browse, press Enter to resume.")
+                        .font(.system(size: 14))
+                        .foregroundStyle(.secondary)
+                }
+                .multilineTextAlignment(.center)
+
+                VStack(spacing: 0) {
+                    HStack(spacing: 16) {
+                        Label("Search in saved sessions", systemImage: "magnifyingglass")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(theme.secondaryText)
+
+                        Spacer()
+
+                        if let filterText = surface.metadata["filter"] {
+                            Text("Filter: \(filterText)")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(theme.secondaryText)
+                        }
+                        if let sortText = surface.metadata["sort"] {
+                            Text("Sort: \(sortText)")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(theme.secondaryText)
+                        }
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 12)
+
+                    Divider()
+
+                    if surface.candidates.isEmpty {
+                        VStack(spacing: 10) {
+                            ProgressView()
+                                .controlSize(.small)
+                            Text("Loading saved sessions…")
+                                .font(.system(size: 13))
+                                .foregroundStyle(theme.secondaryText)
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 220)
+                    } else {
+                        VStack(spacing: 0) {
+                            PenggieTerminalSurfaceCandidateListView(
+                                candidates: surface.candidates,
+                                selectedRowID: surface.selection.confirmableRowID,
+                                maxVisibleRows: 8
+                            )
+
+                            if !hasReliableSelection {
+                                Divider()
+                                HStack(spacing: 8) {
+                                    ProgressView()
+                                        .controlSize(.small)
+                                    Text("Syncing selection; use ↑/↓ to refresh the selected row.")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundStyle(theme.secondaryText)
+                                    Spacer(minLength: 0)
+                                }
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 10)
+                            }
+                        }
+                        .frame(maxHeight: 430)
+                    }
+
+                    Divider()
+
+                    HStack(spacing: 14) {
+                        Text("↑/↓ browse")
+                            .foregroundStyle(theme.secondaryText)
+                        Text("Enter resume")
+                            .foregroundStyle(hasReliableSelection ? theme.secondaryText : theme.secondaryText.opacity(0.45))
+                        Text("Tab filter/sort")
+                            .foregroundStyle(theme.secondaryText)
+                        Text("Esc exit")
+                            .foregroundStyle(theme.secondaryText)
+                    }
+                    .font(.system(size: 12, weight: .medium))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 11)
+                }
+                .frame(width: min(contentWidth, 760))
+                .background(theme.elevatedSurface)
+                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .stroke(theme.quietSeparator, lineWidth: 1)
+                }
+                .shadow(color: theme.shadow, radius: 16, y: 10)
+
+                Spacer(minLength: 96)
+            }
+            .padding(.horizontal, 28)
+
+            PenggieInteractionKeyCaptureView(
+                shouldFocus: session.state == .reading,
+                isEnabled: session.state == .reading && session.codexScreenKind == .resumePicker,
+                focusRequestID: resumePickerFocusRequestID,
+                onCommand: { command, _ in handleResumePickerCommand(command) },
+                onTextInput: handleResumePickerText
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+
+    private func modalChoiceState(
+        surface: PenggieTerminalInteractionSurface,
+        contentWidth: CGFloat
+    ) -> some View {
+        ZStack {
+            VStack(spacing: 20) {
+                Spacer(minLength: 72)
+
+                VStack(spacing: 8) {
+                    Image(systemName: "exclamationmark.shield")
+                        .font(.system(size: 30, weight: .regular))
+                        .foregroundStyle(theme.secondaryText)
+                    Text(surface.kind == .permissionPrompt ? "Permission required" : "Approval required")
+                        .font(.system(size: 25, weight: .semibold))
+                        .foregroundStyle(.primary)
+                    Text("Use ↑/↓ to choose, Enter to confirm, or Esc to cancel.")
+                        .font(.system(size: 14))
+                        .foregroundStyle(.secondary)
+                }
+                .multilineTextAlignment(.center)
+
+                VStack(spacing: 0) {
+                    PenggieTerminalSurfaceCandidateListView(
+                        candidates: surface.candidates,
+                        selectedRowID: surface.selection.confirmableRowID,
+                        maxVisibleRows: 5
+                    )
+                    .frame(minHeight: 120, maxHeight: 260)
+
+                    if !surface.hasFreshConfirmableSelection {
+                        Divider()
+                        lowConfidenceSurfaceHint
+                    }
+                }
+                .frame(width: min(contentWidth, 560))
+                .background(theme.elevatedSurface)
+                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .stroke(theme.quietSeparator, lineWidth: 1)
+                }
+                .shadow(color: theme.shadow, radius: 16, y: 10)
+
+                Spacer(minLength: 96)
+            }
+            .padding(.horizontal, 28)
+
+            PenggieInteractionKeyCaptureView(
+                shouldFocus: session.state == .reading,
+                isEnabled: session.state == .reading && session.isRunning,
+                focusRequestID: resumePickerFocusRequestID,
+                onCommand: { command, _ in handleTerminalSurfaceCommand(command) },
+                onTextInput: handleTerminalSurfaceText
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+
+    private var terminalOwnedInteractionCopy: (title: String, message: String) {
+        switch session.codexScreenKind {
+        case .startupShell, .codexStartupStatus:
+            return (
+                "Starting Codex",
+                "Penggie is waiting for Codex to finish launching."
+            )
+        case .resumePicker:
+            return (
+                "Resume a previous session",
+                "Choose a saved session to continue."
+            )
+        case .unknown, .chat:
+            return (
+                "Waiting for Codex",
+                "Codex is showing an interactive terminal screen. Reading will resume when a chat transcript is available."
+            )
+        }
     }
 
     private func transcriptContent(
@@ -495,11 +770,18 @@ private struct PenggieReadingChatView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    private func composerStack(contentWidth: CGFloat) -> some View {
+    private func composerStack(
+        contentWidth: CGFloat,
+        activeSurface: PenggieTerminalInteractionSurface? = nil
+    ) -> some View {
         let composerWidth = min(contentWidth, 720)
 
         return VStack(spacing: 0) {
-            if session.nativeInteractionIsActive && !session.nativeInteractionRows.isEmpty {
+            if let activeSurface,
+               rendersAsComposerOverlay(surface: activeSurface) {
+                PenggieTerminalSurfaceOverlay(surface: activeSurface)
+                    .padding(.bottom, 8)
+            } else if session.nativeInteractionIsActive && !session.nativeInteractionRows.isEmpty {
                 PenggieNativeInteractionOverlay(rows: session.nativeInteractionRows)
                     .padding(.bottom, 8)
             }
@@ -514,8 +796,8 @@ private struct PenggieReadingChatView: View {
                     Image(systemName: "arrow.up")
                         .font(.system(size: 15, weight: .semibold))
                         .frame(width: 38, height: 38)
-                        .foregroundStyle(canSend ? PenggieTheme.onAccent : PenggieTheme.secondaryText)
-                        .background(canSend ? PenggieTheme.accent : PenggieTheme.surface)
+                        .foregroundStyle(canSend ? theme.onAccent : theme.secondaryText)
+                        .background(canSend ? theme.accent : theme.surface)
                         .clipShape(Circle())
                 }
                 .buttonStyle(.plain)
@@ -529,13 +811,22 @@ private struct PenggieReadingChatView: View {
         .padding(.top, 12)
         .padding(.bottom, 10)
         .frame(maxWidth: composerWidth)
-        .background(PenggieTheme.elevatedSurface)
+        .background(theme.elevatedSurface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(PenggieTheme.quietSeparator, lineWidth: 1)
+                .stroke(theme.quietSeparator, lineWidth: 1)
         }
-        .shadow(color: PenggieTheme.shadow, radius: 14, y: 8)
+        .shadow(color: theme.shadow, radius: 14, y: 8)
+    }
+
+    private func rendersAsComposerOverlay(surface: PenggieTerminalInteractionSurface) -> Bool {
+        switch surface.kind {
+        case .slashSuggestions, .slashContinuation, .modelPicker, .effortPicker:
+            return true
+        case .transcript, .startup, .resumePicker, .modalChoice, .approvalPrompt, .permissionPrompt, .pager, .opaqueTerminal:
+            return false
+        }
     }
 
     private var composerSurface: some View {
@@ -550,8 +841,8 @@ private struct PenggieReadingChatView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
 
                     PenggieInteractionKeyCaptureView(
-                        shouldFocus: true,
-                        isEnabled: session.nativeInteractionPhase.acceptsInput,
+                        shouldFocus: session.state == .reading,
+                        isEnabled: session.state == .reading && session.nativeInteractionPhase.acceptsInput,
                         focusRequestID: nativeInteractionFocusRequestID,
                         onCommand: { command, _ in handleNativeInteractionCommand(command) },
                         onTextInput: handleNativeInteractionText
@@ -573,10 +864,16 @@ private struct PenggieReadingChatView: View {
                         text: $composerText,
                         measuredHeight: $composerTextHeight,
                         hasVisibleText: $composerHasVisibleText,
-                        isEnabled: session.isRunning,
-                        shouldFocus: true,
+                        isEnabled: session.state == .reading &&
+                            session.isRunning &&
+                            !session.codexScreenKind.isTerminalOwnedInteraction,
+                        shouldFocus: session.state == .reading &&
+                            !session.codexScreenKind.isTerminalOwnedInteraction,
                         minHeight: 58,
                         maxHeight: 140,
+                        textColor: theme.semantic.textPrimary.nsColor,
+                        disabledTextColor: theme.semantic.textDisabled.nsColor,
+                        insertionPointColor: theme.semantic.focusRing.nsColor,
                         onSubmit: submitComposer,
                         onNativePrefix: { prefix in
                             let started = session.beginNativeInteraction(prefix: prefix)
@@ -599,7 +896,10 @@ private struct PenggieReadingChatView: View {
 
     private var canSend: Bool {
         if session.nativeInteractionIsActive {
-            return true
+            guard let surface = session.activeTerminalInteractionSurface else {
+                return true
+            }
+            return surface.hasFreshConfirmableSelection
         }
 
         return session.canSubmitPrompt && !composerText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -607,6 +907,13 @@ private struct PenggieReadingChatView: View {
 
     private func submitComposer() {
         if session.nativeInteractionIsActive {
+            if let surface = session.activeTerminalInteractionSurface {
+                let decision = PenggieTerminalInputPolicy.commandDecision(.enter, surface: surface)
+                if case .blocked = decision {
+                    nativeInteractionFocusRequestID += 1
+                    return
+                }
+            }
             _ = session.sendNativeInteractionEnter()
             nativeInteractionFocusRequestID += 1
             return
@@ -627,7 +934,19 @@ private struct PenggieReadingChatView: View {
         nativeInteractionFocusRequestID += 1
     }
 
-    private func handleNativeInteractionCommand(_ command: PenggieInteractionCommand) -> Bool {
+    private func handleNativeInteractionCommand(_ command: PenggieInteractionCommand) -> PenggieTerminalInputDecision {
+        if let frame = session.latestTerminalFrame {
+            let surface = PenggieTerminalBehaviorZoner.classify(
+                frame: frame,
+                currentInput: session.nativeInteractionDisplayText
+            )
+            let decision = PenggieTerminalInputPolicy.commandDecision(command, surface: surface)
+            if case .blocked = decision {
+                nativeInteractionFocusRequestID += 1
+                return decision
+            }
+        }
+
         let sent: Bool
         if command == .escape {
             sent = session.cancelNativeInteraction()
@@ -639,7 +958,7 @@ private struct PenggieReadingChatView: View {
             nativeInteractionFocusRequestID += 1
         }
 
-        return sent
+        return sent ? .handled : .unhandled
     }
 
     private func handleNativeInteractionText(_ text: String) -> Bool {
@@ -648,6 +967,162 @@ private struct PenggieReadingChatView: View {
             nativeInteractionFocusRequestID += 1
         }
         return sent
+    }
+
+    private func handleResumePickerCommand(_ command: PenggieInteractionCommand) -> PenggieTerminalInputDecision {
+        let surface = session.latestTerminalFrame.flatMap { frame in
+            PenggieTerminalBehaviorZoner.classify(frame: frame)
+        }
+        let decision = PenggieTerminalInputPolicy.commandDecision(command, surface: surface)
+        if case .blocked = decision {
+            resumePickerFocusRequestID += 1
+            return decision
+        }
+
+        if surface == nil {
+            let legacyDecision = PenggieTerminalInputPolicy.resumePickerCommandDecision(
+                command,
+                projection: session.resumePickerProjection
+            )
+            if case .blocked = legacyDecision {
+                resumePickerFocusRequestID += 1
+                return legacyDecision
+            }
+        }
+
+        let sent = session.sendTerminalSurfaceCommand(command)
+        if sent {
+            resumePickerFocusRequestID += 1
+        }
+        return sent ? .handled : .unhandled
+    }
+
+    private func handleResumePickerText(_ text: String) -> Bool {
+        let sent = session.sendTerminalSurfaceText(text)
+        if sent {
+            resumePickerFocusRequestID += 1
+        }
+        return sent
+    }
+
+    private func handleTerminalSurfaceCommand(_ command: PenggieInteractionCommand) -> PenggieTerminalInputDecision {
+        let decision = PenggieTerminalInputPolicy.commandDecision(
+            command,
+            surface: session.activeTerminalInteractionSurface
+        )
+        if case .blocked = decision {
+            resumePickerFocusRequestID += 1
+            return decision
+        }
+
+        let sent = session.sendResumePickerCommand(command)
+        if sent {
+            resumePickerFocusRequestID += 1
+        }
+        return sent ? .handled : .unhandled
+    }
+
+    private func handleTerminalSurfaceText(_ text: String) -> Bool {
+        let sent = session.sendResumePickerText(text)
+        if sent {
+            resumePickerFocusRequestID += 1
+        }
+        return sent
+    }
+
+    private var lowConfidenceSurfaceHint: some View {
+        HStack(spacing: 8) {
+            ProgressView()
+                .controlSize(.small)
+            Text("Syncing selection; use ↑/↓ to refresh the selected row.")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(theme.secondaryText)
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+    }
+}
+
+private struct PenggieTerminalSurfaceCandidateRowView: View {
+    static let height: CGFloat = 38
+
+    @Environment(\.penggieTheme) private var theme
+
+    let candidate: PenggieTerminalInteractionCandidate
+    let isSelected: Bool
+
+    var body: some View {
+        let overlay = theme.components.nativeTuiOverlay
+
+        HStack(spacing: 12) {
+            Text(isSelected ? "›" : "")
+                .font(.system(size: 16, weight: .bold))
+                .foregroundStyle(isSelected ? overlay.selectedForeground.color : .clear)
+                .frame(width: 14, alignment: .center)
+
+            Text(candidate.text)
+                .font(.system(size: 14, weight: isSelected ? .semibold : .regular))
+                .foregroundStyle(isSelected ? overlay.selectedForeground.color : overlay.rowForeground.color)
+                .lineLimit(1)
+                .truncationMode(.tail)
+
+            Spacer(minLength: 12)
+        }
+        .padding(.horizontal, 10)
+        .frame(height: Self.height)
+        .background(isSelected ? overlay.selectedBackground.color : Color.clear)
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+    }
+}
+
+private struct PenggieTerminalSurfaceCandidateListView: View {
+    let candidates: [PenggieTerminalInteractionCandidate]
+    let selectedRowID: String?
+    var rowSpacing: CGFloat = 6
+    var maxVisibleRows = 9
+
+    var body: some View {
+        let viewport = PenggieTerminalInteractionCandidateViewport.derive(
+            candidates: candidates,
+            selectedRowID: selectedRowID,
+            maxVisibleCount: maxVisibleRows
+        )
+
+        VStack(spacing: rowSpacing) {
+            if viewport.hasLeadingOverflow {
+                overflowIndicator("More above")
+            }
+
+            ForEach(viewport.candidates) { candidate in
+                PenggieTerminalSurfaceCandidateRowView(
+                    candidate: candidate,
+                    isSelected: selectedRowID == candidate.id
+                )
+            }
+
+            if viewport.hasTrailingOverflow {
+                overflowIndicator("More below")
+            }
+        }
+        .padding(10)
+    }
+
+    private func overflowIndicator(_ label: String) -> some View {
+        HStack(spacing: 6) {
+            Capsule()
+                .fill(Color.secondary.opacity(0.28))
+                .frame(width: 22, height: 3)
+            Text(label)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(.secondary)
+            Capsule()
+                .fill(Color.secondary.opacity(0.28))
+                .frame(width: 22, height: 3)
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 14)
+        .accessibilityHidden(true)
     }
 }
 
@@ -665,6 +1140,8 @@ private struct PenggieReadingVisibleItemView: View {
 }
 
 private struct PenggieReadingBlockView: View {
+    @Environment(\.penggieTheme) private var theme
+
     let block: PenggieReadingBlock
 
     var body: some View {
@@ -673,36 +1150,61 @@ private struct PenggieReadingBlockView: View {
                 Spacer(minLength: 60)
                 Text(PenggieReadingPresentation.promptText(for: block))
                     .font(.system(size: 14))
-                    .foregroundStyle(PenggieTheme.onAccent)
-                    .textSelection(.enabled)
+                    .foregroundStyle(theme.onAccent)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 10)
-                    .background(PenggieTheme.accent)
+                    .background(theme.accent)
                     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
         } else if PenggieReadingPresentation.isToolChromeBlock(block) {
             Text(PenggieReadingPresentation.terminalText(for: block))
                 .font(.system(size: 12, design: .monospaced))
                 .foregroundStyle(.secondary)
-                .textSelection(.enabled)
                 .lineSpacing(3)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(PenggieTheme.surface)
+                .background(theme.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         } else {
-            Text(PenggieReadingPresentation.chatText(for: block))
-                .font(.system(size: 14))
-                .foregroundStyle(.primary)
-                .textSelection(.enabled)
-                .lineSpacing(5)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            PenggieReadingContentView(block: block)
         }
     }
 }
 
+private struct PenggieReadingContentView: View {
+    let block: PenggieReadingBlock
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            ForEach(Array(PenggieReadingPresentation.displaySegments(for: block).enumerated()), id: \.offset) { _, segment in
+                switch segment.kind {
+                case .prose:
+                    Text(segment.text)
+                        .font(.system(size: 14))
+                        .foregroundStyle(.primary)
+                        .lineSpacing(5)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                case .preformatted:
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        Text(segment.text)
+                            .font(.system(size: 13, design: .monospaced))
+                            .foregroundStyle(.primary)
+                            .lineSpacing(3)
+                            .fixedSize(horizontal: true, vertical: false)
+                            .padding(.vertical, 2)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
 private struct PenggieReadingDisclosureView: View {
+    @Environment(\.penggieTheme) private var theme
+
     let disclosure: PenggieReadingDisclosureBlock
     @State private var isExpanded: Bool
 
@@ -731,7 +1233,7 @@ private struct PenggieReadingDisclosureView: View {
                             .rotationEffect(.degrees(isExpanded ? 90 : 0))
                     }
                 }
-                .foregroundStyle(PenggieTheme.secondaryText)
+                .foregroundStyle(theme.secondaryText)
                 .padding(.vertical, 2)
             }
             .buttonStyle(.plain)
@@ -743,12 +1245,11 @@ private struct PenggieReadingDisclosureView: View {
                 Text(disclosure.detailText)
                     .font(.system(size: 12, design: .monospaced))
                     .foregroundStyle(.secondary)
-                    .textSelection(.enabled)
                     .lineSpacing(3)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 10)
-                    .background(PenggieTheme.surface)
+                    .background(theme.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
             }
         }
@@ -757,15 +1258,19 @@ private struct PenggieReadingDisclosureView: View {
 }
 
 private struct PenggieNativeInteractionOverlay: View {
+    @Environment(\.penggieTheme) private var theme
+
     let rows: [PenggieNativeInteractionLine]
 
     var body: some View {
+        let overlay = theme.components.nativeTuiOverlay
+
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Spacer()
                 Text("↑↓ select · Enter accept · Esc cancel")
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(overlay.mutedForeground.color)
             }
 
             VStack(alignment: .leading, spacing: 2) {
@@ -775,17 +1280,18 @@ private struct PenggieNativeInteractionOverlay: View {
             }
         }
         .padding(10)
-        .background(PenggieTheme.surface)
+        .background(overlay.background.color)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(PenggieTheme.quietSeparator, lineWidth: 1)
+                .stroke(overlay.separator.color, lineWidth: 1)
         }
     }
 
     private func nativeInteractionRowView(_ row: PenggieNativeInteractionLine) -> some View {
-        let foreground = row.isSelected ? Color.primary : Color.primary.opacity(0.9)
-        let background = row.isSelected ? PenggieTheme.selectedBackground : Color.clear
+        let overlay = theme.components.nativeTuiOverlay
+        let foreground = row.isSelected ? overlay.selectedForeground.color : overlay.rowForeground.color
+        let background = row.isSelected ? overlay.selectedBackground.color : Color.clear
 
         return Text(row.text.isEmpty ? " " : row.text)
             .font(.system(size: 13, design: .monospaced))
@@ -800,13 +1306,74 @@ private struct PenggieNativeInteractionOverlay: View {
     }
 }
 
+private struct PenggieTerminalSurfaceOverlay: View {
+    @Environment(\.penggieTheme) private var theme
+
+    let surface: PenggieTerminalInteractionSurface
+
+    var body: some View {
+        let overlay = theme.components.nativeTuiOverlay
+
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Spacer()
+                Text(helpText)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(overlay.mutedForeground.color)
+            }
+
+            PenggieTerminalSurfaceCandidateListView(
+                candidates: surface.candidates,
+                selectedRowID: surface.selection.confirmableRowID,
+                rowSpacing: 2,
+                maxVisibleRows: 5
+            )
+            .frame(maxHeight: 260)
+
+            if !surface.hasFreshConfirmableSelection {
+                HStack(spacing: 8) {
+                    ProgressView()
+                        .controlSize(.small)
+                    Text("Syncing selection; use ↑/↓ to refresh the selected row.")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(overlay.mutedForeground.color)
+                    Spacer(minLength: 0)
+                }
+                .padding(.top, 6)
+            }
+        }
+        .padding(10)
+        .background(overlay.background.color)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(overlay.separator.color, lineWidth: 1)
+        }
+    }
+
+    private var helpText: String {
+        switch surface.kind {
+        case .modelPicker, .effortPicker, .slashContinuation:
+            return "↑↓ select · Enter accept · Esc cancel"
+        case .slashSuggestions:
+            return "↑↓ select · Enter accept · Esc cancel"
+        case .approvalPrompt, .permissionPrompt, .modalChoice:
+            return "↑↓ choose · Enter confirm · Esc cancel"
+        case .transcript, .startup, .resumePicker, .pager, .opaqueTerminal:
+            return "Terminal-owned interaction"
+        }
+    }
+}
+
 private struct PenggieRawTerminalPlaceholder: View {
     @EnvironmentObject private var session: PenggieSessionModel
+    @Environment(\.penggieTheme) private var theme
+    let isActive: Bool
 
     var body: some View {
         Group {
             if let ghosttySession = session.ghosttySession {
-                PenggieGhosttyTerminalView(session: ghosttySession)
+                PenggieGhosttyTerminalView(session: ghosttySession, isActive: isActive)
             } else {
                 VStack(spacing: 12) {
                     Image(systemName: "terminal")
@@ -821,6 +1388,6 @@ private struct PenggieRawTerminalPlaceholder: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(PenggieTheme.terminalBackground)
+        .background(theme.terminalBackground)
     }
 }

@@ -5,6 +5,40 @@ import Testing
 @Suite
 struct PenggieNativeInteractionProjectionTests {
     @Test
+    func terminalFrameCarriesOnePollsScreenFacts() throws {
+        let json = """
+        {
+          "columns": 100,
+          "rows": 30,
+          "cursor": { "x": 7, "y": 12, "visible": true },
+          "lines": [
+            { "index": 12, "text": "› /model", "terminalTextSelected": false }
+          ]
+        }
+        """
+        let observedAt = Date(timeIntervalSince1970: 1_800_000_000)
+
+        let frame = PenggieTerminalFrame(
+            id: 42,
+            observedAt: observedAt,
+            visibleText: "visible",
+            screenText: "screen",
+            screenModelJSON: json,
+            processExited: false
+        )
+
+        #expect(frame.id == 42)
+        #expect(frame.observedAt == observedAt)
+        #expect(frame.visibleText == "visible")
+        #expect(frame.screenText == "screen")
+        #expect(frame.columns == 100)
+        #expect(frame.rows == 30)
+        #expect(frame.cursor?.y == 12)
+        #expect(frame.snapshot?.lines.first?.text == "› /model")
+        #expect(!frame.processExited)
+    }
+
+    @Test
     func parsesScreenModelJSON() throws {
         let json = """
         {
@@ -33,7 +67,12 @@ struct PenggieNativeInteractionProjectionTests {
             lines: [
                 .init(index: 8, text: "› /m", selected: false),
                 .init(index: 9, text: "", selected: false),
-                .init(index: 10, text: "  /model     choose what model and reasoning effort to use", selected: true),
+                .init(
+                    index: 10,
+                    text: "  /model     choose what model and reasoning effort to use",
+                    selected: false,
+                    styleSummary: style(text: "  /model     choose what model and reasoning effort to use", selectedText: 53)
+                ),
                 .init(index: 11, text: "  /memories  configure memory use and generation", selected: false),
                 .init(index: 12, text: "  /mention   mention a file", selected: false),
                 .init(index: 13, text: "  /mcp       list configured MCP tools", selected: false),
@@ -101,6 +140,34 @@ struct PenggieNativeInteractionProjectionTests {
             "/mcp       list configured MCP tools"
         ])
         #expect(rows.map(\.isSelected) == [true, false, false, false])
+    }
+
+    @Test
+    func slashMenuPrefersCandidateMarkerOverForegroundStyle() {
+        let snapshot = PenggieTerminalScreenSnapshot(
+            columns: 176,
+            rows: 48,
+            cursor: .init(x: 2, y: 8, visible: true),
+            lines: [
+                .init(index: 8, text: "› /", selected: false, styleSummary: style(text: "› /", bold: 1)),
+                .init(index: 9, text: "› /model        choose what model and reasoning effort to use", selected: false, styleSummary: style(text: "› /model        choose what model and reasoning effort to use")),
+                .init(index: 10, text: "  /ide          include current selection, open files, and other context from your IDE", selected: false, styleSummary: style(text: "  /ide          include current selection, open files, and other context from your IDE", faint: 58)),
+                .init(index: 11, text: "  /permissions  choose what Codex is allowed to do", selected: false, styleSummary: style(text: "  /permissions  choose what Codex is allowed to do", faint: 26)),
+                .init(index: 12, text: "  /keymap       remap TUI shortcuts", selected: false, styleSummary: style(text: "  /keymap       remap TUI shortcuts", foreground: 35)),
+                .init(index: 13, text: "  /vim          toggle Vim mode for the composer", selected: false, styleSummary: style(text: "  /vim          toggle Vim mode for the composer", faint: 24))
+            ]
+        )
+
+        let rows = PenggieNativeInteractionProjection.rows(from: snapshot, currentInput: "/")
+
+        #expect(rows.map(\.text) == [
+            "› /model        choose what model and reasoning effort to use",
+            "/ide          include current selection, open files, and other context from your IDE",
+            "/permissions  choose what Codex is allowed to do",
+            "/keymap       remap TUI shortcuts",
+            "/vim          toggle Vim mode for the composer"
+        ])
+        #expect(rows.map(\.isSelected) == [true, false, false, false, false])
     }
 
     @Test

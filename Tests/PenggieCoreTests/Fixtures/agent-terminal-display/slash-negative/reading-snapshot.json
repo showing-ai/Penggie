@@ -1,0 +1,9 @@
+[
+  {
+    "kind": "prose",
+    "text": "历史里出现过 /model，但这只是正文。/fast 是带缩进的说明，不是当前菜单。inline /permissions should stay in prose.",
+    "cellAware": false,
+    "horizontalScroll": false,
+    "displayBlockKind": null
+  }
+]

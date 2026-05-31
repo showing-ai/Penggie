@@ -152,7 +152,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [ ! -d \"$PROJECT_DIR/../Vendor/ghostty/macos/GhosttyKit.xcframework\" ]; then\n  \"$PROJECT_DIR/../scripts/build-ghostty-substrate.sh\"\nfi\n";
+			shellScript = "\"$PROJECT_DIR/../scripts/build-ghostty-substrate.sh\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

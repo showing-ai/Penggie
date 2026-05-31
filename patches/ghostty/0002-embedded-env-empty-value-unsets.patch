@@ -1,0 +1,25 @@
+diff --git a/src/termio/Exec.zig b/src/termio/Exec.zig
+index 000000000..000000000 100644
+--- a/src/termio/Exec.zig
++++ b/src/termio/Exec.zig
+@@ -810,10 +810,15 @@ pub const Exec = struct {
+ 
+         // Add the environment variables that override any others.
+         {
+             var it = cfg.env_override.iterator();
+-            while (it.next()) |entry| try env.put(
+-                entry.key_ptr.*,
+-                entry.value_ptr.*,
+-            );
++            while (it.next()) |entry| {
++                // Embedded hosts use an empty override value to remove an
++                // inherited variable from the launched child environment.
++                // This keeps color-disabling host variables such as NO_COLOR
++                // out of the PTY command without mutating the host process env.
++                if (entry.value_ptr.len == 0) {
++                    env.remove(entry.key_ptr.*);
++                } else try env.put(entry.key_ptr.*, entry.value_ptr.*);
++            }
+         }
+ 
+         // Build our args list

@@ -1,0 +1,37 @@
+[
+  {
+    "kind": "prose",
+    "text": "Here is a Markdown-like terminal projection fixture.",
+    "cellAware": false,
+    "horizontalScroll": false,
+    "displayBlockKind": null
+  },
+  {
+    "kind": "prose",
+    "text": "- Keep `Reading` as default.",
+    "cellAware": false,
+    "horizontalScroll": false,
+    "displayBlockKind": null
+  },
+  {
+    "kind": "prose",
+    "text": "- Preserve **visible markers** and /commands as prose.",
+    "cellAware": false,
+    "horizontalScroll": false,
+    "displayBlockKind": null
+  },
+  {
+    "kind": "prose",
+    "text": "Path: Penggie/Sources/PenggieDisplayAST.swift",
+    "cellAware": false,
+    "horizontalScroll": false,
+    "displayBlockKind": null
+  },
+  {
+    "kind": "prose",
+    "text": "Link: https://example.com/penggie",
+    "cellAware": false,
+    "horizontalScroll": false,
+    "displayBlockKind": null
+  }
+]

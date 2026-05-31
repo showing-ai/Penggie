@@ -1,0 +1,43 @@
+{
+  "source": "terminalProjection",
+  "terminalColumns": 120,
+  "terminalRows": 3,
+  "blocks": [
+    {
+      "kind": "rawFallback",
+      "role": "unknown",
+      "text": "历史里出现过 /model，但这只是正文。",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.raw.visible_text"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": "generic.visible_text"
+    },
+    {
+      "kind": "rawFallback",
+      "role": "unknown",
+      "text": "  /fast 是带缩进的说明，不是当前菜单。",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.raw.visible_text"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": "generic.visible_text"
+    },
+    {
+      "kind": "rawFallback",
+      "role": "unknown",
+      "text": "inline /permissions should stay in prose.",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.raw.visible_text"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": "generic.visible_text"
+    }
+  ]
+}

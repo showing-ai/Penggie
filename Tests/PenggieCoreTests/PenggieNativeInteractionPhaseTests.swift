@@ -14,10 +14,9 @@ struct PenggieNativeInteractionPhaseTests {
     }
 
     @Test
-    func resolvingAndCancellingDoNotAcceptInput() {
+    func resolvingDoesNotAcceptInput() {
         #expect(PenggieNativeInteractionPhase.resolving.isActive)
         #expect(!PenggieNativeInteractionPhase.resolving.acceptsInput)
-        #expect(!PenggieNativeInteractionPhase.cancelling.acceptsInput)
         #expect(!PenggieNativeInteractionPhase.inactive.isActive)
     }
 }

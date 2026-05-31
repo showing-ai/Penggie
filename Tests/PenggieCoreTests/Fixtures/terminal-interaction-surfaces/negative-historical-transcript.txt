@@ -1,0 +1,5 @@
+The transcript can mention Resume a previous session, /model, approval, permission,
+and numbered model choices as prose.
+
+1. gpt-5.5 and 2. gpt-5.4 are examples in this paragraph.
+No active input row, footer help, or terminal-owned choice region is present.

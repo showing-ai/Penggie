@@ -5,7 +5,6 @@ enum PenggieNativeInteractionPhase: Equatable {
     case editing
     case resolving
     case continuation
-    case cancelling
 
     var isActive: Bool {
         self != .inactive
@@ -15,7 +14,7 @@ enum PenggieNativeInteractionPhase: Equatable {
         switch self {
         case .editing, .continuation:
             return true
-        case .inactive, .resolving, .cancelling:
+        case .inactive, .resolving:
             return false
         }
     }
@@ -31,4 +30,5 @@ enum PenggieNativeInteractionPhase: Equatable {
 
 enum PenggieNativeInteractionTiming {
     static let resolvingSettleInterval: TimeInterval = 0.35
+    static let escapeObservationInterval: TimeInterval = 1.0
 }

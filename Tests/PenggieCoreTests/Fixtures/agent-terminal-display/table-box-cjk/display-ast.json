@@ -1,0 +1,43 @@
+{
+  "source": "terminalProjection",
+  "terminalColumns": 120,
+  "terminalRows": 9,
+  "blocks": [
+    {
+      "kind": "rawFallback",
+      "role": "unknown",
+      "text": "下面按几个常见维度对比：",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.raw.visible_text"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": "generic.visible_text"
+    },
+    {
+      "kind": "preformatted",
+      "role": "unknown",
+      "text": "┌────────────┬──────────────┬──────────────┐\n│ 维度       │ 伦敦         │ 巴黎         │\n├────────────┼──────────────┼──────────────┤\n│ 城市气质   │ 商业感强     │ 审美浓       │\n└────────────┴──────────────┴──────────────┘",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.preformatted.table_shape"
+      ],
+      "cellAware": true,
+      "horizontalScroll": true,
+      "fallbackCode": "generic.table_shape"
+    },
+    {
+      "kind": "rawFallback",
+      "role": "unknown",
+      "text": "一句话概括：各有优势。",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.raw.visible_text"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": "generic.visible_text"
+    }
+  ]
+}

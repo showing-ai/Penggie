@@ -1,0 +1,102 @@
+diff --git a/src/config/Config.zig b/src/config/Config.zig
+index 9e6e5629c..a1090b14d 100644
+--- a/src/config/Config.zig
++++ b/src/config/Config.zig
+@@ -706,6 +706,17 @@ foreground: Color = .{ .r = 0xFF, .g = 0xFF, .b = 0xFF },
+ @"selection-foreground": ?TerminalColor = null,
+ @"selection-background": ?TerminalColor = null,
+ 
++/// Penggie embedded adapter: source explicit RGB background for known
++/// terminal-control cells that should follow Penggie's active input token.
++/// This is intentionally inert unless both source and target are set by the
++/// embedding host's generated theme/config.
++@"penggie-embedded-control-background-source": ?Color = null,
++
++/// Penggie embedded adapter: target background for known terminal-control
++/// explicit RGB cells. This does not mutate terminal cells or affect arbitrary
++/// truecolor output unless paired with the matching source above.
++@"penggie-embedded-control-background-target": ?Color = null,
++
+ /// Whether to clear selected text when typing. This defaults to `true`.
+ /// This is typical behavior for most terminal emulators as well as
+ /// text input fields. If you set this to `false`, then the selected text
+diff --git a/src/renderer/generic.zig b/src/renderer/generic.zig
+index 0f4a294bc..75400537e 100644
+--- a/src/renderer/generic.zig
++++ b/src/renderer/generic.zig
+@@ -550,6 +550,8 @@ pub fn Renderer(comptime GraphicsAPI: type) type {
+             foreground: terminal.color.RGB,
+             selection_background: ?configpkg.Config.TerminalColor,
+             selection_foreground: ?configpkg.Config.TerminalColor,
++            penggie_embedded_control_background_source: ?terminal.color.RGB,
++            penggie_embedded_control_background_target: ?terminal.color.RGB,
+             search_background: configpkg.Config.TerminalColor,
+             search_foreground: configpkg.Config.TerminalColor,
+             search_selected_background: configpkg.Config.TerminalColor,
+@@ -627,6 +629,14 @@ pub fn Renderer(comptime GraphicsAPI: type) type {
+ 
+                     .selection_background = config.@"selection-background",
+                     .selection_foreground = config.@"selection-foreground",
++                    .penggie_embedded_control_background_source = if (config.@"penggie-embedded-control-background-source") |color|
++                        color.toTerminalRGB()
++                    else
++                        null,
++                    .penggie_embedded_control_background_target = if (config.@"penggie-embedded-control-background-target") |color|
++                        color.toTerminalRGB()
++                    else
++                        null,
+                     .search_background = config.@"search-background",
+                     .search_foreground = config.@"search-foreground",
+                     .search_selected_background = config.@"search-selected-background",
+@@ -655,6 +665,30 @@ pub fn Renderer(comptime GraphicsAPI: type) type {
+             }
+         };
+ 
++        fn normalizePenggieEmbeddedControlBackground(
++            self: *const Self,
++            bg: ?terminal.color.RGB,
++            style: terminal.Style,
++            cell: *const terminal.Cell,
++        ) ?terminal.color.RGB {
++            const source = self.config.penggie_embedded_control_background_source orelse return bg;
++            const target = self.config.penggie_embedded_control_background_target orelse return bg;
++
++            const explicit_bg: terminal.color.RGB = switch (cell.content_tag) {
++                .bg_color_rgb => rgb: {
++                    const raw = cell.content.color_rgb;
++                    break :rgb .{ .r = raw.r, .g = raw.g, .b = raw.b };
++                },
++                else => switch (style.bg_color) {
++                    .rgb => |rgb| rgb,
++                    else => return bg,
++                },
++            };
++
++            if (explicit_bg.eql(source)) return target;
++            return bg;
++        }
++
+         pub fn init(alloc: Allocator, options: renderer.Options) !Self {
+             // Initialize our graphics API wrapper, this will prepare the
+             // surface provided by the apprt and set up any API-specific
+@@ -2839,6 +2873,11 @@ pub fn Renderer(comptime GraphicsAPI: type) type {
+                         bg_style,
+                 };
+ 
++                const bg_render = if (selected == .false and !style.flags.inverse)
++                    self.normalizePenggieEmbeddedControlBackground(bg, style, cell)
++                else
++                    bg;
++
+                 const fg = fg: {
+                     // Our happy-path non-selection background color
+                     // is our style or our configured defaults.
+@@ -2879,7 +2918,7 @@ pub fn Renderer(comptime GraphicsAPI: type) type {
+ 
+                 // Set the cell's background color.
+                 {
+-                    const rgb = bg orelse state.colors.background;
++                    const rgb = bg_render orelse state.colors.background;
+ 
+                     // Determine our background alpha. If we have transparency configured
+                     // then this is dynamic depending on some situations. This is all

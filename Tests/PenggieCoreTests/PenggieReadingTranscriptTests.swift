@@ -5,6 +5,35 @@ import Testing
 @Suite
 struct PenggieReadingTranscriptTests {
     @Test
+    func resumeHydratorKeepsTerminalProjectionVisibleBeforeLocalComposerTurns() throws {
+        let base = Date()
+        var hydrator = PenggieReadingResumeHydrator()
+
+        hydrator.update(
+            from: """
+            › Previous question
+
+            Previous answer from resumed Codex session.
+            """,
+            terminalColumns: 80,
+            createdAt: base
+        )
+
+        #expect(visibleText(from: hydrator.blocks) == [
+            "Previous answer from resumed Codex session."
+        ])
+
+        var store = PenggieReadingTurnStore()
+        store.submitPrompt("New question", submittedAt: base.addingTimeInterval(10))
+
+        #expect(visibleText(from: hydrator.combined(with: store.blocks)) == [
+            "Previous answer from resumed Codex session.",
+            "New question",
+            "Working... 0s"
+        ])
+    }
+
+    @Test
     func turnStoreKeepsCompletedTurnsImmutableAcrossLaterTerminalProjections() throws {
         let base = Date()
         var store = PenggieReadingTurnStore()
@@ -596,6 +625,59 @@ struct PenggieReadingTranscriptTests {
         #expect(visibleText(from: store.blocks) == [
             "Explain London",
             "Working... 3s"
+        ])
+    }
+
+    @Test
+    func turnStoreUsesLocalTimerWhenTerminalWorkingTextIsStale() throws {
+        let base = Date()
+        var store = PenggieReadingTurnStore()
+
+        store.submitPrompt("Question", submittedAt: base)
+        store.updateActiveTurn(
+            from: """
+            Searching the web
+
+            Working (0s • esc to interrupt)
+            """,
+            terminalColumns: 80,
+            createdAt: base.addingTimeInterval(1)
+        )
+        store.refreshActiveTurnTiming(at: base.addingTimeInterval(12))
+
+        let items = PenggieReadingPresentation.visibleItems(
+            from: store.blocks,
+            nativeInteractionIsActive: false
+        )
+        let disclosure = try #require(items.dropFirst().first?.disclosure)
+
+        #expect(disclosure.summary == "Working... 12s")
+        #expect(disclosure.detailText.contains("Working (0s"))
+        #expect(!disclosure.detailText.contains("Working (12s"))
+    }
+
+    @Test
+    func activeWorkingDetailsDoNotHideAnswerContent() throws {
+        let base = Date()
+        var store = PenggieReadingTurnStore()
+
+        store.submitPrompt("Question", submittedAt: base)
+        store.updateActiveTurn(
+            from: """
+            Searching the web
+
+            Working (0s • esc to interrupt)
+
+            The answer is now visible.
+            """,
+            terminalColumns: 80,
+            createdAt: base.addingTimeInterval(5)
+        )
+
+        #expect(visibleText(from: store.blocks) == [
+            "Question",
+            "Working... 5s",
+            "The answer is now visible."
         ])
     }
 
@@ -1246,6 +1328,35 @@ struct PenggieReadingTranscriptTests {
         #expect(visible.first?.kind == .input)
         #expect(visible.first?.displayText == submission.text)
         #expect(visible.contains { PenggieReadingPresentation.chatText(for: $0).contains("最高约 32°C") })
+    }
+
+    @Test
+    func presentationPreservesTerminalRenderedTablesAsPreformattedSegments() {
+        let tableText = """
+        下面按几个常见维度对比：
+
+        ┌────────────┬──────────────┬──────────────┐
+        │ 维度       │ 城市 A       │ 城市 B       │
+        ├────────────┼──────────────┼──────────────┤
+        │ 城市气质   │ 商业感强     │ 审美浓       │
+        └────────────┴──────────────┴──────────────┘
+
+        一句话概括：各有优势。
+        """
+        let block = PenggieReadingBlock(
+            kind: .output,
+            text: tableText,
+            displayText: tableText
+        )
+
+        let segments = PenggieReadingPresentation.displaySegments(for: block)
+
+        #expect(segments.map(\.kind) == [.prose, .preformatted, .prose])
+        #expect(segments[1].text.contains("│ 维度       │ 城市 A       │ 城市 B       │"))
+        #expect(segments[1].text.contains("┌────────────┬──────────────┬──────────────┐"))
+        #expect(segments[1].renderHints.cellAware)
+        #expect(segments[1].renderHints.horizontalScroll)
+        #expect(segments[1].displayBlockKind == .preformatted)
     }
 
     private func visibleText(from blocks: [PenggieReadingBlock]) -> [String] {

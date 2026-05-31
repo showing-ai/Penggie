@@ -1,0 +1,6 @@
+Here is a Markdown-like terminal projection fixture.
+
+- Keep `Reading` as default.
+- Preserve **visible markers** and /commands as prose.
+Path: Penggie/Sources/PenggieDisplayAST.swift
+Link: https://example.com/penggie

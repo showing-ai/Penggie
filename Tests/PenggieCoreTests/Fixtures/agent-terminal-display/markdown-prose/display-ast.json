@@ -1,0 +1,67 @@
+{
+  "source": "terminalProjection",
+  "terminalColumns": 120,
+  "terminalRows": 6,
+  "blocks": [
+    {
+      "kind": "rawFallback",
+      "role": "unknown",
+      "text": "Here is a Markdown-like terminal projection fixture.",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.raw.visible_text"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": "generic.visible_text"
+    },
+    {
+      "kind": "rawFallback",
+      "role": "unknown",
+      "text": "- Keep `Reading` as default.",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.raw.visible_text"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": "generic.visible_text"
+    },
+    {
+      "kind": "rawFallback",
+      "role": "unknown",
+      "text": "- Preserve **visible markers** and /commands as prose.",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.raw.visible_text"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": "generic.visible_text"
+    },
+    {
+      "kind": "rawFallback",
+      "role": "unknown",
+      "text": "Path: Penggie/Sources/PenggieDisplayAST.swift",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.raw.visible_text"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": "generic.visible_text"
+    },
+    {
+      "kind": "rawFallback",
+      "role": "unknown",
+      "text": "Link: https://example.com/penggie",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.raw.visible_text"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": "generic.visible_text"
+    }
+  ]
+}

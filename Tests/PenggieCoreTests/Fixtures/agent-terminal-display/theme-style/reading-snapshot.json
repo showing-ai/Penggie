@@ -1,0 +1,23 @@
+[
+  {
+    "kind": "prose",
+    "text": "Working... 3s >",
+    "cellAware": false,
+    "horizontalScroll": false,
+    "displayBlockKind": "status"
+  },
+  {
+    "kind": "prose",
+    "text": "Styled answer text must stay visible.",
+    "cellAware": false,
+    "horizontalScroll": false,
+    "displayBlockKind": null
+  },
+  {
+    "kind": "prose",
+    "text": "Worked for 4s",
+    "cellAware": false,
+    "horizontalScroll": false,
+    "displayBlockKind": "status"
+  }
+]

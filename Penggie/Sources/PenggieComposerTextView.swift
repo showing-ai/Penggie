@@ -10,11 +10,11 @@ struct PenggieComposerTextView: NSViewRepresentable {
     let shouldFocus: Bool
     let minHeight: CGFloat
     let maxHeight: CGFloat
+    let textColor: NSColor
+    let disabledTextColor: NSColor
+    let insertionPointColor: NSColor
     let onSubmit: () -> Void
     let onNativePrefix: (String) -> Bool
-
-    private static let enabledTextColor = NSColor.labelColor
-    private static let disabledTextColor = NSColor.secondaryLabelColor
 
     func makeNSView(context: Context) -> NSScrollView {
         let scrollView = NSScrollView()
@@ -35,8 +35,8 @@ struct PenggieComposerTextView: NSViewRepresentable {
         textView.delegate = coordinator
         textView.string = text
         textView.font = .systemFont(ofSize: 14)
-        textView.textColor = Self.enabledTextColor
-        textView.insertionPointColor = .controlAccentColor
+        textView.textColor = textColor
+        textView.insertionPointColor = insertionPointColor
         textView.backgroundColor = .clear
         textView.drawsBackground = false
         textView.isRichText = false
@@ -58,7 +58,7 @@ struct PenggieComposerTextView: NSViewRepresentable {
         coordinator.textView = textView
         coordinator.scrollView = scrollView
         coordinator.updateMeasuredHeight()
-        coordinator.updateVisibleTextState()
+        coordinator.updateVisibleTextState(deferringBindingUpdate: true)
 
         return scrollView
     }
@@ -77,9 +77,10 @@ struct PenggieComposerTextView: NSViewRepresentable {
         }
 
         textView.isEditable = isEnabled
-        textView.textColor = isEnabled ? Self.enabledTextColor : Self.disabledTextColor
+        textView.textColor = isEnabled ? textColor : disabledTextColor
+        textView.insertionPointColor = insertionPointColor
         context.coordinator.updateMeasuredHeight()
-        context.coordinator.updateVisibleTextState()
+        context.coordinator.updateVisibleTextState(deferringBindingUpdate: true)
 
         if shouldFocus,
            isEnabled,
@@ -161,12 +162,13 @@ struct PenggieComposerTextView: NSViewRepresentable {
 
             guard abs(parent.measuredHeight - nextHeight) > 0.5 else { return }
             let measuredHeight = parent.$measuredHeight
-            DispatchQueue.main.async {
+            Task { @MainActor in
+                await Task.yield()
                 measuredHeight.wrappedValue = nextHeight
             }
         }
 
-        func updateVisibleTextState() {
+        func updateVisibleTextState(deferringBindingUpdate: Bool = false) {
             guard let textView else { return }
 
             let nextValue = PenggieComposerNativeTrigger.hasVisibleComposerText(
@@ -174,6 +176,15 @@ struct PenggieComposerTextView: NSViewRepresentable {
                 hasMarkedText: textView.hasMarkedText()
             )
             guard parent.hasVisibleText != nextValue else { return }
+
+            guard !deferringBindingUpdate else {
+                let hasVisibleText = parent.$hasVisibleText
+                Task { @MainActor in
+                    await Task.yield()
+                    hasVisibleText.wrappedValue = nextValue
+                }
+                return
+            }
 
             parent.hasVisibleText = nextValue
         }

@@ -1,0 +1,91 @@
+{
+  "source": "terminalProjection",
+  "terminalColumns": 120,
+  "terminalRows": 7,
+  "blocks": [
+    {
+      "kind": "status",
+      "role": "system",
+      "text": "Working... 2s >",
+      "confidenceLevel": "heuristic",
+      "ruleIDs": [
+        "codex.status.working"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": null
+    },
+    {
+      "kind": "warning",
+      "role": "system",
+      "text": "⚠ Skill descriptions were shortened to fit the 2% skills context budget. Codex can still see every skill.",
+      "confidenceLevel": "heuristic",
+      "ruleIDs": [
+        "codex.warning.visible_text"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": null
+    },
+    {
+      "kind": "activity",
+      "role": "system",
+      "text": "Searching the web",
+      "confidenceLevel": "heuristic",
+      "ruleIDs": [
+        "codex.activity.searching_web"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": null
+    },
+    {
+      "kind": "toolEvent",
+      "role": "tool",
+      "text": "Searched weather: London, UK",
+      "confidenceLevel": "heuristic",
+      "ruleIDs": [
+        "codex.tool.searched"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": null
+    },
+    {
+      "kind": "rawFallback",
+      "role": "unknown",
+      "text": "今天伦敦天气大致是晴到多云。",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.raw.visible_text"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": "generic.visible_text"
+    },
+    {
+      "kind": "status",
+      "role": "system",
+      "text": "Worked for 17s",
+      "confidenceLevel": "heuristic",
+      "ruleIDs": [
+        "codex.status.worked_for"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": null
+    },
+    {
+      "kind": "rawFallback",
+      "role": "unknown",
+      "text": "最终答案不会被隐藏。",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.raw.visible_text"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": "generic.visible_text"
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "columns": 120,
+  "rows": 3,
+  "cursor": null,
+  "lines": [
+    {
+      "rowIndex": 0,
+      "cells": [
+        {
+          "column": 0,
+          "text": "Working... 3s >",
+          "displayWidth": 15,
+          "style": {
+            "foreground": "#8b949e",
+            "background": null,
+            "bold": false,
+            "faint": true,
+            "italic": false,
+            "underline": false,
+            "inverse": false,
+            "selected": false
+          }
+        }
+      ],
+      "isWrapped": false
+    },
+    {
+      "rowIndex": 1,
+      "cells": [
+        {
+          "column": 0,
+          "text": "Styled answer text must stay visible.",
+          "displayWidth": 37,
+          "style": {
+            "foreground": "#7ee787",
+            "background": null,
+            "bold": true,
+            "faint": false,
+            "italic": false,
+            "underline": false,
+            "inverse": false,
+            "selected": false
+          }
+        }
+      ],
+      "isWrapped": false
+    },
+    {
+      "rowIndex": 2,
+      "cells": [
+        {
+          "column": 0,
+          "text": "Worked for 4s",
+          "displayWidth": 13,
+          "style": {
+            "foreground": "#8b949e",
+            "background": null,
+            "bold": false,
+            "faint": true,
+            "italic": false,
+            "underline": false,
+            "inverse": false,
+            "selected": false
+          }
+        }
+      ],
+      "isWrapped": false
+    }
+  ]
+}

@@ -12,10 +12,10 @@ index fbfe3ee2c..702fa9943 100644
  
  #ifdef __APPLE__
 diff --git a/src/apprt/embedded.zig b/src/apprt/embedded.zig
-index 7310159cc..f5be43d95 100644
+index 7310159cc..8e3616460 100644
 --- a/src/apprt/embedded.zig
 +++ b/src/apprt/embedded.zig
-@@ -1642,6 +1642,197 @@ pub const CAPI = struct {
+@@ -1642,6 +1642,400 @@ pub const CAPI = struct {
          return readTextLocked(surface, core_sel, result);
      }
  
@@ -31,29 +31,11 @@ index 7310159cc..f5be43d95 100644
 +        defer core_surface.renderer_state.mutex.unlock();
 +
 +        const screen = core_surface.renderer_state.terminal.screens.active;
-+        const selection: terminal.Selection = .{
-+            .bounds = .{ .untracked = .{
-+                .start = screen.pages.getTopLeft(.viewport),
-+                .end = screen.pages.getBottomRight(.viewport) orelse return false,
-+            } },
-+            .rectangle = false,
-+        };
-+
-+        var text = core_surface.dumpTextLocked(
-+            global.alloc,
-+            selection,
-+        ) catch |err| {
-+            log.warn("error reading screen model text err={}", .{err});
-+            return false;
-+        };
-+        defer text.deinit(global.alloc);
-+
 +        var stream: std.Io.Writer.Allocating = .init(global.alloc);
 +        defer stream.deinit();
 +        writeScreenModelJSON(
 +            &stream.writer,
 +            screen,
-+            text.text,
 +            core_surface.size.grid().columns,
 +            core_surface.size.grid().rows,
 +            screen.cursor.x,
@@ -84,7 +66,6 @@ index 7310159cc..f5be43d95 100644
 +    fn writeScreenModelJSON(
 +        writer: *std.Io.Writer,
 +        screen: anytype,
-+        text: [:0]const u8,
 +        columns: u32,
 +        rows: u32,
 +        cursor_x: usize,
@@ -97,21 +78,23 @@ index 7310159cc..f5be43d95 100644
 +        );
 +
 +        var line_index: usize = 0;
-+        var line_iter = std.mem.splitScalar(u8, text, '\n');
-+        while (line_iter.next()) |line| : (line_index += 1) {
++        var row_iter = screen.pages.rowIterator(.right_down, .{ .viewport = .{} }, null);
++        while (row_iter.next()) |row_pin| : (line_index += 1) {
 +            if (line_index > 0) try writer.writeByte(',');
 +            try writer.print(
-+                "{{\"index\":{d},\"text\":{f},\"selected\":false,\"firstNonBlankColumn\":",
-+                .{ line_index, std.json.fmt(line, .{ .whitespace = .minified }) },
++                "{{\"index\":{d},\"text\":",
++                .{line_index},
 +            );
-+            if (firstNonBlankColumn(line)) |column| {
++            try writeScreenModelLineTextJSON(writer, row_pin);
++            try writer.writeAll(",\"terminalTextSelected\":false,\"firstNonBlankColumn\":");
++            if (firstNonBlankColumn(row_pin)) |column| {
 +                try writer.print("{d}", .{column});
 +            } else {
 +                try writer.writeAll("null");
 +            }
 +
 +            try writer.writeAll(",\"lastNonBlankColumn\":");
-+            if (lastNonBlankColumn(line)) |column| {
++            if (lastNonBlankColumn(row_pin)) |column| {
 +                try writer.print("{d}", .{column});
 +            } else {
 +                try writer.writeAll("null");
@@ -122,6 +105,8 @@ index 7310159cc..f5be43d95 100644
 +                writer,
 +                screenModelStyleSummaryForViewportRow(screen, line_index),
 +            );
++            try writer.writeAll(",\"styleRuns\":");
++            try writeScreenModelStyleRunsJSON(writer, row_pin);
 +            try writer.writeByte('}');
 +        }
 +
@@ -137,7 +122,143 @@ index 7310159cc..f5be43d95 100644
 +        inverse_text_cell_count: usize = 0,
 +        background_text_cell_count: usize = 0,
 +        foreground_text_cell_count: usize = 0,
++        background_cell_count: usize = 0,
++        background_only_cell_count: usize = 0,
++        foreground_cell_count: usize = 0,
 +    };
++
++    fn writeScreenModelLineTextJSON(writer: *std.Io.Writer, row_pin: anytype) !void {
++        var text: std.Io.Writer.Allocating = .init(global.alloc);
++        defer text.deinit();
++
++        const cells = row_pin.cells(.all);
++        const last_column = lastTextColumn(row_pin) orelse {
++            try writer.writeAll("\"\"");
++            return;
++        };
++
++        for (cells[0 .. last_column + 1]) |*cell| {
++            if (cell.hasText()) {
++                try writeScreenModelCellText(&text.writer, row_pin, cell);
++            } else {
++                try text.writer.writeByte(' ');
++            }
++        }
++
++        try writer.print(
++            "{f}",
++            .{std.json.fmt(text.written(), .{ .whitespace = .minified })},
++        );
++    }
++
++    fn writeScreenModelCellText(writer: *std.Io.Writer, row_pin: anytype, cell: anytype) !void {
++        try writer.print("{u}", .{cell.codepoint()});
++        if (cell.hasGrapheme()) {
++            if (row_pin.grapheme(cell)) |graphemes| {
++                for (graphemes) |cp| try writer.print("{u}", .{cp});
++            }
++        }
++    }
++
++    const ScreenModelStyleRun = struct {
++        foreground: terminal.Style.Color,
++        background: terminal.Style.Color,
++        bold: bool,
++        faint: bool,
++        inverse: bool,
++
++        fn from(style: terminal.Style, cell: anytype) ScreenModelStyleRun {
++            return .{
++                .foreground = style.fg_color,
++                .background = screenModelBackgroundColor(style, cell),
++                .bold = style.flags.bold,
++                .faint = style.flags.faint,
++                .inverse = style.flags.inverse,
++            };
++        }
++
++        fn eql(self: ScreenModelStyleRun, other: ScreenModelStyleRun) bool {
++            return self.foreground.eql(other.foreground) and
++                self.background.eql(other.background) and
++                self.bold == other.bold and
++                self.faint == other.faint and
++                self.inverse == other.inverse;
++        }
++
++        fn hasFacts(self: ScreenModelStyleRun) bool {
++            return !self.foreground.eql(.none) or !self.background.eql(.none) or
++                self.bold or self.faint or self.inverse;
++        }
++    };
++
++    fn writeScreenModelStyleRunsJSON(writer: *std.Io.Writer, row_pin: anytype) !void {
++        try writer.writeByte('[');
++        var wrote = false;
++        var run_start: ?usize = null;
++        var run_style: ?ScreenModelStyleRun = null;
++        var run_text_cells: usize = 0;
++        var run_background_cells: usize = 0;
++
++        const cells = row_pin.cells(.all);
++        for (cells, 0..) |*cell, column| {
++            const style = row_pin.style(cell);
++            const next_style = ScreenModelStyleRun.from(style, cell);
++            if (!next_style.hasFacts()) {
++                if (run_start) |start| {
++                    try writeScreenModelStyleRunJSON(
++                        writer,
++                        &wrote,
++                        start,
++                        column,
++                        run_style.?,
++                        run_text_cells,
++                        run_background_cells,
++                    );
++                    run_start = null;
++                    run_style = null;
++                    run_text_cells = 0;
++                    run_background_cells = 0;
++                }
++                continue;
++            }
++
++            if (run_start == null) {
++                run_start = column;
++                run_style = next_style;
++            } else if (!run_style.?.eql(next_style)) {
++                try writeScreenModelStyleRunJSON(
++                    writer,
++                    &wrote,
++                    run_start.?,
++                    column,
++                    run_style.?,
++                    run_text_cells,
++                    run_background_cells,
++                );
++                run_start = column;
++                run_style = next_style;
++                run_text_cells = 0;
++                run_background_cells = 0;
++            }
++
++            if (cell.hasText()) run_text_cells += 1;
++            if (!screenModelBackgroundColor(style, cell).eql(.none)) run_background_cells += 1;
++        }
++
++        if (run_start) |start| {
++            try writeScreenModelStyleRunJSON(
++                writer,
++                &wrote,
++                start,
++                cells.len,
++                run_style.?,
++                run_text_cells,
++                run_background_cells,
++            );
++        }
++
++        try writer.writeByte(']');
++    }
 +
 +    fn screenModelStyleSummaryForViewportRow(
 +        screen: anytype,
@@ -150,14 +271,23 @@ index 7310159cc..f5be43d95 100644
 +            if (row_index != viewport_row_index) continue;
 +
 +            for (row_pin.cells(.all)) |*cell| {
++                const style = row_pin.style(cell);
++                const background = screenModelBackgroundColor(style, cell);
++                if (screenModelColorIsPresent(background)) {
++                    summary.background_cell_count += 1;
++                    if (!cell.hasText()) summary.background_only_cell_count += 1;
++                }
++                if (screenModelColorIsPresent(style.fg_color)) {
++                    summary.foreground_cell_count += 1;
++                }
++
 +                if (!cell.hasText()) continue;
 +
 +                summary.text_cell_count += 1;
-+                const style = row_pin.style(cell);
 +                if (style.flags.bold) summary.bold_text_cell_count += 1;
 +                if (style.flags.faint) summary.faint_text_cell_count += 1;
 +                if (style.flags.inverse) summary.inverse_text_cell_count += 1;
-+                if (screenModelColorIsPresent(style.bg_color)) summary.background_text_cell_count += 1;
++                if (screenModelColorIsPresent(background)) summary.background_text_cell_count += 1;
 +                if (screenModelColorIsPresent(style.fg_color)) summary.foreground_text_cell_count += 1;
 +            }
 +
@@ -165,6 +295,20 @@ index 7310159cc..f5be43d95 100644
 +        }
 +
 +        return summary;
++    }
++
++    fn screenModelBackgroundColor(style: terminal.Style, cell: anytype) terminal.Style.Color {
++        return switch (cell.content_tag) {
++            .bg_color_palette => .{ .palette = cell.content.color_palette },
++            .bg_color_rgb => .{
++                .rgb = .{
++                    .r = cell.content.color_rgb.r,
++                    .g = cell.content.color_rgb.g,
++                    .b = cell.content.color_rgb.b,
++                },
++            },
++            else => style.bg_color,
++        };
 +    }
 +
 +    fn screenModelColorIsPresent(color: terminal.Style.Color) bool {
@@ -179,7 +323,7 @@ index 7310159cc..f5be43d95 100644
 +        summary: ScreenModelStyleSummary,
 +    ) !void {
 +        try writer.print(
-+            "{{\"textCellCount\":{d},\"selectedCellCount\":{d},\"selectedTextCellCount\":{d},\"boldTextCellCount\":{d},\"faintTextCellCount\":{d},\"inverseTextCellCount\":{d},\"backgroundTextCellCount\":{d},\"foregroundTextCellCount\":{d}}}",
++            "{{\"textCellCount\":{d},\"selectedCellCount\":{d},\"selectedTextCellCount\":{d},\"boldTextCellCount\":{d},\"faintTextCellCount\":{d},\"inverseTextCellCount\":{d},\"backgroundTextCellCount\":{d},\"foregroundTextCellCount\":{d},\"backgroundCellCount\":{d},\"backgroundOnlyCellCount\":{d},\"foregroundCellCount\":{d}}}",
 +            .{
 +                summary.text_cell_count,
 +                summary.selected_cell_count,
@@ -189,25 +333,84 @@ index 7310159cc..f5be43d95 100644
 +                summary.inverse_text_cell_count,
 +                summary.background_text_cell_count,
 +                summary.foreground_text_cell_count,
++                summary.background_cell_count,
++                summary.background_only_cell_count,
++                summary.foreground_cell_count,
 +            },
 +        );
 +    }
 +
-+    fn firstNonBlankColumn(line: []const u8) ?usize {
-+        for (line, 0..) |byte, index| {
-+            if (byte != ' ' and byte != '\t' and byte != '\r') return index;
++    fn writeScreenModelStyleRunJSON(
++        writer: *std.Io.Writer,
++        wrote: *bool,
++        start_column: usize,
++        end_column: usize,
++        run: ScreenModelStyleRun,
++        text_cell_count: usize,
++        background_cell_count: usize,
++    ) !void {
++        if (wrote.*) try writer.writeByte(',');
++        wrote.* = true;
++        try writer.print(
++            "{{\"startColumn\":{d},\"endColumn\":{d},\"foreground\":",
++            .{ start_column, end_column },
++        );
++        try writeScreenModelColorJSON(writer, run.foreground);
++        try writer.writeAll(",\"background\":");
++        try writeScreenModelColorJSON(writer, run.background);
++        try writer.print(
++            ",\"bold\":{},\"faint\":{},\"inverse\":{},\"textCellCount\":{d},\"backgroundCellCount\":{d}}}",
++            .{ run.bold, run.faint, run.inverse, text_cell_count, background_cell_count },
++        );
++    }
++
++    fn writeScreenModelColorJSON(writer: *std.Io.Writer, color: terminal.Style.Color) !void {
++        switch (color) {
++            .none => try writer.writeAll("null"),
++            .palette => |index| try writer.print(
++                "{{\"kind\":\"palette\",\"value\":\"{d}\"}}",
++                .{index},
++            ),
++            .rgb => |rgb| try writer.print(
++                "{{\"kind\":\"rgb\",\"value\":\"{d},{d},{d}\"}}",
++                .{ rgb.r, rgb.g, rgb.b },
++            ),
++        }
++    }
++
++    fn firstNonBlankColumn(row_pin: anytype) ?usize {
++        for (row_pin.cells(.all), 0..) |*cell, column| {
++            if (!screenModelCellIsBlank(cell)) return column;
 +        }
 +        return null;
 +    }
 +
-+    fn lastNonBlankColumn(line: []const u8) ?usize {
-+        var index = line.len;
++    fn lastNonBlankColumn(row_pin: anytype) ?usize {
++        const cells = row_pin.cells(.all);
++        var index = cells.len;
 +        while (index > 0) {
 +            index -= 1;
-+            const byte = line[index];
-+            if (byte != ' ' and byte != '\t' and byte != '\r') return index;
++            if (!screenModelCellIsBlank(&cells[index])) return index;
 +        }
 +        return null;
++    }
++
++    fn lastTextColumn(row_pin: anytype) ?usize {
++        const cells = row_pin.cells(.all);
++        var index = cells.len;
++        while (index > 0) {
++            index -= 1;
++            if (cells[index].hasText()) return index;
++        }
++        return null;
++    }
++
++    fn screenModelCellIsBlank(cell: anytype) bool {
++        if (!cell.hasText()) return true;
++        return switch (cell.codepoint()) {
++            0, ' ', '\t', '\r' => true,
++            else => false,
++        };
 +    }
 +
      fn readTextLocked(

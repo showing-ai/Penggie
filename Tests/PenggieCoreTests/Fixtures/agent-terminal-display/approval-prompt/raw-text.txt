@@ -1,0 +1,4 @@
+Approve command?
+  Run shell command: git status
+  Allow once
+  Deny

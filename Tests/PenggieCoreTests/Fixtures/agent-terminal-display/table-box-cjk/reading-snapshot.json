@@ -1,0 +1,23 @@
+[
+  {
+    "kind": "prose",
+    "text": "下面按几个常见维度对比：",
+    "cellAware": false,
+    "horizontalScroll": false,
+    "displayBlockKind": null
+  },
+  {
+    "kind": "preformatted",
+    "text": "┌────────────┬──────────────┬──────────────┐\n│ 维度       │ 伦敦         │ 巴黎         │\n├────────────┼──────────────┼──────────────┤\n│ 城市气质   │ 商业感强     │ 审美浓       │\n└────────────┴──────────────┴──────────────┘",
+    "cellAware": true,
+    "horizontalScroll": true,
+    "displayBlockKind": "preformatted"
+  },
+  {
+    "kind": "prose",
+    "text": "一句话概括：各有优势。",
+    "cellAware": false,
+    "horizontalScroll": false,
+    "displayBlockKind": null
+  }
+]
