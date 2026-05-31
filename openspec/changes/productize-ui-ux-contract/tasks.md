@@ -1,9 +1,9 @@
 ## 1. P0 Planning And Guardrails
 
-- [ ] 1.1 Build the P0/P1/P2 implementation board from `design.md`, with each task tagged by priority, affected Swift files, fixtures, manual QA, accessibility QA, visual QA, and non-goals.
-- [ ] 1.2 Add a pre-implementation checklist that rejects local command/model/resume/approval/permission lists, local selected indexes, forked Codex sessions, forked Raw Terminal sessions, and SwiftUI overlays that fake terminal-owned state.
-- [ ] 1.3 Add a release-readiness checklist that requires `openspec validate --all --strict`, relevant `swift test` filters, fixture review, manual QA evidence, and visual QA captures before each milestone is accepted.
-- [ ] 1.4 Audit current diagnostic logs and temporary debug paths in `PenggieSessionModel.swift` and `PenggieGhosttySession.swift`; classify which diagnostics remain for product QA and which must be gated or removed before release.
+- [x] 1.1 Build the P0/P1/P2 implementation board from `design.md`, with each task tagged by priority, affected Swift files, fixtures, manual QA, accessibility QA, visual QA, and non-goals.
+- [x] 1.2 Add a pre-implementation checklist that rejects local command/model/resume/approval/permission lists, local selected indexes, forked Codex sessions, forked Raw Terminal sessions, and SwiftUI overlays that fake terminal-owned state.
+- [x] 1.3 Add a release-readiness checklist that requires `openspec validate --all --strict`, relevant `swift test` filters, fixture review, manual QA evidence, and visual QA captures before each milestone is accepted.
+- [x] 1.4 Audit current diagnostic logs and temporary debug paths in `PenggieSessionModel.swift` and `PenggieGhosttySession.swift`; classify which diagnostics remain for product QA and which must be gated or removed before release.
 
 ## 2. P0 App Shell, Setup, And Session Lifecycle
 
@@ -90,6 +90,6 @@
 
 ## 11. Validation
 
-- [ ] 11.1 Run `openspec validate productize-ui-ux-contract --strict`.
-- [ ] 11.2 Run `openspec show productize-ui-ux-contract --json`.
-- [ ] 11.3 Run `openspec validate --all --strict` before applying implementation tasks from this change.
+- [x] 11.1 Run `openspec validate productize-ui-ux-contract --strict`.
+- [x] 11.2 Run `openspec show productize-ui-ux-contract --json`.
+- [x] 11.3 Run `openspec validate --all --strict` before applying implementation tasks from this change.
