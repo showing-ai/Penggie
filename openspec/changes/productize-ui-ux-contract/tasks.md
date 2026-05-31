@@ -40,7 +40,7 @@
 ## 5. P0 Reading Transcript And Display AST Fallback
 
 - [x] 5.1 Review `PenggieReadingTranscript.swift`, `PenggieDisplayAST.swift`, `PenggieDisplayASTRenderer.swift`, `PenggieDisplayRuleEngine.swift`, and `PenggieDisplayTranscriptReconciler.swift` against the Reading transcript anatomy.
-- [ ] 5.2 Validate turn roles: user prompt, working/tool summary, assistant answer, collapsible detail, raw/preformatted fallback, and active terminal-owned surface exclusion.
+- [x] 5.2 Validate turn roles: user prompt, working/tool summary, assistant answer, collapsible detail, raw/preformatted fallback, and active terminal-owned surface exclusion.
 - [ ] 5.3 Validate completed-turn stability under repaint, resize, later terminal output, Raw Terminal switching, long sessions, process exit, and subsequent prompt submission.
 - [ ] 5.4 Expand Display AST fixtures for CJK prose, CJK tables, box drawing, code blocks, warnings, tool-heavy output, low-confidence classification, and long transcripts.
 - [ ] 5.5 Validate that terminal footers, model/status rows, active input rows, slash/resume/approval surfaces, and transient startup/status UI do not become sealed assistant transcript content.

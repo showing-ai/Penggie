@@ -85,6 +85,53 @@ struct PenggieDisplayTranscriptReconcilerTests {
         ])
     }
 
+    @Test
+    func preservesTranscriptRolesWhileExcludingTerminalOwnedSurfaceBlocks() throws {
+        var reconciler = DisplayTranscriptReconciler()
+
+        reconciler.submitPrompt("生成产品化 QA 计划", id: "prompt.qa")
+        reconciler.updateActiveTurn(from: document([
+            block(id: "status.working", kind: .status, text: "Working... 4s"),
+            block(id: "tool.search", kind: .toolEvent, text: "Searched project fixtures"),
+            block(id: "detail.shell", kind: .disclosure, text: "Ran swift test --filter PenggieDisplay"),
+            block(id: "answer.plan", kind: .paragraph, text: "先覆盖高风险 terminal-owned surfaces。"),
+            block(
+                id: "fallback.raw",
+                kind: .rawFallback,
+                text: "Unclassified terminal output preserved verbatim.",
+                confidence: .init(level: .fallback, score: 0.45),
+                fallback: .init(
+                    code: "unclassified-terminal-output",
+                    message: "Preserve visible text because no semantic rule matched."
+                )
+            ),
+            block(id: "overlay.resume", kind: .overlay, text: "Resume a previous session")
+        ]))
+        reconciler.sealActiveTurn()
+
+        let document = reconciler.displayDocument
+        #expect(document.turns.map(\.role) == [.user, .assistant])
+        #expect(document.turns.first?.blocks.map(\.kind) == [.userPrompt])
+        #expect(document.turns.first?.blocks.first?.role == .user)
+        #expect(document.turns.first?.blocks.first?.isSealed == true)
+
+        let assistantTurn = try #require(document.turns.last)
+        #expect(assistantTurn.role == .assistant)
+        #expect(assistantTurn.isSealed)
+        #expect(assistantTurn.blocks.map(\.kind) == [
+            .status,
+            .toolEvent,
+            .disclosure,
+            .paragraph,
+            .rawFallback
+        ])
+        #expect(assistantTurn.blocks.allSatisfy { $0.role == .assistant })
+        #expect(assistantTurn.blocks.allSatisfy { $0.isSealed })
+        #expect(!assistantTurn.blocks.contains { $0.kind == .overlay })
+        #expect(assistantTurn.blocks.last?.confidence.level == .fallback)
+        #expect(assistantTurn.blocks.last?.fallback?.code == "unclassified-terminal-output")
+    }
+
     private func document(_ blocks: [DisplayBlock]) -> DisplayDocument {
         DisplayDocument(
             turns: [
@@ -105,7 +152,9 @@ struct PenggieDisplayTranscriptReconcilerTests {
         id: String,
         kind: DisplayBlock.Kind,
         role: DisplayRole = .assistant,
-        text: String
+        text: String,
+        confidence: DisplayConfidence = .init(level: .heuristic, score: 0.86),
+        fallback: DisplayFallback? = nil
     ) -> DisplayBlock {
         DisplayBlock(
             id: id,
@@ -114,12 +163,12 @@ struct PenggieDisplayTranscriptReconcilerTests {
             spans: [.init(kind: .text, text: text)],
             sourceRange: nil,
             sourceFingerprint: text,
-            confidence: .init(level: .heuristic, score: 0.86),
+            confidence: confidence,
             ruleHits: [],
             isLive: true,
             isSealed: false,
             renderHints: .init(),
-            fallback: nil
+            fallback: fallback
         )
     }
 
