@@ -35,6 +35,7 @@ model or in nearby test expectations:
 | Slash suggestions | `slash-suggestions.json` | Covered for basic slash menu projection. |
 | Slash style selection | `slash-style-selected.json` | Covered for style-backed selected evidence. |
 | Slash ambiguous selection | `slash-ambiguous.json` | Covered for conflicting marker evidence. |
+| Slash missing selection | `slash-stale-unselected.json` | Covered for visible rows with no reliable selected evidence. |
 | Slash continuation | `slash-continuation.json` | Covered for numbered continuation menu projection. |
 | Model picker | `model-picker.json` | Covered for basic selectable model list. |
 | Model cursor fallback | `model-cursor-fallback.json` | Covered for cursor-backed selected evidence. |
@@ -48,8 +49,8 @@ model or in nearby test expectations:
 
 ## Coverage Gaps For `harden-terminal-ux-qa-foundation`
 
-- Resume: add filtered and sorted variants that explicitly assert metadata and confirmability.
-- Slash/model/effort: add more stale selection variants with explicit prior-frame metadata once the fixture schema stores frame history.
+- Resume: no remaining P0 fixture gap for selected, unselected, ambiguous, filtered, sorted, paged, scrolled, or low-confidence states.
+- Slash/model/effort: no remaining P0 fixture gap for marker-selected rows, style-selected rows, cursor fallback, ambiguous selection, or stale/missing selection.
 - Approval/permission: add frame-history fixture metadata if future stale-state fixtures need to preserve multiple terminal frames in one JSON file.
 - Pager/viewport: add explicit visible-window or pager metadata expectations for scrolled and paged lists.
 

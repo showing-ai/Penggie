@@ -1,0 +1,10 @@
+{
+  "columns": 120,
+  "rows": 30,
+  "cursor": null,
+  "lines": [
+    { "index": 0, "text": "› /", "terminalTextSelected": false },
+    { "index": 1, "text": "  /model        choose what model and reasoning effort to use", "terminalTextSelected": false },
+    { "index": 2, "text": "  /permissions  choose what Codex is allowed to do", "terminalTextSelected": false }
+  ]
+}

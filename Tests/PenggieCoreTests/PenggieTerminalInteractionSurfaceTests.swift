@@ -686,6 +686,7 @@ struct PenggieTerminalInteractionSurfaceTests {
             ("slash-suggestions", "/", .slashSuggestions, .reliable),
             ("slash-style-selected", "/", .slashSuggestions, .reliable),
             ("slash-ambiguous", "/", .slashSuggestions, .ambiguous),
+            ("slash-stale-unselected", "/", .slashSuggestions, .low),
             ("slash-continuation", "/model", .slashContinuation, .reliable),
             ("model-picker", nil, .modelPicker, .reliable),
             ("model-cursor-fallback", nil, .modelPicker, .reliable),
@@ -734,6 +735,58 @@ struct PenggieTerminalInteractionSurfaceTests {
             processExited: false
         )
         #expect(PenggieTerminalBehaviorZoner.classify(frame: negativeFrame) == nil)
+    }
+
+    @Test
+    func resumeFixtureCoversFilterSortPagerAndFooterEvidence() throws {
+        let snapshot = try loadSurfaceFixtureSnapshot(named: "resume-filter-sort-pager-selected")
+        let frame = terminalFrame(id: 250, snapshot: snapshot)
+        let surface = try #require(PenggieTerminalBehaviorZoner.classify(frame: frame))
+
+        #expect(surface.kind == .resumePicker)
+        #expect(surface.metadata["filter"] == "[Cwd] All")
+        #expect(surface.metadata["sort"] == "[Updated] Created")
+        #expect(surface.zones.contains(where: { $0.kind == .header }))
+        #expect(surface.zones.contains(where: { $0.kind == .footerHelp }))
+        #expect(snapshot.lines.contains(where: { $0.text.contains("1 / 16") && $0.text.contains("100%") }))
+        #expect(surface.hasFreshConfirmableSelection)
+    }
+
+    @Test
+    func slashModelAndEffortFixturesCoverMarkerStyleCursorAmbiguousAndStaleSelection() throws {
+        let markerSlash = try surfaceFixture(named: "slash-suggestions", currentInput: "/")
+        #expect(markerSlash.kind == .slashSuggestions)
+        #expect(markerSlash.hasFreshConfirmableSelection)
+
+        let styleSlash = try surfaceFixture(named: "slash-style-selected", currentInput: "/")
+        #expect(styleSlash.kind == .slashSuggestions)
+        #expect(styleSlash.hasFreshConfirmableSelection)
+
+        let ambiguousSlash = try surfaceFixture(named: "slash-ambiguous", currentInput: "/")
+        #expect(ambiguousSlash.selectionConfidence == .ambiguous)
+        #expect(!ambiguousSlash.hasFreshConfirmableSelection)
+
+        let staleSlash = try surfaceFixture(named: "slash-stale-unselected", currentInput: "/")
+        #expect(staleSlash.selectionConfidence == .low)
+        #expect(!staleSlash.hasFreshConfirmableSelection)
+
+        let continuation = try surfaceFixture(named: "slash-continuation", currentInput: "/model")
+        #expect(continuation.kind == .slashContinuation)
+        #expect(continuation.hasFreshConfirmableSelection)
+
+        let modelCursor = try surfaceFixture(named: "model-cursor-fallback")
+        #expect(modelCursor.kind == .modelPicker)
+        #expect(modelCursor.hasFreshConfirmableSelection)
+
+        let effortCursor = try surfaceFixture(named: "effort-cursor-fallback")
+        #expect(effortCursor.kind == .effortPicker)
+        #expect(effortCursor.hasFreshConfirmableSelection)
+
+        for fixture in ["model-stale-unselected", "effort-stale-unselected"] {
+            let surface = try surfaceFixture(named: fixture)
+            #expect(surface.selectionConfidence == .low)
+            #expect(!surface.hasFreshConfirmableSelection)
+        }
     }
 
     @Test
