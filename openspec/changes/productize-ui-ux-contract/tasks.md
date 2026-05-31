@@ -30,7 +30,7 @@
 
 ## 4. P0 Composer, IME, Focus, And Input Routing
 
-- [ ] 4.1 Review `PenggieComposerTextView.swift`, `PenggieComposerNativeTrigger.swift`, `PenggieInteractionKeyCaptureView.swift`, `PenggieRootView.swift`, and `PenggieSessionModel.swift` against the focus state machine.
+- [x] 4.1 Review `PenggieComposerTextView.swift`, `PenggieComposerNativeTrigger.swift`, `PenggieInteractionKeyCaptureView.swift`, `PenggieRootView.swift`, and `PenggieSessionModel.swift` against the focus state machine.
 - [ ] 4.2 Validate IME marked text behavior: placeholder hidden, marked text not overwritten by SwiftUI state, Enter not submitted while marked text exists, and committed text submits correctly.
 - [ ] 4.3 Validate ordinary composer behavior: Enter submit, Shift-Enter newline, paste, large paste, draft preservation, send enablement, disabled send reasons, and bounded height/internal scroll.
 - [ ] 4.4 Validate native slash handoff: first slash from composer sends to Codex, terminal-owned key capture takes over, local composer does not own selection, and dismissal restores the correct focus owner.
