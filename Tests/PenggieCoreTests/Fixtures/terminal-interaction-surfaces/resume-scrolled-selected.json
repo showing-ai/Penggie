@@ -1,0 +1,19 @@
+{
+  "columns": 120,
+  "rows": 30,
+  "cursor": { "x": 0, "y": 8, "visible": true },
+  "lines": [
+    { "index": 0, "text": "Resume a previous session", "terminalTextSelected": false },
+    { "index": 1, "text": "Type to search", "terminalTextSelected": false },
+    { "index": 2, "text": "Filter: [Cwd] All     Sort: [Updated] Created", "terminalTextSelected": false },
+    { "index": 3, "text": "  2d ago    好热啊，今天伦敦多少度?", "terminalTextSelected": false },
+    { "index": 4, "text": "  2d ago    今天伦敦天气怎么样?", "terminalTextSelected": false },
+    { "index": 5, "text": "  9d ago    伦敦天气怎么样?", "terminalTextSelected": false },
+    { "index": 6, "text": "  9d ago    伦敦天气怎么样?", "terminalTextSelected": false },
+    { "index": 7, "text": "› 9d ago    伦敦今天天气怎么样?", "terminalTextSelected": false },
+    { "index": 8, "text": "  12d ago   伦敦天气怎么样?", "terminalTextSelected": false },
+    { "index": 9, "text": "  13d ago   今天伦敦天气怎么样?", "terminalTextSelected": false },
+    { "index": 10, "text": "enter resume  esc exit  tab focus sort/filter  ↑/↓ browse", "terminalTextSelected": false },
+    { "index": 11, "text": "8 / 16 · 100%", "terminalTextSelected": false }
+  ]
+}

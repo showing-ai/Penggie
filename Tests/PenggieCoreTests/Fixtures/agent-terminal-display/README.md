@@ -23,3 +23,29 @@ Rules for adding fixtures:
 - Prefer visible text as the primary signal, layout/cell width as the second signal, and style only as a hint.
 - Low-confidence cases must preserve visible content with a raw or preformatted fallback.
 - Add negative fixtures for historical slash text, inline slash text, and indented slash text.
+
+## Current Coverage
+
+| Area | Current fixtures | Status |
+| --- | --- | --- |
+| Markdown/prose | `markdown-prose` | Covered for ordinary prose and Reading snapshot. |
+| Slash negative | `slash-negative` | Covered for terminal-looking slash text that must not become an active overlay. |
+| CJK/table/box drawing | `table-box-cjk` | Covered with raw text, Ghostty screen, Display AST, and Reading snapshot. |
+| Theme/style rows | `theme-style` | Covered with styled screen and Reading snapshot. |
+| Warning/status/tool rows | `warning-status-tools` | Covered for warning and status style preservation. |
+| Approval prompt | `approval-prompt` | Covered at Display AST layer. Missing Reading snapshot and low-confidence fallback variant. |
+
+## Coverage Gaps For `harden-terminal-ux-qa-foundation`
+
+- Long sessions: add a fixture with completed turns, later output, active prompt readiness, and no duplicate or polluted turns.
+- CJK/table/code: add a fixture that combines CJK prose, table or box drawing, and code/preformatted content in one terminal-sensitive output.
+- Tool-heavy output: add a fixture with repeated tool/status rows and a final answer hierarchy.
+- Warning/status: add explicit prevention for footer, model line, active input row, and transient status rows becoming assistant answer content.
+- Low-confidence fallback: add raw/preformatted fallback fixture where semantic classification is intentionally weak.
+- Approval/permission display: add Reading snapshot coverage to ensure prompts remain visible but are not sealed as assistant answer content.
+
+## Review Rule
+
+When Display AST classification is uncertain, the expected result should preserve
+the visible terminal evidence with raw or preformatted fallback. Do not invent
+Markdown structure just to make Reading look cleaner.

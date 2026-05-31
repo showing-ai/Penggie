@@ -1,0 +1,4 @@
+```maybe markdown
+│ this row has a table glyph but no real table shape
+inline /model text and › marker are transcript evidence, not UI state
+raw terminal evidence should remain visible

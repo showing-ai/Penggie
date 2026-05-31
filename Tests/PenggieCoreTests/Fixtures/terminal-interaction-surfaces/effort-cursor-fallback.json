@@ -1,0 +1,14 @@
+{
+  "columns": 90,
+  "rows": 24,
+  "cursor": { "x": 0, "y": 4, "visible": true },
+  "lines": [
+    { "index": 0, "text": "Select Reasoning Level for gpt-5.5", "terminalTextSelected": false },
+    { "index": 1, "text": "", "terminalTextSelected": false },
+    { "index": 2, "text": "  1. Low               Fast responses with lighter reasoning", "terminalTextSelected": false },
+    { "index": 3, "text": "  2. Medium (default)  Balances speed and reasoning depth", "terminalTextSelected": false },
+    { "index": 4, "text": "  3. High (current)    Greater reasoning depth", "terminalTextSelected": false },
+    { "index": 5, "text": "", "terminalTextSelected": false },
+    { "index": 6, "text": "Press enter to confirm or esc to go back", "terminalTextSelected": false }
+  ]
+}

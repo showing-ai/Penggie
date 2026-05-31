@@ -1,0 +1,26 @@
+{
+  "columns": 90,
+  "rows": 24,
+  "cursor": null,
+  "lines": [
+    { "index": 0, "text": "› /", "terminalTextSelected": false },
+    {
+      "index": 1,
+      "text": "/model        choose what model and reasoning effort to use",
+      "terminalTextSelected": false,
+      "styleSummary": {
+        "textCellCount": 61,
+        "selectedCellCount": 61,
+        "selectedTextCellCount": 61,
+        "boldTextCellCount": 0,
+        "faintTextCellCount": 0,
+        "inverseTextCellCount": 0,
+        "backgroundTextCellCount": 61,
+        "foregroundTextCellCount": 0,
+        "backgroundCellCount": 61,
+        "backgroundOnlyCellCount": 0
+      }
+    },
+    { "index": 2, "text": "/permissions  choose what Codex is allowed to do", "terminalTextSelected": false }
+  ]
+}

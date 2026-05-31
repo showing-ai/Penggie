@@ -1,0 +1,79 @@
+{
+  "source": "terminalProjection",
+  "terminalColumns": 120,
+  "terminalRows": 10,
+  "blocks": [
+    {
+      "kind": "rawFallback",
+      "role": "unknown",
+      "text": "下面是一个包含中文、表格和代码的终端输出：",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.raw.visible_text"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": "generic.visible_text"
+    },
+    {
+      "kind": "preformatted",
+      "role": "unknown",
+      "text": "┌────────┬────────────┬────────────┐\n│ 项目   │ 伦敦       │ 巴黎       │\n├────────┼────────────┼────────────┤\n│ 天气   │ 多云       │ 小雨       │\n└────────┴────────────┴────────────┘",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.preformatted.table_shape"
+      ],
+      "cellAware": true,
+      "horizontalScroll": true,
+      "fallbackCode": "generic.table_shape"
+    },
+    {
+      "kind": "rawFallback",
+      "role": "unknown",
+      "text": "```js",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.raw.visible_text"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": "generic.visible_text"
+    },
+    {
+      "kind": "rawFallback",
+      "role": "unknown",
+      "text": "const city = \"伦敦\";",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.raw.visible_text"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": "generic.visible_text"
+    },
+    {
+      "kind": "rawFallback",
+      "role": "unknown",
+      "text": "console.log(city);",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.raw.visible_text"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": "generic.visible_text"
+    },
+    {
+      "kind": "rawFallback",
+      "role": "unknown",
+      "text": "```",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.raw.visible_text"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": "generic.visible_text"
+    }
+  ]
+}

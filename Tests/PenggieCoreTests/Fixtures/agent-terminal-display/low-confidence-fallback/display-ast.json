@@ -1,0 +1,55 @@
+{
+  "source": "terminalProjection",
+  "terminalColumns": 120,
+  "terminalRows": 4,
+  "blocks": [
+    {
+      "kind": "rawFallback",
+      "role": "unknown",
+      "text": "```maybe markdown",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.raw.visible_text"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": "generic.visible_text"
+    },
+    {
+      "kind": "preformatted",
+      "role": "unknown",
+      "text": "│ this row has a table glyph but no real table shape",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.preformatted.table_shape"
+      ],
+      "cellAware": true,
+      "horizontalScroll": true,
+      "fallbackCode": "generic.table_shape"
+    },
+    {
+      "kind": "rawFallback",
+      "role": "unknown",
+      "text": "inline /model text and › marker are transcript evidence, not UI state",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.raw.visible_text"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": "generic.visible_text"
+    },
+    {
+      "kind": "rawFallback",
+      "role": "unknown",
+      "text": "raw terminal evidence should remain visible",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.raw.visible_text"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": "generic.visible_text"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "columns": 80,
+  "rows": 24,
+  "cursor": { "x": 0, "y": 4, "visible": true },
+  "lines": [
+    { "index": 0, "text": "Select Model and Effort", "terminalTextSelected": false },
+    { "index": 1, "text": "", "terminalTextSelected": false },
+    { "index": 2, "text": "  1. gpt-5.5 (current)", "terminalTextSelected": false },
+    { "index": 3, "text": "  2. gpt-5.4", "terminalTextSelected": false },
+    { "index": 4, "text": "  3. gpt-5.4-mini", "terminalTextSelected": false },
+    { "index": 5, "text": "", "terminalTextSelected": false },
+    { "index": 6, "text": "Press enter to confirm or esc to go back", "terminalTextSelected": false }
+  ]
+}

@@ -670,14 +670,26 @@ struct PenggieTerminalInteractionSurfaceTests {
     func terminalInteractionFixtureCatalogClassifiesSupportedSurfacesAndNegativeTranscript() throws {
         let cases: [(String, String?, PenggieTerminalInteractionSurfaceKind, PenggieTerminalSelectionConfidence)] = [
             ("resume-filter-sort-pager-selected", nil, .resumePicker, .reliable),
+            ("resume-scrolled-selected", nil, .resumePicker, .reliable),
             ("resume-unselected", nil, .resumePicker, .low),
             ("resume-ambiguous", nil, .resumePicker, .ambiguous),
+            ("resume-low-confidence", nil, .resumePicker, .low),
             ("slash-suggestions", "/", .slashSuggestions, .reliable),
+            ("slash-style-selected", "/", .slashSuggestions, .reliable),
+            ("slash-ambiguous", "/", .slashSuggestions, .ambiguous),
             ("slash-continuation", "/model", .slashContinuation, .reliable),
             ("model-picker", nil, .modelPicker, .reliable),
+            ("model-cursor-fallback", nil, .modelPicker, .reliable),
+            ("model-stale-unselected", nil, .modelPicker, .low),
             ("effort-picker", nil, .effortPicker, .reliable),
+            ("effort-cursor-fallback", nil, .effortPicker, .reliable),
+            ("effort-stale-unselected", nil, .effortPicker, .low),
             ("approval-prompt", nil, .approvalPrompt, .reliable),
-            ("permission-prompt", nil, .permissionPrompt, .reliable)
+            ("approval-cancel-selected", nil, .approvalPrompt, .reliable),
+            ("approval-missing-selection", nil, .approvalPrompt, .low),
+            ("permission-prompt", nil, .permissionPrompt, .reliable),
+            ("permission-cancel-selected", nil, .permissionPrompt, .reliable),
+            ("permission-missing-selection", nil, .permissionPrompt, .low)
         ]
 
         for (index, currentInput, expectedKind, expectedConfidence) in cases {
@@ -692,6 +704,11 @@ struct PenggieTerminalInteractionSurfaceTests {
             #expect(surface.selectionConfidence == expectedConfidence)
             #expect(surface.frameID == frame.id)
             #expect(!surface.candidates.isEmpty)
+            if expectedConfidence == .reliable {
+                #expect(surface.hasFreshConfirmableSelection)
+            } else {
+                #expect(!surface.hasFreshConfirmableSelection)
+            }
         }
 
         let negativeText = try loadSurfaceFixtureText(named: "negative-historical-transcript")
@@ -704,6 +721,131 @@ struct PenggieTerminalInteractionSurfaceTests {
             processExited: false
         )
         #expect(PenggieTerminalBehaviorZoner.classify(frame: negativeFrame) == nil)
+    }
+
+    @Test
+    func terminalInteractionFixturesCoverScrolledAmbiguousLowConfidenceAndBlockedConfirmationStates() throws {
+        let scrolledResume = try surfaceFixture(named: "resume-scrolled-selected")
+        #expect(scrolledResume.kind == .resumePicker)
+        #expect(scrolledResume.hasFreshConfirmableSelection)
+        #expect(scrolledResume.candidates.count >= 7)
+        guard case let .single(selectedID, _, _) = scrolledResume.selection else {
+            Issue.record("Expected scrolled resume fixture to carry one selected row")
+            return
+        }
+        let viewport = PenggieTerminalInteractionCandidateViewport.derive(
+            candidates: scrolledResume.candidates,
+            selectedRowID: selectedID,
+            maxVisibleCount: 5
+        )
+        #expect(viewport.candidates.contains { $0.id == selectedID })
+        #expect(viewport.hasLeadingOverflow)
+
+        let ambiguousSlash = try surfaceFixture(named: "slash-ambiguous", currentInput: "/")
+        #expect(ambiguousSlash.kind == .slashSuggestions)
+        #expect(ambiguousSlash.selectionConfidence == .ambiguous)
+        #expect(!ambiguousSlash.hasFreshConfirmableSelection)
+        guard case .blocked = PenggieTerminalInputPolicy.commandDecision(.enter, surface: ambiguousSlash) else {
+            Issue.record("Expected ambiguous slash fixture to block Enter")
+            return
+        }
+
+        let missingApproval = try surfaceFixture(named: "approval-missing-selection")
+        #expect(missingApproval.kind == .approvalPrompt)
+        #expect(missingApproval.selectionConfidence == .low)
+        #expect(!missingApproval.hasFreshConfirmableSelection)
+        guard case .blocked = PenggieTerminalInputPolicy.commandDecision(.enter, surface: missingApproval) else {
+            Issue.record("Expected missing approval selection to block Enter")
+            return
+        }
+
+        let missingPermission = try surfaceFixture(named: "permission-missing-selection")
+        #expect(missingPermission.kind == .permissionPrompt)
+        #expect(missingPermission.selectionConfidence == .low)
+        #expect(!missingPermission.hasFreshConfirmableSelection)
+        guard case .blocked = PenggieTerminalInputPolicy.commandDecision(.enter, surface: missingPermission) else {
+            Issue.record("Expected missing permission selection to block Enter")
+            return
+        }
+    }
+
+    @Test
+    func staleSelectedRowsAreNotConfirmableEvenWhenRowIDStillExists() {
+        let surface = PenggieTerminalInteractionSurface(
+            id: "fixture.stale",
+            kind: .resumePicker,
+            frameID: 700,
+            zones: [
+                PenggieTerminalScreenZone(kind: .keyboardSelectableList, lineRange: 1...2)
+            ],
+            candidates: [
+                PenggieTerminalInteractionCandidate(
+                    id: "resume:1:first",
+                    sourceLineIndex: 1,
+                    text: "1h ago    First session",
+                    isConfirmable: true
+                )
+            ],
+            selection: .single(
+                rowID: "resume:1:first",
+                source: .visibleMarker,
+                evidence: ["previous-frame-marker"]
+            ),
+            selectionConfidence: .reliable,
+            freshness: .stale,
+            evidence: ["frame=700", "stale"]
+        )
+
+        #expect(!surface.hasFreshConfirmableSelection)
+        let decision = PenggieTerminalInputPolicy.commandDecision(.enter, surface: surface)
+        guard case .blocked = decision else {
+            Issue.record("Expected stale selected row to block confirmation")
+            return
+        }
+        #expect(decision.consumesEvent)
+    }
+
+    @Test
+    func nonConfirmingNavigationStaysPTYRoutedAndDoesNotMutateSelectionPolicy() throws {
+        let surface = try surfaceFixture(named: "resume-low-confidence")
+        #expect(surface.selectionConfidence == .low)
+        #expect(!surface.hasFreshConfirmableSelection)
+
+        let navigationCommands: [PenggieInteractionCommand] = [
+            .arrowUp,
+            .arrowDown,
+            .arrowLeft,
+            .arrowRight,
+            .tab,
+            .backspace,
+            .delete,
+            .escape
+        ]
+
+        for command in navigationCommands {
+            #expect(PenggieTerminalInputPolicy.commandDecision(command, surface: surface) == .unhandled)
+        }
+
+        guard case let .none(evidence) = surface.selection else {
+            Issue.record("Expected low-confidence navigation fixture to preserve no terminal-owned selection")
+            return
+        }
+        #expect(evidence.contains { $0.contains("selected=0") })
+        #expect(!surface.hasFreshConfirmableSelection)
+    }
+
+    @Test
+    func unsafeEnterConsumesEventInsteadOfFallingThroughToComposerSubmission() throws {
+        let ambiguousSlash = try surfaceFixture(named: "slash-ambiguous", currentInput: "/")
+        let decision = PenggieTerminalInputPolicy.commandDecision(.enter, surface: ambiguousSlash)
+
+        guard case .blocked(let reason) = decision else {
+            Issue.record("Expected ambiguous terminal-owned selection to block Enter")
+            return
+        }
+
+        #expect(reason.contains("confirmation requires one fresh terminal-owned selected row"))
+        #expect(decision.consumesEvent)
     }
 
     @Test
@@ -814,6 +956,18 @@ private func loadSurfaceFixtureSnapshot(named name: String) throws -> PenggieTer
 
 private func loadSurfaceFixtureText(named name: String) throws -> String {
     try String(contentsOf: surfaceFixtureURL(named: name, pathExtension: "txt"), encoding: .utf8)
+}
+
+private func surfaceFixture(
+    named name: String,
+    currentInput: String? = nil
+) throws -> PenggieTerminalInteractionSurface {
+    let snapshot = try loadSurfaceFixtureSnapshot(named: name)
+    let frame = terminalFrame(id: 300, snapshot: snapshot)
+    return try #require(PenggieTerminalBehaviorZoner.classify(
+        frame: frame,
+        currentInput: currentInput
+    ))
 }
 
 private func surfaceFixtureURL(named name: String, pathExtension: String) -> URL {

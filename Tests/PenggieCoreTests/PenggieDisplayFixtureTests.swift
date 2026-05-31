@@ -173,6 +173,64 @@ struct PenggieDisplayFixtureTests {
         #expect(actual.blocks.map(\.text).joined(separator: "\n").contains("Deny"))
     }
 
+    @Test
+    func longSessionFixtureKeepsCompletedAnswerAndClassifiesLaterStatusRows() throws {
+        let actual = try displayASTSnapshot(fixture: "long-session-stable")
+        let expected = try expectedDisplayAST(fixture: "long-session-stable")
+        let rendered = PenggieDisplayASTRenderer()
+            .segments(from: displayDocument(from: expected))
+            .map(FixtureReadingSegment.init(segment:))
+
+        #expect(actual == expected)
+        #expect(actual.blocks.first?.kind == "status")
+        #expect(actual.blocks.contains { $0.text == "Here is the completed answer." })
+        #expect(actual.blocks.contains { $0.kind == "status" && $0.ruleIDs.contains("codex.status.working") })
+        #expect(rendered.map(\.text).joined(separator: "\n").contains("Ready for the next request."))
+    }
+
+    @Test
+    func cjkTableCodeFixturePreservesTerminalSensitiveOutput() throws {
+        let actual = try displayASTSnapshot(fixture: "cjk-table-code")
+        let expected = try expectedDisplayAST(fixture: "cjk-table-code")
+        let visibleText = actual.blocks.map(\.text).joined(separator: "\n")
+
+        #expect(actual == expected)
+        #expect(actual.blocks.contains { $0.kind == "preformatted" && $0.cellAware && $0.horizontalScroll })
+        #expect(visibleText.contains("下面是一个包含中文、表格和代码的终端输出："))
+        #expect(visibleText.contains("const city = \"伦敦\";"))
+        #expect(visibleText.contains("│ 天气   │ 多云       │ 小雨       │"))
+    }
+
+    @Test
+    func toolHeavyWarningFixtureMaintainsFinalAnswerHierarchy() throws {
+        let actual = try displayASTSnapshot(fixture: "tool-heavy-warning-hierarchy")
+        let expected = try expectedDisplayAST(fixture: "tool-heavy-warning-hierarchy")
+
+        #expect(actual == expected)
+        #expect(actual.blocks.map(\.kind).contains("activity"))
+        #expect(actual.blocks.map(\.kind).contains("toolEvent"))
+        #expect(actual.blocks.map(\.kind).contains("warning"))
+        #expect(actual.blocks.contains { $0.text == "最终答案：" })
+        #expect(actual.blocks.contains { $0.text == "- Chat UI should preserve visible evidence." })
+        #expect(actual.blocks.last?.ruleIDs.contains("codex.status.worked_for") == true)
+    }
+
+    @Test
+    func lowConfidenceDisplayFixtureUsesFallbackWithoutInventingMarkdown() throws {
+        let actual = try displayASTSnapshot(fixture: "low-confidence-fallback")
+        let expected = try expectedDisplayAST(fixture: "low-confidence-fallback")
+        let rendered = PenggieDisplayASTRenderer()
+            .segments(from: displayDocument(from: expected))
+            .map(FixtureReadingSegment.init(segment:))
+        let visibleText = rendered.map(\.text).joined(separator: "\n")
+
+        #expect(actual == expected)
+        #expect(actual.blocks.allSatisfy { $0.confidenceLevel == "fallback" })
+        #expect(!actual.blocks.contains { $0.kind == "overlay" || $0.kind == "paragraph" })
+        #expect(visibleText.contains("inline /model text and › marker are transcript evidence"))
+        #expect(rendered.contains { $0.kind == "preformatted" && $0.cellAware })
+    }
+
     private func renderedSegments(fixture: String) throws -> [FixtureReadingSegment] {
         let rawText = try fixtureText(fixture: fixture, filename: "raw-text.txt")
         let block = PenggieReadingBlock(

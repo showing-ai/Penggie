@@ -1,0 +1,13 @@
+{
+  "columns": 120,
+  "rows": 30,
+  "cursor": null,
+  "lines": [
+    { "index": 0, "text": "Resume a previous session", "terminalTextSelected": false },
+    { "index": 1, "text": "Type to search", "terminalTextSelected": false },
+    { "index": 2, "text": "Filter: [Cwd] All     Sort: [Updated] Created", "terminalTextSelected": false },
+    { "index": 3, "text": "  6h ago    对比一下伦敦和巴黎", "terminalTextSelected": false },
+    { "index": 4, "text": "  1d ago    伦敦今天的天气怎么样?", "terminalTextSelected": false },
+    { "index": 5, "text": "enter resume  esc exit  tab focus sort/filter  ↑/↓ browse", "terminalTextSelected": false }
+  ]
+}

@@ -1,0 +1,6 @@
+Worked for 12s
+Here is the completed answer.
+- Keep completed turns stable.
+- Do not merge later terminal status into this answer.
+Working... 1s >
+Ready for the next request.

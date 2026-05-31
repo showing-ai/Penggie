@@ -1,0 +1,9 @@
+Working... 2s >
+Searching the web
+Searched docs: Ghostty embedded renderer
+⚠ Heads up, you have less than 25% of your weekly limit left.
+Working... 5s >
+最终答案：
+- Renderer palette must stay terminal-owned.
+- Chat UI should preserve visible evidence.
+Worked for 18s

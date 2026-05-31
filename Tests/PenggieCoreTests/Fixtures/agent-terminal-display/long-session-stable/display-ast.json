@@ -1,0 +1,79 @@
+{
+  "source": "terminalProjection",
+  "terminalColumns": 120,
+  "terminalRows": 6,
+  "blocks": [
+    {
+      "kind": "status",
+      "role": "system",
+      "text": "Worked for 12s",
+      "confidenceLevel": "heuristic",
+      "ruleIDs": [
+        "codex.status.worked_for"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": null
+    },
+    {
+      "kind": "rawFallback",
+      "role": "unknown",
+      "text": "Here is the completed answer.",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.raw.visible_text"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": "generic.visible_text"
+    },
+    {
+      "kind": "rawFallback",
+      "role": "unknown",
+      "text": "- Keep completed turns stable.",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.raw.visible_text"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": "generic.visible_text"
+    },
+    {
+      "kind": "rawFallback",
+      "role": "unknown",
+      "text": "- Do not merge later terminal status into this answer.",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.raw.visible_text"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": "generic.visible_text"
+    },
+    {
+      "kind": "status",
+      "role": "system",
+      "text": "Working... 1s >",
+      "confidenceLevel": "heuristic",
+      "ruleIDs": [
+        "codex.status.working"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": null
+    },
+    {
+      "kind": "rawFallback",
+      "role": "unknown",
+      "text": "Ready for the next request.",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.raw.visible_text"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": "generic.visible_text"
+    }
+  ]
+}
