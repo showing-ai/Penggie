@@ -51,20 +51,81 @@ commit_sha="$(git -C "$repo_root" rev-parse HEAD)"
 timestamp="$(date -u +"%Y%m%dT%H%M%SZ")"
 evidence_dir="$evidence_root/$timestamp-$commit_sha"
 
+mkdir -p \
+  "$evidence_dir/screenshots" \
+  "$evidence_dir/recordings" \
+  "$evidence_dir/logs" \
+  "$evidence_dir/notes"
+
 if [[ "$run_build" == true ]]; then
   xcodebuild \
     -project "$repo_root/Penggie/Penggie.xcodeproj" \
     -scheme Penggie \
     -configuration Debug \
     -destination 'platform=macOS' \
-    build
+    build 2>&1 | tee "$evidence_dir/logs/xcodebuild-debug-macos.log"
 fi
 
-mkdir -p \
-  "$evidence_dir/screenshots" \
-  "$evidence_dir/recordings" \
-  "$evidence_dir/logs" \
-  "$evidence_dir/notes"
+show_build_settings() {
+  xcodebuild \
+    -project "$repo_root/Penggie/Penggie.xcodeproj" \
+    -scheme Penggie \
+    -configuration Debug \
+    -destination 'platform=macOS' \
+    -showBuildSettings 2>/dev/null
+}
+
+target_build_dir="$(show_build_settings | awk -F' = ' '/ TARGET_BUILD_DIR = / { print $2; exit }')"
+app_path=""
+if [[ -n "$target_build_dir" ]]; then
+  app_path="$target_build_dir/Penggie.app"
+fi
+
+dylib_path="$app_path/Contents/MacOS/Penggie.debug.dylib"
+ghostty_static="$repo_root/Vendor/ghostty/macos/GhosttyKit.xcframework/macos-arm64_x86_64/ghostty-internal.a"
+
+{
+  echo "# Product UI/UX QA Build Identity"
+  echo
+  echo "- Change: $change_id"
+  echo "- Repo root: $repo_root"
+  echo "- Repo commit: $commit_sha"
+  echo "- Created UTC: $timestamp"
+  echo "- Prepare script ran build: $run_build"
+  echo "- Git dirty status:"
+  git -C "$repo_root" status --short | sed 's/^/  /' || true
+  if [[ -z "$(git -C "$repo_root" status --short)" ]]; then
+    echo "  clean"
+  fi
+  echo "- Vendor/ghostty dirty status:"
+  git -C "$repo_root/Vendor/ghostty" status --short | sed 's/^/  /' || true
+  if [[ -z "$(git -C "$repo_root/Vendor/ghostty" status --short)" ]]; then
+    echo "  clean"
+  fi
+  echo "- Target build dir: ${target_build_dir:-not found}"
+  echo "- Built app: ${app_path:-not found}"
+  if [[ -d "$app_path" ]]; then
+    stat -f "- Built app stat: inode=%i size=%z mtime=%Sm path=%N" "$app_path"
+  else
+    echo "- Built app stat: not found"
+  fi
+  echo "- Penggie debug dylib: $dylib_path"
+  if [[ -f "$dylib_path" ]]; then
+    stat -f "- Penggie debug dylib stat: inode=%i size=%z mtime=%Sm path=%N" "$dylib_path"
+    shasum -a 256 "$dylib_path" | awk '{ print "- Penggie debug dylib SHA256: " $1 }'
+  else
+    echo "- Penggie debug dylib stat: not found"
+    echo "- Penggie debug dylib SHA256: not found"
+  fi
+  echo "- GhosttyKit static library: $ghostty_static"
+  if [[ -f "$ghostty_static" ]]; then
+    stat -f "- GhosttyKit static library stat: inode=%i size=%z mtime=%Sm path=%N" "$ghostty_static"
+    shasum -a 256 "$ghostty_static" | awk '{ print "- GhosttyKit static library SHA256: " $1 }'
+  else
+    echo "- GhosttyKit static library stat: not found"
+    echo "- GhosttyKit static library SHA256: not found"
+  fi
+} > "$evidence_dir/logs/build-identity.txt"
 
 cat > "$evidence_dir/README.md" <<EOF
 # Product-Grade UI/UX QA Evidence
@@ -72,6 +133,7 @@ cat > "$evidence_dir/README.md" <<EOF
 - Change: \`$change_id\`
 - Commit: \`$commit_sha\`
 - Created UTC: \`$timestamp\`
+- Build identity: \`logs/build-identity.txt\`
 
 ## Source Of Truth Rules
 
@@ -90,6 +152,7 @@ cat > "$evidence_dir/README.md" <<EOF
 ## Required Local Checks
 
 \`\`\`bash
+scripts/qa/prepare-product-ui-ux-local-qa.sh --build --evidence-dir "$evidence_root"
 openspec validate productize-ui-ux-contract --strict
 openspec validate --all --strict
 scripts/qa/check-product-grade-ui-ux-manual-qa.sh

@@ -29,6 +29,8 @@ The script creates:
 - `manifest.tsv` with required scenario IDs, owning task IDs, review scope, and
   machine-checkable coverage requirements
 - `README.md` with required validation commands and manual QA references
+- `logs/build-identity.txt` with the repository commit, dirty status, Debug app
+  path, `Penggie.debug.dylib` hash, and GhosttyKit static library hash
 - `notes/scenario-template.md` for per-scenario evidence
 - one `notes/<scenario-id>.md` file for every required manual QA scenario
 
@@ -92,7 +94,10 @@ Optional build verification:
 scripts/qa/prepare-product-ui-ux-local-qa.sh --build --evidence-dir /tmp/penggie-ui-ux-qa
 ```
 
-This runs the standard Debug macOS build before writing evidence notes.
+This runs the standard Debug macOS build before writing evidence notes and
+records the build identity in `logs/build-identity.txt`. Reviewers should use
+that file to confirm manual QA is running against the intended app binary and
+embedded Ghostty substrate instead of an older already-running app.
 
 Strict live/manual QA status verification:
 
@@ -102,6 +107,10 @@ scripts/qa/check-product-ui-ux-live-qa-status.sh --strict --evidence-dir "$bundl
 
 This wraps the strict evidence checker and should only pass when the bundle is
 fully filled from a live app run.
+
+The strict checker also requires `logs/build-identity.txt` to resolve a Debug
+`Penggie.app`, `Penggie.debug.dylib` SHA256, and GhosttyKit static library
+SHA256. This prevents accepting live QA evidence without a traceable build.
 
 ## Non-Goals
 

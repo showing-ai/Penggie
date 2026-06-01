@@ -25,6 +25,8 @@ For each milestone, record:
 - Source files changed.
 - Tests run and result.
 - Evidence bundle path and `check-product-ui-ux-live-qa-status.sh` result.
+- Evidence bundle `logs/build-identity.txt` result, including current commit,
+  Debug app path, `Penggie.debug.dylib` hash, and GhosttyKit static library hash.
 - Fixtures added or updated, or reason not applicable.
 - Manual QA scenario names and result.
 - Accessibility QA result.
@@ -43,6 +45,7 @@ Reviewer:
 Date:
 Penggie commit:
 Build configuration:
+Build identity log:
 OpenSpec change:
 OpenSpec tasks completed:
 
@@ -54,6 +57,7 @@ Commands:
 - relevant QA/source guard scripts:
 - git diff --check:
 - xcodebuild Debug macOS build:
+- build identity commit/app/dylib/GhosttyKit hashes:
 
 Manual QA Evidence:
 - Scenarios run:
@@ -116,6 +120,8 @@ missing without an explicit not-applicable rationale:
   focus routing, or terminal-owned selection behavior.
 - Known limitations and deferred P1/P2 items.
 - Raw Terminal parity evidence when an inspectable terminal surface exists.
+- Build identity evidence proving QA ran against the intended Penggie build,
+  not an older already-running app or stale embedded Ghostty substrate.
 
 The reviewer must also reject the milestone if the evidence depends on a second
 Codex CLI, SDK session, `codex exec --json` output, separate Raw Terminal

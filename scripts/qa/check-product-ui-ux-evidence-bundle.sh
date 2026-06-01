@@ -45,20 +45,47 @@ bundle_dir="$1"
 manifest="$bundle_dir/manifest.tsv"
 readme="$bundle_dir/README.md"
 notes_dir="$bundle_dir/notes"
+build_identity="$bundle_dir/logs/build-identity.txt"
 
 if [[ ! -d "$bundle_dir" ]]; then
   echo "Evidence directory does not exist: $bundle_dir" >&2
   exit 1
 fi
 
-for required in "$readme" "$manifest" "$notes_dir/scenario-template.md"; do
+for required in "$readme" "$manifest" "$notes_dir/scenario-template.md" "$build_identity"; do
   if [[ ! -e "$required" ]]; then
     echo "Missing required evidence artifact: $required" >&2
     exit 1
   fi
 done
 
-python3 - "$manifest" "$notes_dir" "$allow_pending" <<'PY'
+if ! grep -q '^- Repo commit: [0-9a-f]' "$build_identity"; then
+  echo "Build identity is missing the repository commit: $build_identity" >&2
+  exit 1
+fi
+build_commit="$(sed -n 's/^- Repo commit: //p' "$build_identity" | head -1)"
+
+if ! grep -Eq '^- Built app: .*/Penggie\.app$' "$build_identity"; then
+  echo "Build identity is missing the Debug Penggie.app path: $build_identity" >&2
+  exit 1
+fi
+
+if [[ "$allow_pending" != true ]]; then
+  if grep -q '^- Built app stat: not found$' "$build_identity"; then
+    echo "Strict evidence requires an existing built Penggie.app: $build_identity" >&2
+    exit 1
+  fi
+  if grep -q '^- Penggie debug dylib SHA256: not found$' "$build_identity"; then
+    echo "Strict evidence requires a built Penggie.debug.dylib hash: $build_identity" >&2
+    exit 1
+  fi
+  if grep -q '^- GhosttyKit static library SHA256: not found$' "$build_identity"; then
+    echo "Strict evidence requires a GhosttyKit static library hash: $build_identity" >&2
+    exit 1
+  fi
+fi
+
+python3 - "$manifest" "$notes_dir" "$allow_pending" "$build_commit" <<'PY'
 import re
 import sys
 from pathlib import Path
@@ -68,6 +95,7 @@ sys.tracebacklimit = 0
 manifest = Path(sys.argv[1])
 notes_dir = Path(sys.argv[2])
 allow_pending = sys.argv[3] == "true"
+build_commit = sys.argv[4]
 
 rows = manifest.read_text().splitlines()
 if not rows or rows[0] != "Scenario ID\tTask ID\tScope\tCoverage":
@@ -207,6 +235,8 @@ for line in rows[1:]:
         raise AssertionError(f"{note} scope mismatch: {values['Scope']} != {scope}")
     if values["Required coverage"] != coverage_raw:
         raise AssertionError(f"{note} required coverage mismatch: {values['Required coverage']} != {coverage_raw}")
+    if values["Commit SHA"] != build_commit:
+        raise AssertionError(f"{note} commit mismatch: {values['Commit SHA']} != {build_commit}")
     if f"### {scenario_id}:" not in source or "## Manual QA Steps" not in source:
         raise AssertionError(f"{note} is missing embedded manual QA steps for {scenario_id}")
 
