@@ -86,6 +86,19 @@ for needle, label in [
 ]:
     require(root, needle, label)
 
+# Destructive confirmations must expose the system confirmation labels and must
+# not bypass the explicit cancel/confirm lifecycle boundary.
+for needle, label in [
+    ('.alert(item: $session.pendingConfirmation)', "session confirmation alert"),
+    ('title: Text(confirmation.title)', "confirmation title"),
+    ('message: Text(confirmation.message)', "confirmation message"),
+    ('primaryButton: .destructive(Text(confirmation.confirmationButtonTitle))', "destructive confirmation label"),
+    ('session.confirm(confirmation)', "destructive confirmation action"),
+    ('secondaryButton: .cancel', "confirmation cancel button"),
+    ('session.cancelConfirmation()', "confirmation cancel action"),
+]:
+    require(root, needle, label)
+
 # Documentation gates must keep live accessibility evidence manual and explicit.
 for needle, label in [
     ("QA-AX-001", "keyboard-only manual scenario"),
