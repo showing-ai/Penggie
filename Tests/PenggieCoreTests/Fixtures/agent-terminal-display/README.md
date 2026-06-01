@@ -16,6 +16,28 @@ Each fixture directory may contain these files:
 
 Missing files mean that layer is not under test for that fixture. They do not mean the layer is unavailable.
 
+## Required Fixture Entry Fields
+
+Every new or materially changed fixture must include enough README or inline
+test context to answer these questions:
+
+- **Source terminal facts:** which `ansi.txt`, `ghostty-screen.json`,
+  `terminal-styled-snapshot.json`, or `raw-text.txt` file is authoritative for
+  the fixture.
+- **Expected Display AST:** which `display-ast.json` snapshot is expected, or
+  why this fixture intentionally stops before Display AST classification.
+- **Expected Reading rendering:** which `reading-snapshot.json` snapshot is
+  expected, or why Reading rendering is out of scope for the fixture.
+- **Selected-row evidence:** whether the fixture must exclude terminal-owned
+  selection from sealed transcript content, or whether selected-row evidence is
+  not applicable because the screen is ordinary transcript/display output.
+- **Low-confidence behavior:** whether the expected result is structured
+  Reading output or raw/preformatted fallback that preserves visible terminal
+  evidence.
+
+If any field is intentionally not applicable, say so explicitly. Silent absence
+is treated as missing evidence during review.
+
 Rules for adding fixtures:
 
 - Keep Codex/Ghostty as the source of truth for slash, model, selection, and Raw Terminal state.

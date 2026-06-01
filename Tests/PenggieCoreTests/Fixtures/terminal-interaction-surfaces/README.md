@@ -10,6 +10,31 @@ Fixtures in this directory must describe terminal-owned behavior from the Ghostt
 screen model. They must not become local product data for command lists, model
 lists, resume sessions, approval choices, permission choices, or selected indices.
 
+## Required Fixture Entry Fields
+
+Every new or materially changed terminal-interaction fixture must document these
+facts in the fixture name, README entry, or related test expectation:
+
+- **Source terminal facts:** the Ghostty screen-model rows, visible text,
+  cursor position, style runs, viewport, and footer/header text that define the
+  surface.
+- **Expected projection:** the expected surface kind, candidate rows, metadata,
+  selected row, selected source, confidence, freshness, and confirmability.
+- **Expected Reading rendering:** whether Reading should render a native
+  terminal-owned overlay, block confirmation, show a low-confidence syncing
+  state, or fall back to Raw Terminal audit. This fixture directory does not
+  require Display AST snapshots unless the same terminal output is also tested
+  in `agent-terminal-display`.
+- **Selected-row evidence:** marker, style, cursor, row position, or explicit
+  absence of reliable evidence. Tests must assert the selected source when the
+  fixture is confirmable.
+- **Low-confidence behavior:** whether rows remain visible, Enter is consumed,
+  and the user can audit or recover through Raw Terminal.
+
+If a fixture represents a negative transcript or an opaque surface, the entry
+must state what should not be projected and why local selected-index state is
+forbidden.
+
 ## Expected Fixture Facts
 
 Each fixture should make these facts inspectable either directly in the screen
