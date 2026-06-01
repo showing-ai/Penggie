@@ -82,7 +82,7 @@
 
 ## 10. P2 QA Scripts, Review Tooling, And Release Hygiene
 
-- [ ] 10.1 Create a repeatable manual QA script for the product-grade UI/UX matrix with exact setup, terminal fixture, window size, theme, keyboard, VoiceOver, and expected result steps.
+- [x] 10.1 Create a repeatable manual QA script for the product-grade UI/UX matrix with exact setup, terminal fixture, window size, theme, keyboard, VoiceOver, and expected result steps.
 - [ ] 10.2 Add optional scripts for visual capture or local QA setup where practical, without depending on a separate Codex session as user-visible truth.
 - [ ] 10.3 Add a release review checklist that records manual QA evidence, visual captures, accessibility notes, fixture coverage, known limitations, and deferred P2 items.
 - [ ] 10.4 Remove or gate debug-only diagnostic logs and temporary files that were useful during development but are not part of product QA.
