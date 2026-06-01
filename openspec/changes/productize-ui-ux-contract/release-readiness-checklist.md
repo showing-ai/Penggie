@@ -32,6 +32,7 @@ For each milestone, record:
 - Evidence bundle `logs/build-identity.txt` result, including current commit,
   Debug app path, `Penggie.debug.dylib` hash, and GhosttyKit static library hash.
 - Evidence bundle `logs/preflight.txt` result, including the
+  `Product UI/UX preflight commit: <sha>` line and
   `Product-grade UI/UX preflight passed` marker from the recorded commit.
 - Running app build identity result from
   `scripts/qa/check-running-penggie-build-identity.sh <bundle>`.

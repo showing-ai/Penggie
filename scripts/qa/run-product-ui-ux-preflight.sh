@@ -49,6 +49,9 @@ run() {
 
 cd "$repo_root"
 
+repo_commit="$(git rev-parse HEAD)"
+echo "Product UI/UX preflight commit: $repo_commit"
+
 run scripts/qa/check-openspec-worktree-inventory.sh
 run openspec validate productize-ui-ux-contract --strict
 run openspec validate --all --strict

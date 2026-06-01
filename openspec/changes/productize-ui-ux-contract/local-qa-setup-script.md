@@ -64,6 +64,10 @@ aggregates the OpenSpec validation, worktree inventory, source guards, fixture
 guards, focused Swift tests, and Debug macOS Xcode build that protect the
 terminal-owned surface and product-grade UI/UX contracts. For final strict
 evidence, record its output at `logs/preflight.txt` inside the evidence bundle.
+The strict evidence checker requires that log to include both the passing
+preflight marker and the same repository commit recorded in
+`logs/build-identity.txt`, preventing copied preflight logs from satisfying
+final QA for a different build.
 
 The OpenSpec/worktree inventory guard must pass before live QA starts. It proves
 that previously completed foundational changes are archived, the expected
@@ -152,7 +156,9 @@ bundle, and the bundle is fully filled from that live app run.
 
 The strict checker also requires `logs/build-identity.txt` to resolve a Debug
 `Penggie.app`, `Penggie.debug.dylib` SHA256, and GhosttyKit static library
-SHA256. This prevents accepting live QA evidence without a traceable build.
+SHA256, and it requires `logs/preflight.txt` to record the same repository
+commit. This prevents accepting live QA evidence without a traceable build and
+matching preflight run.
 
 ## Non-Goals
 

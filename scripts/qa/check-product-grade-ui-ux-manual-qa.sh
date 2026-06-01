@@ -129,6 +129,8 @@ if "Strict evidence requires a product UI/UX preflight log" not in evidence_chec
     raise AssertionError("Strict evidence bundle check must require a recorded preflight log")
 if "Product-grade UI/UX preflight passed" not in evidence_checker_source:
     raise AssertionError("Strict evidence bundle check must require a passing preflight marker")
+if "preflight commit to match the evidence build identity" not in evidence_checker_source:
+    raise AssertionError("Strict evidence bundle check must require the preflight commit to match the evidence bundle")
 if "Product UI/UX task evidence map guard passed" not in task_evidence_map_source:
     raise AssertionError("Manual QA guard must include the task-to-evidence mapping guard")
 if "Unchecked tasks must be either implemented now" not in task_evidence_map_source:
@@ -140,6 +142,7 @@ if "OpenSpec/worktree inventory guard passed" not in inventory_guard_source:
 if "Vendor/ghostty has dirty changes" not in inventory_guard_source:
     raise AssertionError("OpenSpec/worktree inventory guard must fail on dirty Vendor/ghostty state")
 required_preflight_commands = [
+    "Product UI/UX preflight commit",
     "check-openspec-worktree-inventory.sh",
     "openspec validate productize-ui-ux-contract --strict",
     "openspec validate --all --strict",

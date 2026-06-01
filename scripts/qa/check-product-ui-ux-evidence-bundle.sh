@@ -92,6 +92,17 @@ if [[ "$allow_pending" != true ]]; then
     echo "Strict evidence requires a passing product UI/UX preflight log: $preflight_log" >&2
     exit 1
   fi
+  preflight_commit="$(sed -n 's/^Product UI\/UX preflight commit: //p' "$preflight_log" | tail -1)"
+  if [[ -z "$preflight_commit" ]]; then
+    echo "Strict evidence requires the preflight log to record its repository commit: $preflight_log" >&2
+    exit 1
+  fi
+  if [[ "$preflight_commit" != "$build_commit" ]]; then
+    echo "Strict evidence requires the preflight commit to match the evidence build identity:" >&2
+    echo "  preflight: $preflight_commit" >&2
+    echo "  bundle:    $build_commit" >&2
+    exit 1
+  fi
 fi
 
 python3 - "$manifest" "$notes_dir" "$allow_pending" "$build_commit" "$bundle_dir" <<'PY'
