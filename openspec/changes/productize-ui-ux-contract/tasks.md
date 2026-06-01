@@ -44,7 +44,7 @@
 - [x] 5.3 Validate completed-turn stability under repaint, resize, later terminal output, Raw Terminal switching, long sessions, process exit, and subsequent prompt submission.
 - [x] 5.4 Expand Display AST fixtures for CJK prose, CJK tables, box drawing, code blocks, warnings, tool-heavy output, low-confidence classification, and long transcripts.
 - [x] 5.5 Validate that terminal footers, model/status rows, active input rows, slash/resume/approval surfaces, and transient startup/status UI do not become sealed assistant transcript content.
-- [ ] 5.6 Validate fallback behavior: low-confidence rendering preserves visible terminal text, exposes traceability/fallback reason where practical, and keeps Raw Terminal audit available.
+- [x] 5.6 Validate fallback behavior: low-confidence rendering preserves visible terminal text, exposes traceability/fallback reason where practical, and keeps Raw Terminal audit available.
 
 ## 6. P0 Raw Terminal Audit And Control Surface
 

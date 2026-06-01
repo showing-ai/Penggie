@@ -231,6 +231,34 @@ struct PenggieDisplayFixtureTests {
         #expect(rendered.contains { $0.kind == "preformatted" && $0.cellAware })
     }
 
+    @Test
+    func lowConfidenceFallbackExposesTraceabilityAndPreservesTerminalEvidence() throws {
+        let rawText = try fixtureText(fixture: "low-confidence-fallback", filename: "raw-text.txt")
+        let snapshot = terminalSnapshot(from: rawText, columns: 120)
+        let document = CodexAdapter().compile(snapshot: snapshot)
+        let blocks = document.turns.flatMap(\.blocks)
+        let visibleText = blocks.map { $0.spans.map(\.text).joined() }.joined(separator: "\n")
+
+        #expect(document.metadata.source == .terminalProjection)
+        #expect(document.metadata.terminalColumns == 120)
+        #expect(document.metadata.terminalRows == 4)
+        #expect(blocks.allSatisfy { $0.confidence.level == .fallback })
+        #expect(blocks.allSatisfy { $0.fallback != nil })
+        #expect(blocks.allSatisfy { !($0.fallback?.message.isEmpty ?? true) })
+        #expect(blocks.contains { $0.kind == .rawFallback && $0.fallback?.code == "generic.visible_text" })
+        #expect(blocks.contains { $0.kind == .preformatted && $0.fallback?.code == "generic.table_shape" })
+        #expect(blocks.contains {
+            $0.fallback?.message.contains("visible terminal text") == true
+        })
+        #expect(blocks.contains {
+            $0.fallback?.message.contains("cell-aware preformatted text") == true
+        })
+
+        for line in rawText.components(separatedBy: .newlines) {
+            #expect(visibleText.contains(line))
+        }
+    }
+
     private func renderedSegments(fixture: String) throws -> [FixtureReadingSegment] {
         let rawText = try fixtureText(fixture: fixture, filename: "raw-text.txt")
         let block = PenggieReadingBlock(

@@ -78,6 +78,23 @@ struct PenggieSessionLifecyclePolicyTests {
     }
 
     @Test
+    func lowConfidenceFallbackAuditCanSwitchToRawTerminalWhenSessionIsInspectable() {
+        let stableReading = PenggieSessionLifecyclePhase.reading(hasStableCodexScreen: true)
+        #expect(PenggieSessionLifecyclePolicy.hasInspectableSession(in: stableReading))
+        #expect(PenggieSessionLifecyclePolicy.displayTransition(
+            from: stableReading,
+            to: .terminal
+        ) == .setDisplayMode(.terminal))
+
+        let unstableReading = PenggieSessionLifecyclePhase.reading(hasStableCodexScreen: false)
+        #expect(!PenggieSessionLifecyclePolicy.hasInspectableSession(in: unstableReading))
+        #expect(PenggieSessionLifecyclePolicy.displayTransition(
+            from: unstableReading,
+            to: .terminal
+        ) == .noOp)
+    }
+
+    @Test
     func exitedSessionIsInspectableButNotRunningOrPromptSubmittable() {
         #expect(PenggieSessionLifecyclePolicy.hasInspectableSession(in: .exited))
         #expect(!PenggieSessionLifecyclePolicy.isRunning(in: .exited))
