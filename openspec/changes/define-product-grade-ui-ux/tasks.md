@@ -12,7 +12,7 @@
 ## 2. Future Productization Planning
 
 - [x] 2.1 Convert accepted UX contract items into prioritized polish tasks against the current implementation.
-- [ ] 2.2 Convert the documented Scenario QA Scripts into executable manual QA cases with concrete fixtures, window sizes, Dynamic Type settings, VoiceOver steps, and expected AX values.
+- [x] 2.2 Convert the documented Scenario QA Scripts into executable manual QA cases with concrete fixtures, window sizes, Dynamic Type settings, VoiceOver steps, and expected AX values.
 - [ ] 2.3 Add visual review fixtures for long sessions, CJK, tables, code, tool-heavy output, narrow windows, large text, and light/dark themes.
 - [x] 2.4 Add accessibility review tasks for VoiceOver, keyboard-only flow, focus order, labels, dynamic type, and reduced motion.
 - [x] 2.5 Decide which productization gaps are launch-blocking versus post-launch polish.
