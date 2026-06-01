@@ -1,8 +1,8 @@
 # Live QA Current Status
 
 Change: `productize-ui-ux-contract`
-Status captured UTC: `2026-06-01T11:12:08Z`
-Evidence baseline commit: `3e03bbeff239aaa5931f89703d3959766f614a98`
+Status captured UTC: `2026-06-01T11:43:03Z`
+Evidence baseline commit: `dfee54f7b37da102953c8d06d33bfe9af9e0c44f`
 
 ## Current State
 
@@ -12,7 +12,7 @@ archive because the protected live/manual QA tasks are still open.
 
 Latest prepared evidence bundle:
 
-`tmp/product-ui-ux-qa/20260601T105056Z-3e03bbeff239aaa5931f89703d3959766f614a98`
+`tmp/product-ui-ux-qa/20260601T113558Z-dfee54f7b37da102953c8d06d33bfe9af9e0c44f`
 
 This bundle is intentionally ignored by git and stores local screenshots,
 recordings, logs, and per-scenario notes. It is referenced here only as the
@@ -22,12 +22,13 @@ after that commit, prepare a fresh bundle before final acceptance.
 
 ## Verified Before Live QA
 
-- `scripts/qa/check-running-penggie-build-identity.sh <bundle>` passed for the
-  current Debug app during the recorded preflight run.
-- `scripts/qa/run-product-ui-ux-preflight.sh` passed for the recorded commit.
+- `scripts/qa/prepare-product-ui-ux-local-qa.sh --build` prepared the current
+  evidence bundle from a clean main worktree and clean `Vendor/ghostty` state.
+- `scripts/qa/run-product-ui-ux-preflight.sh` passed for the recorded commit
+  and wrote its log to the current evidence bundle.
 - `openspec validate productize-ui-ux-contract --strict` passed.
 - `openspec validate --all --strict` passed.
-- The latest non-strict live QA status check passed the evidence bundle
+- The latest non-strict live QA status check passed the current evidence bundle
   structure check and reported `15 open, 0 complete, 15 tracked`.
 
 ## Remaining Protected Live/Manual QA Tasks
