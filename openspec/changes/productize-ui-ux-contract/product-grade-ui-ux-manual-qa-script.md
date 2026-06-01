@@ -23,6 +23,8 @@ For every scenario, record:
 - VoiceOver state: off, on, or not applicable.
 - Expected result and observed result.
 - Screenshot or screen recording when the scenario fails or is visual.
+- Contrast audit notes or measurements under `logs/` when the scenario requires
+  explicit contrast review.
 - Raw Terminal parity note whenever an inspectable terminal surface exists.
 
 ## Global Setup

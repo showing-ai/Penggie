@@ -137,6 +137,8 @@ if "Product-grade UI/UX preflight passed" not in evidence_checker_source:
     raise AssertionError("Strict evidence bundle check must require a passing preflight marker")
 if "preflight commit to match the evidence build identity" not in evidence_checker_source:
     raise AssertionError("Strict evidence bundle check must require the preflight commit to match the evidence bundle")
+if '"contrast" and "required"' not in evidence_checker_source:
+    raise AssertionError("Strict evidence bundle check must require diagnostic evidence for contrast-required scenarios")
 if "Product UI/UX task evidence map guard passed" not in task_evidence_map_source:
     raise AssertionError("Manual QA guard must include the task-to-evidence mapping guard")
 if "Unchecked tasks must be either implemented now" not in task_evidence_map_source:

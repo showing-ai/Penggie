@@ -300,6 +300,15 @@ def require_coverage(values: dict[str, str], coverage: dict[str, list[str]], sce
                     {"screenshots", "recordings"},
                 )
             )
+        if key == "contrast" and "required" in tokens:
+            errors.extend(
+                require_existing_artifacts(
+                    values["Diagnostic/log path"],
+                    scenario_id,
+                    "Diagnostic/log path",
+                    {"logs"},
+                )
+            )
         for token in tokens:
             if not token_present(value, token):
                 errors.append(f"{scenario_id}: {field} does not include coverage token {token!r}")

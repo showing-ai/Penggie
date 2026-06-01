@@ -152,7 +152,9 @@ cat > "$evidence_dir/README.md" <<EOF
 When a scenario requires screenshots or recordings, record relative paths such
 as \`screenshots/QA-OVERLAY-003-light.png\` in the scenario note. If a scenario
 result is \`fail\` or \`blocked\`, record at least one relative path under
-\`logs/\` in \`Diagnostic/log path\`.
+\`logs/\` in \`Diagnostic/log path\`. If a scenario requires contrast review,
+record a relative \`logs/\` path to the contrast audit notes or measurement
+report in \`Diagnostic/log path\`, even when the scenario passes.
 
 ## Required Local Checks
 

@@ -119,6 +119,11 @@ note must include at least one existing relative path under `logs/` in
 `Diagnostic/log path`. Absolute paths and paths outside the evidence bundle are
 rejected so evidence remains portable and reviewable.
 
+When `manifest.tsv` marks `contrast=required`, the scenario note must also
+include an existing relative `logs/` path in `Diagnostic/log path`, even for a
+passing run. That log should contain the contrast audit notes, measured values,
+or reviewer calculations for the contrast-sensitive states under review.
+
 Optional build verification:
 
 ```bash
