@@ -1,8 +1,8 @@
 # Live QA Current Status
 
 Change: `productize-ui-ux-contract`
-Status captured UTC: `2026-06-01T12:36:23Z`
-Evidence baseline commit: `853f60f57df1635748de7aac79911ab410854fa5`
+Status captured UTC: `2026-06-01T12:54:51Z`
+Evidence baseline commit: `74d971ca2a682db901ffffba9c93ca6d36977f1d`
 
 ## Current State
 
@@ -12,7 +12,7 @@ archive because the protected live/manual QA tasks are still open.
 
 Latest prepared evidence bundle:
 
-`tmp/product-ui-ux-qa/20260601T122935Z-853f60f57df1635748de7aac79911ab410854fa5`
+`tmp/product-ui-ux-qa/20260601T125132Z-74d971ca2a682db901ffffba9c93ca6d36977f1d`
 
 This bundle is intentionally ignored by git and stores local screenshots,
 recordings, logs, and per-scenario notes. It is referenced here only as the
@@ -34,6 +34,9 @@ after that commit, prepare a fresh bundle before final acceptance.
   `scripts/qa/check-product-ui-ux-live-qa-status.sh --strict --evidence-dir
   "<bundle>"`, and verifies that its loaded `Penggie.debug.dylib` inode matches
   `logs/build-identity.txt`.
+- Strict evidence checking now also requires contrast-required scenarios to
+  include an existing relative `logs/` diagnostic path with auditable contrast
+  notes, measurements, or reviewer calculations.
 - `openspec validate productize-ui-ux-contract --strict` passed.
 - `openspec validate --all --strict` passed.
 - The latest non-strict live QA status check passed the current evidence bundle
