@@ -26,8 +26,10 @@ The script creates:
 - `recordings/`
 - `logs/`
 - `notes/`
+- `manifest.tsv` with required scenario IDs, owning task IDs, and review scope
 - `README.md` with required validation commands and manual QA references
 - `notes/scenario-template.md` for per-scenario evidence
+- one `notes/<scenario-id>.md` file for every required manual QA scenario
 
 ## Verification
 
@@ -38,6 +40,23 @@ scripts/qa/prepare-product-ui-ux-local-qa.sh --evidence-dir /tmp/penggie-ui-ux-q
 ```
 
 The command must create a timestamped evidence directory and print its path.
+
+Structural bundle verification:
+
+```bash
+bundle="$(scripts/qa/prepare-product-ui-ux-local-qa.sh --evidence-dir /tmp/penggie-ui-ux-qa | tail -n 1)"
+scripts/qa/check-product-ui-ux-evidence-bundle.sh --allow-pending "$bundle"
+```
+
+Final manual QA evidence verification:
+
+```bash
+scripts/qa/check-product-ui-ux-evidence-bundle.sh "$bundle"
+```
+
+The final checker is expected to fail on a freshly generated bundle. It should
+only pass after every scenario note records a final result, observed result,
+Raw Terminal parity note, and follow-up.
 
 Optional build verification:
 

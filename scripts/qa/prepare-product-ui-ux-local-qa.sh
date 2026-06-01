@@ -84,6 +84,7 @@ cat > "$evidence_dir/README.md" <<EOF
 - \`recordings/\`: optional short videos for flicker, focus, or scrolling behavior.
 - \`logs/\`: relevant app/system logs when a scenario fails.
 - \`notes/\`: per-scenario manual QA notes.
+- \`manifest.tsv\`: required scenarios, owning task IDs, and review scope.
 
 ## Required Local Checks
 
@@ -91,6 +92,7 @@ cat > "$evidence_dir/README.md" <<EOF
 openspec validate productize-ui-ux-contract --strict
 openspec validate --all --strict
 scripts/qa/check-product-grade-ui-ux-manual-qa.sh
+scripts/qa/check-product-ui-ux-evidence-bundle.sh --allow-pending "$evidence_dir"
 scripts/qa/check-fixture-regression-coverage.sh
 scripts/qa/check-accessibility-smoke-source.sh
 scripts/qa/check-diagnostics-release-hygiene.sh
@@ -124,6 +126,43 @@ Capture pass/fail evidence for:
 - light mode
 - dark mode
 
+For final acceptance of live manual QA, rerun:
+
+\`\`\`bash
+scripts/qa/check-product-ui-ux-evidence-bundle.sh "$evidence_dir"
+\`\`\`
+
+The strict checker fails until every required scenario note has a non-placeholder
+result, observed result, Raw Terminal parity note where applicable, and follow-up.
+
+EOF
+
+cat > "$evidence_dir/manifest.tsv" <<'EOF'
+Scenario ID	Task ID	Scope
+QA-SETUP-001	2.2	Valid folder start
+QA-SETUP-002	2.2	Invalid or missing folder recovery
+QA-LIFE-001	2.6	New Chat confirmation
+QA-LIFE-002	2.6	Close Session confirmation
+QA-OVERLAY-001	3.10	Slash suggestions
+QA-OVERLAY-002	3.10	Model and effort picker
+QA-OVERLAY-003	3.10	Resume picker scroll, filter, sort, and page boundary
+QA-OVERLAY-004	3.10	Approval and permission modal choices
+QA-COMP-001	4.2	IME marked text
+QA-COMP-002	4.3	Ordinary composer behavior
+QA-COMP-003	4.4	Slash handoff focus
+QA-FOCUS-001	4.5	Focus transitions across app states
+QA-READ-001	5.3	Long transcript stability
+QA-READ-002	5.6	CJK, table, code, warning, and fallback display
+QA-RAW-001	6.2	Reading to Raw Terminal round trip
+QA-RAW-002	6.4	Raw Terminal keyboard focus and clipboard
+QA-RAW-003	6.3	Raw Terminal availability during low-confidence projection
+QA-RAW-004	6.5	Raw Terminal text selection, copy, paste, and mouse reporting
+QA-RAW-005	6.6	Raw Terminal visual parity
+QA-AX-001	7.4	Keyboard-only and larger text journey
+QA-AX-002	7.5	Reduced motion and dynamic announcements
+QA-VIS-001	8.3	Light and dark visual capture matrix
+QA-VIS-002	8.4	Density rules
+QA-VIS-003	8.5	Contrast targets
 EOF
 
 cat > "$evidence_dir/notes/scenario-template.md" <<'EOF'
@@ -145,6 +184,34 @@ cat > "$evidence_dir/notes/scenario-template.md" <<'EOF'
 - Screenshot/recording path:
 - Follow-up:
 EOF
+
+tail -n +2 "$evidence_dir/manifest.tsv" | while IFS=$'\t' read -r scenario_id task_id scope; do
+  note_path="$evidence_dir/notes/$scenario_id.md"
+  cat > "$note_path" <<EOF
+# Scenario Evidence: $scenario_id
+
+- Scenario ID: $scenario_id
+- Task ID: $task_id
+- Scope: $scope
+- Result: pending
+- Commit SHA: $commit_sha
+- Build configuration: Debug
+- macOS appearance:
+- Window size:
+- Project folder:
+- Terminal fixture or live terminal setup:
+- Keyboard path:
+- VoiceOver state:
+- Expected result:
+- Observed result:
+- Raw Terminal parity note:
+- Screenshot/recording path:
+- Follow-up:
+
+## Notes
+
+EOF
+done
 
 echo "Prepared product UI/UX QA evidence directory:"
 echo "$evidence_dir"

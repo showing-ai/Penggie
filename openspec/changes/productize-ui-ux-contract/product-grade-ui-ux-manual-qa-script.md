@@ -198,6 +198,22 @@ also run at:
   surface, local composer does not own selection, and dismissal restores the
   correct focus owner.
 
+### QA-FOCUS-001: Focus transitions across app states
+
+- Setup: exercise setup, Reading idle, composing, terminal-owned overlay,
+  full-page resume/approval/permission, Raw Terminal, confirmation, process
+  exit, and recovery states.
+- Terminal fixture: live Codex session plus fixture-backed low-confidence state
+  when available.
+- Window size: normal and narrow.
+- Theme: light and dark.
+- Keyboard: Tab, Esc, Enter, mode switch, confirmation cancel/confirm, and
+  return from Raw Terminal to Reading.
+- VoiceOver: on for one full pass.
+- Expected result: there is exactly one active keyboard owner at each point;
+  blocked states do not leak keys to the wrong owner; returning from each state
+  restores the expected composer, overlay, Raw Terminal, or confirmation focus.
+
 ## P0 Reading Transcript And Display AST
 
 ### QA-READ-001: Long transcript stability
@@ -248,28 +264,73 @@ also run at:
 - Window size: normal.
 - Theme: light and dark.
 - Keyboard: type in Raw Terminal, paste text, switch back to Reading.
+- Pointer: optional for this scenario; use `QA-RAW-004` for full selection
+  coverage.
+- VoiceOver: not applicable unless testing mode switch labels.
+- Expected result: Ghostty host receives keys when visible, paste reaches the
+  embedded terminal, local composer does not capture terminal input, and Reading
+  return restores the correct focus owner.
+
+### QA-RAW-003: Low-confidence Raw Terminal availability
+
+- Setup: force or fixture a Reading projection degraded/low-confidence state.
+- Terminal fixture: low-confidence display or terminal-owned surface fixture
+  with an inspectable terminal surface.
+- Window size: normal and narrow.
+- Theme: light and dark.
+- Keyboard: switch to Raw Terminal, inspect state, switch back to Reading.
+- VoiceOver: on for the mode switch and degraded-state message.
+- Expected result: Raw Terminal remains available whenever an inspectable
+  terminal surface exists; Reading does not hide visible rows or fabricate
+  certainty; returning to Reading preserves session and draft state.
+
+### QA-RAW-004: Raw Terminal text selection, copy, paste, and mouse reporting
+
+- Setup: Raw Terminal visible with ordinary scrollback and a mouse-reporting TUI
+  surface when available.
+- Terminal fixture: ordinary transcript text plus a terminal-owned picker or
+  prompt that may capture mouse events.
+- Window size: normal.
+- Theme: light and dark.
+- Keyboard: copy shortcut, paste shortcut, and mode switch.
 - Pointer: select text, copy, inspect pasteboard result, test platform modifier
   behavior such as Shift-drag if required.
-- VoiceOver: not applicable unless testing mode switch labels.
-- Expected result: Ghostty host receives keys when visible; local composer does
-  not capture terminal input; copy/paste behavior is documented; Reading return
-  restores the correct focus owner.
+- VoiceOver: not applicable.
+- Expected result: text selection/copy behavior is documented accurately,
+  pasteboard content matches selected terminal text when selection is supported,
+  paste reaches the same PTY, and any mouse-reporting modifier requirement is
+  recorded rather than hidden.
+
+### QA-RAW-005: Raw Terminal visual parity
+
+- Setup: Raw Terminal visible in ordinary prompt, active input, terminal
+  selection, ANSI color output, and terminal-owned selected-row states.
+- Terminal fixture: live Codex screen plus ANSI/style fixture when practical.
+- Window size: normal and narrow.
+- Theme: light and dark.
+- Keyboard: switch themes, switch Reading/Raw, open slash/resume/model surface.
+- VoiceOver: not applicable.
+- Expected result: canvas, titlebar chrome, active input, cursor, terminal
+  selection, ANSI palette, selected rows, and native overlay tokens remain
+  visually coherent without Raw Terminal using a separate session or flattened
+  Reading colors.
 
 ## P1 Accessibility And Dynamic State
 
-### QA-AX-001: Keyboard-only complete journey
+### QA-AX-001: Keyboard-only and larger-text complete journey
 
 - Setup: start from the Penggie setup surface.
 - Terminal fixture: live Codex session with slash/model/resume and
   approval/permission paths when available.
-- Window size: normal.
+- Window size: normal, narrow, and larger-text review size.
 - Theme: light and dark.
 - Keyboard: complete setup, prompt submission, slash/model selection, resume
   selection, approval/permission choice, Raw Terminal switch, New Chat
   confirmation, and Close Session confirmation without pointer input.
 - VoiceOver: off for keyboard-only run, then on for the VoiceOver run.
 - Expected result: all controls are reachable, focus owner is clear, terminal
-  decisions remain terminal-owned, and unsafe confirmation is blocked when
+  decisions remain terminal-owned, larger text does not hide essential state,
+  full values remain accessible, and unsafe confirmation is blocked when
   evidence is stale or ambiguous.
 
 ### QA-AX-002: Dynamic announcements
@@ -314,6 +375,21 @@ also run at:
 - Expected result: density comes from hierarchy and disclosure, not tiny body
   text or hidden state; text, icons, selected rows, disabled state, warnings,
   danger, and focus indicators meet contrast expectations.
+
+### QA-VIS-003: Explicit contrast target review
+
+- Setup: capture normal text, large text/icons, disabled controls, selected
+  rows, warnings, danger confirmations, focus rings, terminal renderer colors,
+  and Raw Terminal active input in both themes.
+- Terminal fixture: live or fixture-backed state for each contrast-sensitive
+  component.
+- Window size: normal, narrow, and larger-text review size.
+- Theme: light and dark.
+- Keyboard: navigate to focused, selected, disabled, syncing, warning, and
+  destructive states.
+- VoiceOver: optional.
+- Expected result: each captured state meets the product contrast targets or has
+  an explicit follow-up with affected component, token, and scenario ID.
 
 ## Pass Criteria
 

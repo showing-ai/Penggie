@@ -52,14 +52,19 @@ required_scenarios = [
     "QA-COMP-001",
     "QA-COMP-002",
     "QA-COMP-003",
+    "QA-FOCUS-001",
     "QA-READ-001",
     "QA-READ-002",
     "QA-RAW-001",
     "QA-RAW-002",
+    "QA-RAW-003",
+    "QA-RAW-004",
+    "QA-RAW-005",
     "QA-AX-001",
     "QA-AX-002",
     "QA-VIS-001",
     "QA-VIS-002",
+    "QA-VIS-003",
 ]
 
 for section in required_sections:
