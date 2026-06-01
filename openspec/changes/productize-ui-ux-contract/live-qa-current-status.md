@@ -1,0 +1,69 @@
+# Live QA Current Status
+
+Change: `productize-ui-ux-contract`
+Status captured UTC: `2026-06-01T11:12:08Z`
+Commit: `3e03bbeff239aaa5931f89703d3959766f614a98`
+
+## Current State
+
+The OpenSpec artifacts, source guards, fixture guards, focused Swift tests, and
+Debug macOS build are ready for live/manual QA. The change is not ready to
+archive because the protected live/manual QA tasks are still open.
+
+Latest prepared evidence bundle:
+
+`tmp/product-ui-ux-qa/20260601T105056Z-3e03bbeff239aaa5931f89703d3959766f614a98`
+
+This bundle is intentionally ignored by git and stores local screenshots,
+recordings, logs, and per-scenario notes. It is referenced here only as the
+current local evidence location.
+
+## Verified Before Live QA
+
+- `scripts/qa/check-running-penggie-build-identity.sh <bundle>` passed for the
+  current Debug app during the recorded preflight run.
+- `scripts/qa/run-product-ui-ux-preflight.sh` passed for the recorded commit.
+- `openspec validate productize-ui-ux-contract --strict` passed.
+- `openspec validate --all --strict` passed.
+- The latest non-strict live QA status check passed the evidence bundle
+  structure check and reported `15 open, 0 complete, 15 tracked`.
+
+## Remaining Protected Live/Manual QA Tasks
+
+These tasks must not be checked off without strict evidence notes, required
+screenshots or diagnostics, and Raw Terminal parity notes where applicable:
+
+- `3.10` terminal-owned slash/model/resume/approval/permission live QA
+- `4.2` IME marked text QA
+- `4.3` ordinary composer QA
+- `4.4` native slash handoff focus QA
+- `4.5` focus transition QA
+- `6.2` Reading-to-Raw-to-Reading same-session round trip QA
+- `6.3` Raw Terminal availability during low-confidence projection QA
+- `6.4` Raw Terminal keyboard focus QA
+- `6.5` Raw Terminal text selection/copy/paste/mouse reporting QA
+- `6.6` Raw Terminal visual parity QA
+- `7.4` Dynamic Type or larger text QA
+- `7.5` reduced motion QA
+- `8.3` light/dark visual capture matrix
+- `8.4` density review
+- `8.5` contrast review
+
+## Strict Acceptance Gate
+
+Final live/manual QA acceptance requires:
+
+```bash
+scripts/qa/run-product-ui-ux-preflight.sh 2>&1 | tee "<bundle>/logs/preflight.txt"
+scripts/qa/check-product-ui-ux-live-qa-status.sh --strict --evidence-dir "<bundle>"
+```
+
+The strict checker is expected to fail until every required scenario note has a
+final result, observed result, follow-up, required visual or diagnostic paths,
+and Raw Terminal parity evidence where the manifest requires it.
+
+## Guardrail
+
+User screenshots and conversational reports may guide investigation, but they
+do not prove OpenSpec task completion by themselves. Do not mark the remaining
+tasks complete unless the evidence bundle satisfies the strict checker.
