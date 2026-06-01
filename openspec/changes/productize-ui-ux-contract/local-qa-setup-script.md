@@ -99,6 +99,19 @@ records the build identity in `logs/build-identity.txt`. Reviewers should use
 that file to confirm manual QA is running against the intended app binary and
 embedded Ghostty substrate instead of an older already-running app.
 
+Runtime build identity verification:
+
+```bash
+scripts/qa/check-running-penggie-build-identity.sh "$bundle"
+```
+
+Run this after launching the recorded Debug `Penggie.app` and before collecting
+live QA evidence. The guard compares the current repository commit, recorded
+Debug app, `Penggie.debug.dylib` hash/inode, GhosttyKit static library hash, and
+the dylib loaded by the running Penggie process. It must fail if manual QA is
+accidentally using an older already-running app or a stale embedded Ghostty
+substrate. If more than one Penggie process is running, pass `--pid <pid>`.
+
 Strict live/manual QA status verification:
 
 ```bash

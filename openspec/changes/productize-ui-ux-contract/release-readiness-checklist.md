@@ -13,6 +13,7 @@ Use this checklist before accepting each product-grade UI/UX milestone.
   - `scripts/check-theme-token-usage.sh` when visual/theme tokens are touched.
 - Live/manual QA status guard:
   - `scripts/qa/check-product-ui-ux-live-qa-status.sh` before manual QA starts, to prove all remaining live tasks have manifest scenarios.
+  - `scripts/qa/check-running-penggie-build-identity.sh <bundle>` after launching the recorded Debug app, to prove the running process loaded the same `Penggie.debug.dylib` recorded in the evidence bundle.
   - `scripts/qa/check-product-ui-ux-live-qa-status.sh --strict --evidence-dir <bundle>` before accepting live/manual QA completion.
 - `git diff --check`
 - `xcodebuild -project Penggie/Penggie.xcodeproj -scheme Penggie -configuration Debug -destination 'platform=macOS' build`
@@ -27,6 +28,8 @@ For each milestone, record:
 - Evidence bundle path and `check-product-ui-ux-live-qa-status.sh` result.
 - Evidence bundle `logs/build-identity.txt` result, including current commit,
   Debug app path, `Penggie.debug.dylib` hash, and GhosttyKit static library hash.
+- Running app build identity result from
+  `scripts/qa/check-running-penggie-build-identity.sh <bundle>`.
 - Fixtures added or updated, or reason not applicable.
 - Manual QA scenario names and result.
 - Accessibility QA result.
@@ -58,6 +61,7 @@ Commands:
 - git diff --check:
 - xcodebuild Debug macOS build:
 - build identity commit/app/dylib/GhosttyKit hashes:
+- running app identity guard:
 
 Manual QA Evidence:
 - Scenarios run:
@@ -122,6 +126,8 @@ missing without an explicit not-applicable rationale:
 - Raw Terminal parity evidence when an inspectable terminal surface exists.
 - Build identity evidence proving QA ran against the intended Penggie build,
   not an older already-running app or stale embedded Ghostty substrate.
+- Running process identity evidence proving the live Penggie process loaded the
+  evidence bundle's `Penggie.debug.dylib` path and inode.
 
 The reviewer must also reject the milestone if the evidence depends on a second
 Codex CLI, SDK session, `codex exec --json` output, separate Raw Terminal

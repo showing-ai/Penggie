@@ -153,6 +153,7 @@ cat > "$evidence_dir/README.md" <<EOF
 
 \`\`\`bash
 scripts/qa/prepare-product-ui-ux-local-qa.sh --build --evidence-dir "$evidence_root"
+scripts/qa/check-running-penggie-build-identity.sh "$evidence_dir"
 openspec validate productize-ui-ux-contract --strict
 openspec validate --all --strict
 scripts/qa/check-product-grade-ui-ux-manual-qa.sh
