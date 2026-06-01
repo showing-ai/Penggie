@@ -599,6 +599,7 @@ private struct PenggieChromeIconButton: View {
 }
 
 private struct PenggieChromeIconButtonStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.isEnabled) private var isEnabled
     @Environment(\.penggieTheme) private var theme
 
@@ -614,10 +615,10 @@ private struct PenggieChromeIconButtonStyle: ButtonStyle {
                 RoundedRectangle(cornerRadius: 9, style: .continuous)
                     .stroke(isFocused ? theme.accent.opacity(0.58) : Color.clear, lineWidth: 2)
             }
-            .scaleEffect(configuration.isPressed ? 0.96 : 1)
-            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
-            .animation(.easeOut(duration: 0.12), value: isHovering)
-            .animation(.easeOut(duration: 0.12), value: isFocused)
+            .scaleEffect(reduceMotion ? 1 : (configuration.isPressed ? 0.96 : 1))
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: configuration.isPressed)
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: isHovering)
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: isFocused)
     }
 
     private func background(isPressed: Bool) -> Color {
@@ -1459,6 +1460,7 @@ private struct PenggieReadingContentView: View {
 }
 
 private struct PenggieReadingDisclosureView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.penggieTheme) private var theme
 
     let disclosure: PenggieReadingDisclosureBlock
@@ -1473,8 +1475,12 @@ private struct PenggieReadingDisclosureView: View {
         VStack(alignment: .leading, spacing: 8) {
             Button {
                 guard disclosure.hasDetails else { return }
-                withAnimation(.easeOut(duration: 0.16)) {
+                if reduceMotion {
                     isExpanded.toggle()
+                } else {
+                    withAnimation(.easeOut(duration: 0.16)) {
+                        isExpanded.toggle()
+                    }
                 }
             } label: {
                 HStack(spacing: 6) {

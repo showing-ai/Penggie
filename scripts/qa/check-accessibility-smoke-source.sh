@@ -10,8 +10,9 @@ voiceover_checklist="$repo_root/openspec/changes/productize-ui-ux-contract/voice
 release_checklist="$repo_root/openspec/changes/productize-ui-ux-contract/release-readiness-checklist.md"
 automation_plan="$repo_root/openspec/changes/productize-ui-ux-contract/accessibility-smoke-automation-plan.md"
 dynamic_evidence="$repo_root/openspec/changes/productize-ui-ux-contract/dynamic-announcements-evidence.md"
+reduced_motion_evidence="$repo_root/openspec/changes/productize-ui-ux-contract/reduced-motion-source-evidence.md"
 
-python3 - "$root_view" "$session_model" "$announcement_source" "$manual_qa" "$voiceover_checklist" "$release_checklist" "$automation_plan" "$dynamic_evidence" <<'PY'
+python3 - "$root_view" "$session_model" "$announcement_source" "$manual_qa" "$voiceover_checklist" "$release_checklist" "$automation_plan" "$dynamic_evidence" "$reduced_motion_evidence" <<'PY'
 import re
 import sys
 from pathlib import Path
@@ -24,6 +25,7 @@ voiceover_path = Path(sys.argv[5])
 release_path = Path(sys.argv[6])
 plan_path = Path(sys.argv[7])
 dynamic_path = Path(sys.argv[8])
+reduced_motion_path = Path(sys.argv[9])
 
 root = root_path.read_text()
 session = session_path.read_text()
@@ -33,6 +35,7 @@ voiceover = voiceover_path.read_text()
 release = release_path.read_text()
 plan = plan_path.read_text()
 dynamic = dynamic_path.read_text()
+reduced_motion = reduced_motion_path.read_text()
 
 
 def require(source: str, needle: str, label: str) -> None:
@@ -137,6 +140,20 @@ for needle, label in [
 ]:
     require(root, needle, label)
 
+# Penggie-owned motion must honor the macOS Reduce Motion setting. Terminal
+# renderer animation remains outside SwiftUI and is audited through Raw Terminal.
+for needle, label in [
+    ('@Environment(\\.accessibilityReduceMotion) private var reduceMotion', "reduce motion environment"),
+    ('.scaleEffect(reduceMotion ? 1 : (configuration.isPressed ? 0.96 : 1))', "chrome scale disabled under reduce motion"),
+    ('.animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: configuration.isPressed)', "pressed animation disabled under reduce motion"),
+    ('.animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: isHovering)', "hover animation disabled under reduce motion"),
+    ('.animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: isFocused)', "focus animation disabled under reduce motion"),
+    ('if reduceMotion {', "disclosure reduce motion branch"),
+    ('withAnimation(.easeOut(duration: 0.16))', "disclosure animation remains for normal motion"),
+    ('transaction.animation = nil', "terminal candidate scroll remains non-animated"),
+]:
+    require(root, needle, label)
+
 # Destructive confirmations must expose the system confirmation labels and must
 # not bypass the explicit cancel/confirm lifecycle boundary.
 for needle, label in [
@@ -193,6 +210,14 @@ for needle, label in [
     ("Manual VoiceOver QA remains required", "dynamic evidence live QA caveat"),
 ]:
     require(dynamic, needle, label)
+
+for needle, label in [
+    ("Task: `7.5", "reduced motion task reference"),
+    ("Source-backed evidence only", "reduced motion source-only caveat"),
+    ("Live reduced motion QA remains open", "reduced motion live QA caveat"),
+    ("No local selectedIndex", "reduced motion terminal truth constraint"),
+]:
+    require(reduced_motion, needle, label)
 
 print("Accessibility source smoke guard passed")
 PY
