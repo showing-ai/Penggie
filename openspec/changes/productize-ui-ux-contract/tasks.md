@@ -86,7 +86,7 @@
 - [ ] 10.2 Add optional scripts for visual capture or local QA setup where practical, without depending on a separate Codex session as user-visible truth.
 - [x] 10.3 Add a release review checklist that records manual QA evidence, visual captures, accessibility notes, fixture coverage, known limitations, and deferred P2 items.
 - [ ] 10.4 Remove or gate debug-only diagnostic logs and temporary files that were useful during development but are not part of product QA.
-- [ ] 10.5 Review product copy for setup, low-confidence syncing, projection degraded, missing Codex, launch failed, process exited, confirmation, approval, permission, and Raw Terminal audit paths.
+- [x] 10.5 Review product copy for setup, low-confidence syncing, projection degraded, missing Codex, launch failed, process exited, confirmation, approval, permission, and Raw Terminal audit paths.
 
 ## 11. Validation
 
