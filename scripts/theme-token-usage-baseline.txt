@@ -1,0 +1,12 @@
+# Existing SwiftUI system color usage baseline for product surfaces.
+#
+# Format:
+# path|regex|max_count|reason
+#
+# The static check allows counts to decrease, but fails if a future change adds
+# more un-tokenized product-surface color usage. New UI code should use
+# PenggieTheme semantic, scene, or component tokens instead.
+Penggie/Sources/PenggieRootView.swift|\.foregroundStyle\(\.primary\)|8|legacy product surface styles to migrate under productize-ui-ux-contract task 8.2
+Penggie/Sources/PenggieRootView.swift|\.foregroundStyle\(\.secondary\)|11|legacy product surface styles to migrate under productize-ui-ux-contract task 8.2
+Penggie/Sources/PenggieRootView.swift|\.foregroundStyle\(\.tertiary\)|1|legacy product surface styles to migrate under productize-ui-ux-contract task 8.2
+Penggie/Sources/PenggieRootView.swift|\.foregroundStyle\(\.orange\)|1|legacy product surface styles to migrate under productize-ui-ux-contract task 8.2
