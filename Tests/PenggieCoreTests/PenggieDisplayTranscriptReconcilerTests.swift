@@ -133,6 +133,46 @@ struct PenggieDisplayTranscriptReconcilerTests {
     }
 
     @Test
+    func terminalChromeAndOwnedSurfacesDoNotBecomeSealedAssistantContent() throws {
+        var reconciler = DisplayTranscriptReconciler()
+
+        let terminalOwnedRows = [
+            "gpt-5.5 high · ~/A-ThinkBig/TestSpace",
+            "› Write tests for @filename",
+            "/model choose what model and reasoning effort to use",
+            "Resume a previous session",
+            "Approve command?",
+            "Allow once   Deny",
+            "Starting Codex",
+            "Starting MCP servers (2/3): figma (2s · esc to interrupt)"
+        ]
+
+        reconciler.submitPrompt("继续产品化计划", id: "prompt.productize")
+        reconciler.updateActiveTurn(from: document([
+            block(id: "answer.scope", kind: .paragraph, text: "下一步是固化 transcript 污染防线。")
+        ] + terminalOwnedRows.enumerated().map { index, text in
+            block(id: "terminal.owned.\(index)", kind: .overlay, text: text)
+        } + [
+            block(id: "answer.done", kind: .paragraph, text: "真实回答内容必须保留。")
+        ]))
+        reconciler.sealActiveTurn()
+
+        let document = reconciler.displayDocument
+        let assistantTurn = try #require(document.turns.last)
+        let assistantTexts = assistantTurn.blocks.map { $0.spans.map(\.text).joined() }
+
+        #expect(assistantTurn.blocks.allSatisfy { $0.kind != .overlay })
+        for terminalOwnedRow in terminalOwnedRows {
+            #expect(!assistantTexts.contains(terminalOwnedRow))
+        }
+        #expect(visibleText(from: document) == [
+            "继续产品化计划",
+            "下一步是固化 transcript 污染防线。",
+            "真实回答内容必须保留。"
+        ])
+    }
+
+    @Test
     func sealedTurnsSurviveResizeRepaintRawSwitchLikeProjectionAndSubsequentPrompt() {
         var reconciler = DisplayTranscriptReconciler()
 
