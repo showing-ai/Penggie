@@ -134,6 +134,7 @@ required_display_fixture_dirs = [
     "cjk-table-code",
     "long-session-stable",
     "low-confidence-fallback",
+    "large-preformatted",
     "markdown-prose",
     "slash-negative",
     "table-box-cjk",
@@ -155,6 +156,7 @@ for function in [
     "toolHeavyWarningFixtureMaintainsFinalAnswerHierarchy",
     "lowConfidenceDisplayFixtureUsesFallbackWithoutInventingMarkdown",
     "lowConfidenceFallbackExposesTraceabilityAndPreservesTerminalEvidence",
+    "largePreformattedFixturePreservesWideTerminalRows",
 ]:
     require_text(display_tests, f"func {function}", "Display AST regression test")
 
@@ -165,6 +167,7 @@ for phrase in [
     "Tool-heavy hierarchy",
     "Long sessions",
     "Low-confidence fallback",
+    "Large preformatted content",
     "Approval prompt",
     "Markdown structure just to make Reading look cleaner",
 ]:

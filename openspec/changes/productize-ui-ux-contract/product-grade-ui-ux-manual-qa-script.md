@@ -29,17 +29,19 @@ For every scenario, record:
 
 1. Check out the intended commit and confirm the worktree has no unrelated dirty
    app-code changes.
-2. Build the Debug app:
+2. Optionally prepare a local evidence bundle:
+   `scripts/qa/prepare-product-ui-ux-local-qa.sh`
+3. Build the Debug app:
    `xcodebuild -project Penggie/Penggie.xcodeproj -scheme Penggie -configuration Debug -destination 'platform=macOS' build`
-3. Launch the built Penggie app from the same build product being reviewed.
-4. Use a test project folder that contains:
+4. Launch the built Penggie app from the same build product being reviewed.
+5. Use a test project folder that contains:
    - At least one existing Codex session for resume QA.
    - Files that can trigger ordinary prompt output, CJK output, table output,
      code output, and long transcript output.
    - A safe prompt or command path that can trigger approval or permission UI
      when the current Codex configuration supports it.
-5. Close any unrelated Penggie windows before starting the run.
-6. Do not launch a second Codex CLI or Ghostty session as QA truth. If an
+6. Close any unrelated Penggie windows before starting the run.
+7. Do not launch a second Codex CLI or Ghostty session as QA truth. If an
    external terminal is used, it is diagnostic-only and must not drive pass/fail
    for Reading or Raw Terminal parity.
 
