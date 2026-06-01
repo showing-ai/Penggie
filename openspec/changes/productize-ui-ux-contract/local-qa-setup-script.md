@@ -118,8 +118,10 @@ Strict live/manual QA status verification:
 scripts/qa/check-product-ui-ux-live-qa-status.sh --strict --evidence-dir "$bundle"
 ```
 
-This wraps the strict evidence checker and should only pass when the bundle is
-fully filled from a live app run.
+This wraps the running build identity guard and the strict evidence checker. It
+should only pass when the recorded Debug `Penggie.app` is currently running, the
+running process has loaded the same `Penggie.debug.dylib` recorded in the
+bundle, and the bundle is fully filled from that live app run.
 
 The strict checker also requires `logs/build-identity.txt` to resolve a Debug
 `Penggie.app`, `Penggie.debug.dylib` SHA256, and GhosttyKit static library

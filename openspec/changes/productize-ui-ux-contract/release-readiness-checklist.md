@@ -14,7 +14,7 @@ Use this checklist before accepting each product-grade UI/UX milestone.
 - Live/manual QA status guard:
   - `scripts/qa/check-product-ui-ux-live-qa-status.sh` before manual QA starts, to prove all remaining live tasks have manifest scenarios.
   - `scripts/qa/check-running-penggie-build-identity.sh <bundle>` after launching the recorded Debug app, to prove the running process loaded the same `Penggie.debug.dylib` recorded in the evidence bundle.
-  - `scripts/qa/check-product-ui-ux-live-qa-status.sh --strict --evidence-dir <bundle>` before accepting live/manual QA completion.
+  - `scripts/qa/check-product-ui-ux-live-qa-status.sh --strict --evidence-dir <bundle>` before accepting live/manual QA completion; this strict guard also reruns the running app identity check.
 - `git diff --check`
 - `xcodebuild -project Penggie/Penggie.xcodeproj -scheme Penggie -configuration Debug -destination 'platform=macOS' build`
 

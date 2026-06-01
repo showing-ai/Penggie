@@ -194,12 +194,13 @@ Capture pass/fail evidence for:
 For final acceptance of live manual QA, rerun:
 
 \`\`\`bash
-scripts/qa/check-product-ui-ux-evidence-bundle.sh "$evidence_dir"
+scripts/qa/check-product-ui-ux-live-qa-status.sh --strict --evidence-dir "$evidence_dir"
 \`\`\`
 
-The strict checker fails until every required scenario note has a non-placeholder
-result, observed result, Raw Terminal parity note where applicable, follow-up,
-and the coverage required by \`manifest.tsv\`.
+The strict checker fails until the recorded Debug app is the running Penggie
+process and every required scenario note has a non-placeholder result, observed
+result, Raw Terminal parity note where applicable, follow-up, and the coverage
+required by \`manifest.tsv\`.
 
 EOF
 

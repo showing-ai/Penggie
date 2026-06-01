@@ -4,8 +4,9 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 qa_script="$repo_root/openspec/changes/productize-ui-ux-contract/product-grade-ui-ux-manual-qa-script.md"
 manifest="$repo_root/scripts/qa/product-ui-ux-manifest.tsv"
+live_status_script="$repo_root/scripts/qa/check-product-ui-ux-live-qa-status.sh"
 
-python3 - "$qa_script" "$manifest" <<'PY'
+python3 - "$qa_script" "$manifest" "$live_status_script" <<'PY'
 import csv
 import re
 import sys
@@ -13,7 +14,9 @@ from pathlib import Path
 
 path = Path(sys.argv[1])
 manifest = Path(sys.argv[2])
+live_status_script = Path(sys.argv[3])
 source = path.read_text()
+live_status_source = live_status_script.read_text()
 
 required_sections = [
     "Required Evidence Record",
@@ -93,6 +96,11 @@ if extra_in_manifest:
     raise AssertionError(f"Manifest scenarios missing from manual QA script: {', '.join(extra_in_manifest)}")
 if any(not row["Coverage"].strip() for row in rows):
     raise AssertionError("Every manifest scenario must include coverage requirements")
+
+if "check-running-penggie-build-identity.sh" not in live_status_source:
+    raise AssertionError("Strict live QA status must verify the running Penggie build identity")
+if '"$strict" == true' not in live_status_source:
+    raise AssertionError("Live QA status script must keep a strict verification path")
 
 for scenario in required_scenarios:
     match = re.search(
