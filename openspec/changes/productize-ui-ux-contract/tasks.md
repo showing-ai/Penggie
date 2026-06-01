@@ -35,7 +35,7 @@
 - [ ] 4.3 Validate ordinary composer behavior: Enter submit, Shift-Enter newline, paste, large paste, draft preservation, send enablement, disabled send reasons, and bounded height/internal scroll.
 - [ ] 4.4 Validate native slash handoff: first slash from composer sends to Codex, terminal-owned key capture takes over, local composer does not own selection, and dismissal restores the correct focus owner.
 - [ ] 4.5 Validate focus transitions for setup, Reading idle, composing, terminal-owned overlay, full-page resume/approval/permission, Raw Terminal, confirmation, process exit, and recovery.
-- [ ] 4.6 Add manual keyboard-only QA that completes setup, prompt submission, slash/model selection, resume selection, approval/permission choice, Raw Terminal switch, New Chat confirmation, and Close Session confirmation.
+- [x] 4.6 Add manual keyboard-only QA that completes setup, prompt submission, slash/model selection, resume selection, approval/permission choice, Raw Terminal switch, New Chat confirmation, and Close Session confirmation.
 
 ## 5. P0 Reading Transcript And Display AST Fallback
 
