@@ -34,6 +34,7 @@ This does not claim that manual QA has been executed. Runtime manual QA tasks in
 `productize-ui-ux-contract` remain separate and must be completed with evidence
 from the running app.
 
-This also does not close task 2.3. Visual review fixtures/captures for the full
-long-session, CJK, table, code, tool-heavy, narrow-window, large-text, and
-light/dark matrix remain productization work.
+Visual review fixtures are now documented in `visual-review-fixture-evidence.md`.
+That evidence closes the planning-level fixture requirement for this UX contract
+change, but it does not claim that the live productization visual QA pass has
+been executed.
