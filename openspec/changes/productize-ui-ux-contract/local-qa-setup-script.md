@@ -142,6 +142,10 @@ Debug app, `Penggie.debug.dylib` hash/inode, GhosttyKit static library hash, and
 the dylib loaded by the running Penggie process. It must fail if manual QA is
 accidentally using an older already-running app or a stale embedded Ghostty
 substrate. If more than one Penggie process is running, pass `--pid <pid>`.
+For final strict evidence, use the strict live/manual QA status command below;
+it records the successful running identity check at
+`logs/running-build-identity.txt` and the strict evidence checker requires that
+persisted log to match the bundle's `Penggie.debug.dylib` inode.
 
 Strict live/manual QA status verification:
 

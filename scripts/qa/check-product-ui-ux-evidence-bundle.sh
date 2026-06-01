@@ -47,6 +47,7 @@ readme="$bundle_dir/README.md"
 notes_dir="$bundle_dir/notes"
 build_identity="$bundle_dir/logs/build-identity.txt"
 preflight_log="$bundle_dir/logs/preflight.txt"
+running_identity_log="$bundle_dir/logs/running-build-identity.txt"
 
 if [[ ! -d "$bundle_dir" ]]; then
   echo "Evidence directory does not exist: $bundle_dir" >&2
@@ -101,6 +102,29 @@ if [[ "$allow_pending" != true ]]; then
     echo "Strict evidence requires the preflight commit to match the evidence build identity:" >&2
     echo "  preflight: $preflight_commit" >&2
     echo "  bundle:    $build_commit" >&2
+    exit 1
+  fi
+  if [[ ! -f "$running_identity_log" ]]; then
+    echo "Strict evidence requires a running app build identity log: $running_identity_log" >&2
+    echo "Run scripts/qa/check-product-ui-ux-live-qa-status.sh --strict --evidence-dir \"$bundle_dir\" against the recorded Debug app." >&2
+    exit 1
+  fi
+  if ! grep -q 'Running Penggie build identity matches QA bundle' "$running_identity_log"; then
+    echo "Strict evidence requires a passing running app build identity log: $running_identity_log" >&2
+    exit 1
+  fi
+  expected_dylib_inode="$(sed -n 's/^- Penggie debug dylib stat: inode=\([0-9][0-9]*\).*/\1/p' "$build_identity" | head -1)"
+  running_dylib_inode="$(sed -n 's/^Running Penggie build identity matches QA bundle (pid=.*dylib inode=\([0-9][0-9]*\)).*/\1/p' "$running_identity_log" | tail -1)"
+  if [[ -z "$expected_dylib_inode" || -z "$running_dylib_inode" ]]; then
+    echo "Strict evidence requires matching Penggie.debug.dylib inode evidence:" >&2
+    echo "  expected inode: ${expected_dylib_inode:-missing}" >&2
+    echo "  running inode:  ${running_dylib_inode:-missing}" >&2
+    exit 1
+  fi
+  if [[ "$running_dylib_inode" != "$expected_dylib_inode" ]]; then
+    echo "Strict evidence requires the running app dylib inode to match the evidence build identity:" >&2
+    echo "  running: $running_dylib_inode" >&2
+    echo "  bundle:  $expected_dylib_inode" >&2
     exit 1
   fi
 fi

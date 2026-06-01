@@ -119,6 +119,12 @@ if "check-running-penggie-build-identity.sh" not in live_status_source:
     raise AssertionError("Strict live QA status must verify the running Penggie build identity")
 if '"$strict" == true' not in live_status_source:
     raise AssertionError("Live QA status script must keep a strict verification path")
+if "running-build-identity.txt" not in live_status_source:
+    raise AssertionError("Strict live QA status must persist the running app identity log")
+if "running-build-identity.txt" not in evidence_checker_source:
+    raise AssertionError("Strict evidence bundle check must require the persisted running app identity log")
+if "Running Penggie build identity matches QA bundle" not in evidence_checker_source:
+    raise AssertionError("Strict evidence bundle check must require a passing running app identity marker")
 if "Diagnostic/log path" not in evidence_checker_source:
     raise AssertionError("Strict evidence bundle check must require diagnostic/log paths for failures")
 if "Screenshot/recording path" not in evidence_checker_source:

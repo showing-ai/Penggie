@@ -207,10 +207,11 @@ scripts/qa/check-product-ui-ux-live-qa-status.sh --strict --evidence-dir "$evide
 \`\`\`
 
 The strict checker fails until the recorded Debug app is the running Penggie
-process, \`logs/preflight.txt\` exists with a passing product UI/UX preflight
-result, and every required scenario note has a non-placeholder result, observed
-result, Raw Terminal parity note where applicable, follow-up, and the coverage
-required by \`manifest.tsv\`.
+process, \`logs/running-build-identity.txt\` records a passing running identity
+check for that process, \`logs/preflight.txt\` exists with a passing product
+UI/UX preflight result, and every required scenario note has a non-placeholder
+result, observed result, Raw Terminal parity note where applicable, follow-up,
+and the coverage required by \`manifest.tsv\`.
 
 \`scripts/qa/check-product-ui-ux-task-evidence-map.sh\` must also pass. It
 prevents accidental task closure or scope drift by requiring every unchecked

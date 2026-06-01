@@ -16,7 +16,9 @@ Reports the remaining live/manual QA tasks for productize-ui-ux-contract and
 verifies that each remaining task has manifest scenarios. With --evidence-dir,
 also validates the evidence bundle. Without --strict, pending notes are allowed.
 With --strict, the evidence must be final and the running Penggie process must
-match the build identity recorded in the evidence bundle.
+match the build identity recorded in the evidence bundle. The successful
+running app identity check is recorded at logs/running-build-identity.txt inside
+the bundle.
 
 Options:
   --evidence-dir PATH  Existing QA evidence bundle to inspect.
@@ -131,7 +133,9 @@ PY
 
 if [[ -n "$evidence_dir" ]]; then
   if [[ "$strict" == true ]]; then
-    "$repo_root/scripts/qa/check-running-penggie-build-identity.sh" "$evidence_dir"
+    mkdir -p "$evidence_dir/logs"
+    "$repo_root/scripts/qa/check-running-penggie-build-identity.sh" "$evidence_dir" \
+      2>&1 | tee "$evidence_dir/logs/running-build-identity.txt"
     "$repo_root/scripts/qa/check-product-ui-ux-evidence-bundle.sh" "$evidence_dir"
   else
     "$repo_root/scripts/qa/check-product-ui-ux-evidence-bundle.sh" --allow-pending "$evidence_dir"
