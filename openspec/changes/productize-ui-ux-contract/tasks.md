@@ -48,7 +48,7 @@
 
 ## 6. P0 Raw Terminal Audit And Control Surface
 
-- [ ] 6.1 Review `PenggieGhosttySession.swift`, `PenggieGhosttySubstrate.swift`, `PenggieRootView.swift`, and `PenggieTheme.swift` against Raw Terminal audit/control requirements.
+- [x] 6.1 Review `PenggieGhosttySession.swift`, `PenggieGhosttySubstrate.swift`, `PenggieRootView.swift`, and `PenggieTheme.swift` against Raw Terminal audit/control requirements.
 - [ ] 6.2 Validate Reading-to-Raw-to-Reading round trip preserves one Codex process, cwd, Ghostty session, scrollback, active terminal-owned state, process state, draft state, and transcript state.
 - [ ] 6.3 Validate Raw Terminal remains available when Reading projection is low confidence and an inspectable terminal surface exists.
 - [ ] 6.4 Validate Raw Terminal keyboard focus: Ghostty host receives keys when visible, local composer does not capture terminal input, and focus restores correctly when returning to Reading.
