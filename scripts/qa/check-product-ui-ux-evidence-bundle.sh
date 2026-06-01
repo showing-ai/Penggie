@@ -46,6 +46,7 @@ manifest="$bundle_dir/manifest.tsv"
 readme="$bundle_dir/README.md"
 notes_dir="$bundle_dir/notes"
 build_identity="$bundle_dir/logs/build-identity.txt"
+preflight_log="$bundle_dir/logs/preflight.txt"
 
 if [[ ! -d "$bundle_dir" ]]; then
   echo "Evidence directory does not exist: $bundle_dir" >&2
@@ -81,6 +82,14 @@ if [[ "$allow_pending" != true ]]; then
   fi
   if grep -q '^- GhosttyKit static library SHA256: not found$' "$build_identity"; then
     echo "Strict evidence requires a GhosttyKit static library hash: $build_identity" >&2
+    exit 1
+  fi
+  if [[ ! -f "$preflight_log" ]]; then
+    echo "Strict evidence requires a product UI/UX preflight log: $preflight_log" >&2
+    exit 1
+  fi
+  if ! grep -q 'Product-grade UI/UX preflight passed' "$preflight_log"; then
+    echo "Strict evidence requires a passing product UI/UX preflight log: $preflight_log" >&2
     exit 1
   fi
 fi

@@ -159,7 +159,7 @@ result is \`fail\` or \`blocked\`, record at least one relative path under
 \`\`\`bash
 scripts/qa/prepare-product-ui-ux-local-qa.sh --build --evidence-dir "$evidence_root"
 scripts/qa/check-running-penggie-build-identity.sh "$evidence_dir"
-scripts/qa/run-product-ui-ux-preflight.sh
+scripts/qa/run-product-ui-ux-preflight.sh 2>&1 | tee "$evidence_dir/logs/preflight.txt"
 openspec validate productize-ui-ux-contract --strict
 openspec validate --all --strict
 scripts/qa/check-openspec-worktree-inventory.sh
@@ -202,11 +202,13 @@ Capture pass/fail evidence for:
 For final acceptance of live manual QA, rerun:
 
 \`\`\`bash
+scripts/qa/run-product-ui-ux-preflight.sh 2>&1 | tee "$evidence_dir/logs/preflight.txt"
 scripts/qa/check-product-ui-ux-live-qa-status.sh --strict --evidence-dir "$evidence_dir"
 \`\`\`
 
 The strict checker fails until the recorded Debug app is the running Penggie
-process and every required scenario note has a non-placeholder result, observed
+process, \`logs/preflight.txt\` exists with a passing product UI/UX preflight
+result, and every required scenario note has a non-placeholder result, observed
 result, Raw Terminal parity note where applicable, follow-up, and the coverage
 required by \`manifest.tsv\`.
 

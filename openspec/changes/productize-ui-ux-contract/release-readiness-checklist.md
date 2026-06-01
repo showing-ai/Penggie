@@ -31,6 +31,8 @@ For each milestone, record:
 - Evidence bundle path and `check-product-ui-ux-live-qa-status.sh` result.
 - Evidence bundle `logs/build-identity.txt` result, including current commit,
   Debug app path, `Penggie.debug.dylib` hash, and GhosttyKit static library hash.
+- Evidence bundle `logs/preflight.txt` result, including the
+  `Product-grade UI/UX preflight passed` marker from the recorded commit.
 - Running app build identity result from
   `scripts/qa/check-running-penggie-build-identity.sh <bundle>`.
 - Fixtures added or updated, or reason not applicable.
@@ -67,6 +69,7 @@ Commands:
 - git diff --check:
 - xcodebuild Debug macOS build:
 - build identity commit/app/dylib/GhosttyKit hashes:
+- preflight log:
 - running app identity guard:
 
 Manual QA Evidence:

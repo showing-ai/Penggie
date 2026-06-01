@@ -125,6 +125,10 @@ if "Screenshot/recording path" not in evidence_checker_source:
     raise AssertionError("Strict evidence bundle check must validate screenshot/recording paths")
 if "path does not exist" not in evidence_checker_source:
     raise AssertionError("Strict evidence bundle check must verify referenced evidence files exist")
+if "Strict evidence requires a product UI/UX preflight log" not in evidence_checker_source:
+    raise AssertionError("Strict evidence bundle check must require a recorded preflight log")
+if "Product-grade UI/UX preflight passed" not in evidence_checker_source:
+    raise AssertionError("Strict evidence bundle check must require a passing preflight marker")
 if "Product UI/UX task evidence map guard passed" not in task_evidence_map_source:
     raise AssertionError("Manual QA guard must include the task-to-evidence mapping guard")
 if "Unchecked tasks must be either implemented now" not in task_evidence_map_source:
@@ -159,6 +163,8 @@ for source_name, checked_source in [
         raise AssertionError(f"{source_name} must require the OpenSpec/worktree inventory guard")
     if "scripts/qa/run-product-ui-ux-preflight.sh" not in checked_source:
         raise AssertionError(f"{source_name} must require the product UI/UX preflight script")
+    if "logs/preflight.txt" not in checked_source:
+        raise AssertionError(f"{source_name} must record the product UI/UX preflight log")
 
 for scenario in required_scenarios:
     match = re.search(
