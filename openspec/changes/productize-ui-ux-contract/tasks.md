@@ -76,9 +76,9 @@
 ## 9. P1 Fixture And Regression Expansion
 
 - [ ] 9.1 Expand `Tests/PenggieCoreTests/Fixtures/agent-terminal-display/` for long-session transcript, CJK prose, CJK table, box drawing, warning/status, tool-heavy output, fallback, and large preformatted content.
-- [ ] 9.2 Expand `Tests/PenggieCoreTests/Fixtures/terminal-interaction-surfaces/` for resume scroll/pager/filter/sort, slash continuation, model/effort pickers, approval, permission, stale selection, ambiguous selection, and low-confidence rows.
+- [x] 9.2 Expand `Tests/PenggieCoreTests/Fixtures/terminal-interaction-surfaces/` for resume scroll/pager/filter/sort, slash continuation, model/effort pickers, approval, permission, stale selection, ambiguous selection, and low-confidence rows.
 - [x] 9.3 Add fixture README entries describing source terminal facts, expected Display AST, expected Reading rendering, expected selected-row evidence, and expected low-confidence behavior.
-- [ ] 9.4 Add or update unit tests so fixture changes fail on transcript pollution, wrong selected-row evidence, unsafe confirmability, broken fallback, or lost Raw Terminal parity assumptions.
+- [x] 9.4 Add or update unit tests so fixture changes fail on transcript pollution, wrong selected-row evidence, unsafe confirmability, broken fallback, or lost Raw Terminal parity assumptions.
 
 ## 10. P2 QA Scripts, Review Tooling, And Release Hygiene
 
