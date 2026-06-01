@@ -2,7 +2,7 @@
 
 Change: `productize-ui-ux-contract`
 Status captured UTC: `2026-06-01T11:12:08Z`
-Commit: `3e03bbeff239aaa5931f89703d3959766f614a98`
+Evidence baseline commit: `3e03bbeff239aaa5931f89703d3959766f614a98`
 
 ## Current State
 
@@ -16,7 +16,9 @@ Latest prepared evidence bundle:
 
 This bundle is intentionally ignored by git and stores local screenshots,
 recordings, logs, and per-scenario notes. It is referenced here only as the
-current local evidence location.
+current local evidence location. It was prepared for the evidence baseline
+commit above; if any product code, QA script, fixture, or OpenSpec task changes
+after that commit, prepare a fresh bundle before final acceptance.
 
 ## Verified Before Live QA
 
@@ -60,7 +62,9 @@ scripts/qa/check-product-ui-ux-live-qa-status.sh --strict --evidence-dir "<bundl
 
 The strict checker is expected to fail until every required scenario note has a
 final result, observed result, follow-up, required visual or diagnostic paths,
-and Raw Terminal parity evidence where the manifest requires it.
+and Raw Terminal parity evidence where the manifest requires it. For final
+acceptance, the running Penggie process must also match the build identity
+recorded in the evidence bundle used for that acceptance pass.
 
 ## Guardrail
 
