@@ -26,6 +26,7 @@ let package = Package(
             ],
             sources: [
                 "PenggieComposerNativeTrigger.swift",
+                "PenggieAccessibilityAnnouncement.swift",
                 "PenggieCodexScreenKind.swift",
                 "PenggieDisplayAST.swift",
                 "PenggieDisplayASTRenderer.swift",

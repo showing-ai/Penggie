@@ -113,6 +113,62 @@ final class PenggieSessionModel: ObservableObject {
         state == .exited && ghosttySession != nil
     }
 
+    var accessibilityAnnouncement: PenggieAccessibilityAnnouncement? {
+        accessibilityAnnouncementEvent?.announcement
+    }
+
+    private var accessibilityAnnouncementEvent: PenggieAccessibilityAnnouncementEvent? {
+        switch state {
+        case .idle, .closed:
+            return nil
+        case .checkingCodex:
+            return .checkingCodex
+        case .launching:
+            return .launching
+        case .codexMissing:
+            return .missingCodex
+        case .launchFailed:
+            return .launchFailed
+        case .exited:
+            return .processExited
+        case .reading, .terminal:
+            if let surfaceAnnouncement = activeTerminalSurfaceAnnouncementEvent {
+                return surfaceAnnouncement
+            }
+
+            if readingBlocks.contains(where: { $0.confidence == .low && $0.isLiveProjection }) {
+                return .projectionDegraded
+            }
+
+            if readingBlocks.contains(where: { $0.variant == .activity && $0.isLiveProjection }) {
+                return .working
+            }
+
+            if readingBlocks.contains(where: { $0.variant == .toolLike && $0.isLiveProjection }) {
+                return .toolRunning
+            }
+
+            return hasReachedStableCodexScreen ? .ready : nil
+        }
+    }
+
+    private var activeTerminalSurfaceAnnouncementEvent: PenggieAccessibilityAnnouncementEvent? {
+        guard let surface = activeTerminalInteractionSurface else { return nil }
+
+        if !surface.hasFreshConfirmableSelection {
+            return .selectionSyncing
+        }
+
+        switch surface.kind {
+        case .approvalPrompt:
+            return .approvalRequired
+        case .permissionPrompt:
+            return .permissionRequired
+        case .transcript, .startup, .slashSuggestions, .slashContinuation, .resumePicker, .modelPicker, .effortPicker, .modalChoice, .pager, .opaqueTerminal:
+            return nil
+        }
+    }
+
     private var lifecyclePhase: PenggieSessionLifecyclePhase {
         switch state {
         case .idle:

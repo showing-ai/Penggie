@@ -1,8 +1,10 @@
+import AppKit
 import SwiftUI
 
 struct PenggieRootView: View {
     @EnvironmentObject private var session: PenggieSessionModel
     @Environment(\.penggieTheme) private var theme
+    @State private var lastAccessibilityAnnouncementID: String?
 
     var body: some View {
         ZStack {
@@ -29,6 +31,9 @@ struct PenggieRootView: View {
             }
         }
         .background(PenggieWindowConfigurator())
+        .onChange(of: session.accessibilityAnnouncement) { _, announcement in
+            postAccessibilityAnnouncement(announcement)
+        }
         .alert(item: $session.pendingConfirmation) { confirmation in
             Alert(
                 title: Text(confirmation.title),
@@ -41,6 +46,23 @@ struct PenggieRootView: View {
                 }
             )
         }
+    }
+
+    private func postAccessibilityAnnouncement(_ announcement: PenggieAccessibilityAnnouncement?) {
+        guard let announcement,
+              lastAccessibilityAnnouncementID != announcement.id else {
+            return
+        }
+
+        lastAccessibilityAnnouncementID = announcement.id
+        NSAccessibility.post(
+            element: NSApp as Any,
+            notification: .announcementRequested,
+            userInfo: [
+                .announcement: announcement.message,
+                .priority: announcement.priority.appKitPriority
+            ]
+        )
     }
 
     private var codexMissingState: some View {
@@ -89,6 +111,17 @@ struct PenggieRootView: View {
                 tertiaryActionTitle: "Close Session",
                 tertiaryAction: session.requestCloseSession
             )
+        }
+    }
+}
+
+private extension PenggieAccessibilityAnnouncementPriority {
+    var appKitPriority: Int {
+        switch self {
+        case .polite:
+            return NSAccessibilityPriorityLevel.medium.rawValue
+        case .assertive:
+            return NSAccessibilityPriorityLevel.high.rawValue
         }
     }
 }
