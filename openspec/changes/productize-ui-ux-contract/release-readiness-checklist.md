@@ -28,6 +28,96 @@ For each milestone, record:
 - Raw Terminal parity evidence when a live/inspectable terminal surface exists.
 - Known limitations and deferred P1/P2 follow-ups.
 
+## Release Review Evidence Template
+
+Copy this template into the milestone review notes before accepting a product
+UI/UX milestone.
+
+```text
+Milestone:
+Reviewer:
+Date:
+Penggie commit:
+Build configuration:
+OpenSpec change:
+OpenSpec tasks completed:
+
+Commands:
+- openspec validate productize-ui-ux-contract --strict:
+- openspec show productize-ui-ux-contract --json:
+- openspec validate --all --strict:
+- relevant swift test filters:
+- relevant QA/source guard scripts:
+- git diff --check:
+- xcodebuild Debug macOS build:
+
+Manual QA Evidence:
+- Scenarios run:
+- Scenarios passed:
+- Scenarios failed:
+- Scenarios blocked or not applicable:
+- Raw Terminal parity evidence:
+- Same-session evidence:
+- Terminal-owned selection evidence:
+- Unsafe confirmation gate evidence:
+
+Visual Captures:
+- Light mode captures:
+- Dark mode captures:
+- Narrow window captures:
+- Large-text captures:
+- Known visual defects:
+
+Accessibility Notes:
+- Keyboard-only result:
+- VoiceOver result:
+- Dynamic announcement result:
+- Dynamic Type or larger text result:
+- Reduced motion result:
+- Accessibility defects:
+
+Fixture Coverage:
+- Fixtures added:
+- Fixtures updated:
+- Fixtures reviewed:
+- Missing fixtures and rationale:
+- Low-confidence/fallback evidence:
+
+Known Limitations:
+- Accepted limitations:
+- User-facing risk:
+- Owner:
+- Follow-up task/change:
+
+Deferred P1/P2 Items:
+- Item:
+- Why deferred:
+- Required evidence before acceptance:
+
+Final Decision:
+- Accept / Reject / Accept with follow-up:
+- Reason:
+```
+
+## Release Review Acceptance Gates
+
+The reviewer must reject the milestone when any of these evidence fields are
+missing without an explicit not-applicable rationale:
+
+- Manual QA scenarios relevant to the completed tasks.
+- Visual captures for any changed visual surface.
+- Accessibility notes for any changed keyboard, focus, control, overlay, or
+  recovery behavior.
+- Fixture coverage for any changed terminal projection, Display AST, lifecycle,
+  focus routing, or terminal-owned selection behavior.
+- Known limitations and deferred P1/P2 items.
+- Raw Terminal parity evidence when an inspectable terminal surface exists.
+
+The reviewer must also reject the milestone if the evidence depends on a second
+Codex CLI, SDK session, `codex exec --json` output, separate Raw Terminal
+session, local command/model/resume/approval/permission list, or local selected
+index as user-visible truth.
+
 ## P0 Manual QA Minimum
 
 - Setup/start: valid folder, invalid folder, missing folder, `Create with Penggie`, disabled states, keyboard order.
