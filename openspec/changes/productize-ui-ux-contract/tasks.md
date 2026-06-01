@@ -57,7 +57,7 @@
 
 ## 7. P1 Accessibility, Announcements, And Dynamic Type
 
-- [ ] 7.1 Create a manual VoiceOver QA checklist for setup, Reading, composer, tool disclosure, native overlay rows, resume, approval, permission, Raw Terminal switch, recovery, and confirmations.
+- [x] 7.1 Create a manual VoiceOver QA checklist for setup, Reading, composer, tool disclosure, native overlay rows, resume, approval, permission, Raw Terminal switch, recovery, and confirmations.
 - [ ] 7.2 Implement or verify accessibility labels, hints, values, roles, selected states, disabled/unavailable states, syncing states, expanded/collapsed states, and destructive confirmation labels.
 - [ ] 7.3 Implement or verify dynamic state announcements for checking, launching, ready, working, tool running, approval required, permission required, projection degraded, selection syncing, process exited, missing Codex, and launch failed.
 - [ ] 7.4 Validate Dynamic Type or larger text behavior across setup, Reading, composer, overlays, recovery, Raw Terminal chrome, and narrow windows; document accepted truncation and accessible full values.
