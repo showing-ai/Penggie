@@ -4,6 +4,7 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 change_id="productize-ui-ux-contract"
 evidence_root="$repo_root/tmp/product-ui-ux-qa"
+manual_qa_script="$repo_root/openspec/changes/$change_id/product-grade-ui-ux-manual-qa-script.md"
 run_build=false
 
 usage() {
@@ -83,7 +84,7 @@ cat > "$evidence_dir/README.md" <<EOF
 - \`screenshots/\`: light/dark, narrow, large text, overlay, Raw Terminal, recovery captures.
 - \`recordings/\`: optional short videos for flicker, focus, or scrolling behavior.
 - \`logs/\`: relevant app/system logs when a scenario fails.
-- \`notes/\`: per-scenario manual QA notes.
+- \`notes/\`: per-scenario manual QA notes with embedded scenario-specific steps.
 - \`manifest.tsv\`: required scenarios, owning task IDs, review scope, and required coverage.
 
 ## Required Local Checks
@@ -193,6 +194,52 @@ tail -n +2 "$evidence_dir/manifest.tsv" | while IFS=$'\t' read -r scenario_id ta
 
 EOF
 done
+
+python3 - "$repo_root" "$manual_qa_script" "$evidence_dir/manifest.tsv" "$evidence_dir/notes" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+sys.tracebacklimit = 0
+
+repo_root = Path(sys.argv[1])
+manual_qa = Path(sys.argv[2])
+manifest = Path(sys.argv[3])
+notes_dir = Path(sys.argv[4])
+
+source = manual_qa.read_text()
+sections: dict[str, str] = {}
+matches = list(re.finditer(r"^### (QA-[A-Z]+-\d+): .+$", source, flags=re.M))
+for index, match in enumerate(matches):
+    scenario_id = match.group(1)
+    start = match.start()
+    end = matches[index + 1].start() if index + 1 < len(matches) else len(source)
+    sections[scenario_id] = source[start:end].strip()
+
+rows = manifest.read_text().splitlines()[1:]
+missing: list[str] = []
+for line in rows:
+    if not line.strip():
+        continue
+    scenario_id = line.split("\t", 1)[0]
+    section = sections.get(scenario_id)
+    if not section:
+        missing.append(scenario_id)
+        continue
+    note = notes_dir / f"{scenario_id}.md"
+    note.write_text(
+        note.read_text()
+        + "\n## Manual QA Steps\n\n"
+        + f"Source: `{manual_qa.relative_to(repo_root)}`\n\n"
+        + section
+        + "\n"
+    )
+
+if missing:
+    raise AssertionError(
+        "manual QA script is missing scenario sections: " + ", ".join(sorted(missing))
+    )
+PY
 
 echo "Prepared product UI/UX QA evidence directory:"
 echo "$evidence_dir"

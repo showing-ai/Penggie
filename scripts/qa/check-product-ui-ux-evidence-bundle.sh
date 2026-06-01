@@ -207,6 +207,8 @@ for line in rows[1:]:
         raise AssertionError(f"{note} scope mismatch: {values['Scope']} != {scope}")
     if values["Required coverage"] != coverage_raw:
         raise AssertionError(f"{note} required coverage mismatch: {values['Required coverage']} != {coverage_raw}")
+    if f"### {scenario_id}:" not in source or "## Manual QA Steps" not in source:
+        raise AssertionError(f"{note} is missing embedded manual QA steps for {scenario_id}")
 
     result = values["Result"].lower()
     if allow_pending:
