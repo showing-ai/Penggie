@@ -1,8 +1,8 @@
 # Live QA Current Status
 
 Change: `productize-ui-ux-contract`
-Status captured UTC: `2026-06-01T11:43:03Z`
-Evidence baseline commit: `dfee54f7b37da102953c8d06d33bfe9af9e0c44f`
+Status captured UTC: `2026-06-01T12:06:52Z`
+Evidence baseline commit: `ee548463168f22885563ae77714347ded7ced605`
 
 ## Current State
 
@@ -12,7 +12,7 @@ archive because the protected live/manual QA tasks are still open.
 
 Latest prepared evidence bundle:
 
-`tmp/product-ui-ux-qa/20260601T113558Z-dfee54f7b37da102953c8d06d33bfe9af9e0c44f`
+`tmp/product-ui-ux-qa/20260601T120436Z-ee548463168f22885563ae77714347ded7ced605`
 
 This bundle is intentionally ignored by git and stores local screenshots,
 recordings, logs, and per-scenario notes. It is referenced here only as the
@@ -26,6 +26,9 @@ after that commit, prepare a fresh bundle before final acceptance.
   evidence bundle from a clean main worktree and clean `Vendor/ghostty` state.
 - `scripts/qa/run-product-ui-ux-preflight.sh` passed for the recorded commit
   and wrote its log to the current evidence bundle.
+- `scripts/qa/check-product-ui-ux-evidence-bundle.sh --allow-pending` passed
+  and verified the preflight log's repository commit matches the evidence
+  bundle build identity.
 - `openspec validate productize-ui-ux-contract --strict` passed.
 - `openspec validate --all --strict` passed.
 - The latest non-strict live QA status check passed the current evidence bundle
