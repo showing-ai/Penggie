@@ -7,8 +7,11 @@ manifest="$repo_root/scripts/qa/product-ui-ux-manifest.tsv"
 live_status_script="$repo_root/scripts/qa/check-product-ui-ux-live-qa-status.sh"
 evidence_checker="$repo_root/scripts/qa/check-product-ui-ux-evidence-bundle.sh"
 task_evidence_map="$repo_root/scripts/qa/check-product-ui-ux-task-evidence-map.sh"
+inventory_guard="$repo_root/scripts/qa/check-openspec-worktree-inventory.sh"
+release_checklist="$repo_root/openspec/changes/productize-ui-ux-contract/release-readiness-checklist.md"
+local_qa_setup="$repo_root/openspec/changes/productize-ui-ux-contract/local-qa-setup-script.md"
 
-python3 - "$qa_script" "$manifest" "$live_status_script" "$evidence_checker" "$task_evidence_map" <<'PY'
+python3 - "$qa_script" "$manifest" "$live_status_script" "$evidence_checker" "$task_evidence_map" "$inventory_guard" "$release_checklist" "$local_qa_setup" <<'PY'
 import csv
 import re
 import sys
@@ -19,10 +22,16 @@ manifest = Path(sys.argv[2])
 live_status_script = Path(sys.argv[3])
 evidence_checker = Path(sys.argv[4])
 task_evidence_map = Path(sys.argv[5])
+inventory_guard = Path(sys.argv[6])
+release_checklist = Path(sys.argv[7])
+local_qa_setup = Path(sys.argv[8])
 source = path.read_text()
 live_status_source = live_status_script.read_text()
 evidence_checker_source = evidence_checker.read_text()
 task_evidence_map_source = task_evidence_map.read_text()
+inventory_guard_source = inventory_guard.read_text()
+release_checklist_source = release_checklist.read_text()
+local_qa_setup_source = local_qa_setup.read_text()
 
 required_sections = [
     "Required Evidence Record",
@@ -119,6 +128,16 @@ if "Unchecked tasks must be either implemented now" not in task_evidence_map_sou
     raise AssertionError("Task evidence map guard must fail on unexpected unchecked implementation tasks")
 if "Protected live/manual QA tasks missing manifest scenarios" not in task_evidence_map_source:
     raise AssertionError("Task evidence map guard must fail on missing live QA manifest coverage")
+if "OpenSpec/worktree inventory guard passed" not in inventory_guard_source:
+    raise AssertionError("Manual QA guard must include the OpenSpec/worktree inventory guard")
+if "Vendor/ghostty has dirty changes" not in inventory_guard_source:
+    raise AssertionError("OpenSpec/worktree inventory guard must fail on dirty Vendor/ghostty state")
+for source_name, checked_source in [
+    ("release readiness checklist", release_checklist_source),
+    ("local QA setup evidence", local_qa_setup_source),
+]:
+    if "scripts/qa/check-openspec-worktree-inventory.sh" not in checked_source:
+        raise AssertionError(f"{source_name} must require the OpenSpec/worktree inventory guard")
 
 for scenario in required_scenarios:
     match = re.search(

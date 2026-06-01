@@ -53,9 +53,15 @@ Structural bundle verification:
 
 ```bash
 bundle="$(scripts/qa/prepare-product-ui-ux-local-qa.sh --evidence-dir /tmp/penggie-ui-ux-qa | tail -n 1)"
+scripts/qa/check-openspec-worktree-inventory.sh
 scripts/qa/check-product-ui-ux-task-evidence-map.sh
 scripts/qa/check-product-ui-ux-evidence-bundle.sh --allow-pending "$bundle"
 ```
+
+The OpenSpec/worktree inventory guard must pass before live QA starts. It proves
+that previously completed foundational changes are archived, the expected
+productization change remains the only active change, and `Vendor/ghostty` has
+no unclassified dirty changes.
 
 The task evidence map guard must pass before manual QA starts. It proves that
 every unchecked task in `tasks.md` is one of the protected live/manual QA tasks

@@ -9,6 +9,7 @@ Use this checklist before accepting each product-grade UI/UX milestone.
 - `openspec validate --all --strict`
 - Relevant `swift test --filter ...` commands for changed logic.
 - Relevant QA/source guard scripts, including:
+  - `scripts/qa/check-openspec-worktree-inventory.sh` before live QA starts, to prove the expected historical OpenSpec changes are archived, the current active change set is understood, and `Vendor/ghostty` has no unclassified dirty changes.
   - `scripts/qa/check-p0-session-lifecycle-source.sh` when lifecycle/session guards are touched.
   - `scripts/check-theme-token-usage.sh` when visual/theme tokens are touched.
   - `scripts/qa/check-product-ui-ux-task-evidence-map.sh` before live QA starts, to prove the only unchecked tasks are protected live/manual QA tasks with manifest, manual QA, and strict evidence coverage.

@@ -161,6 +161,7 @@ scripts/qa/prepare-product-ui-ux-local-qa.sh --build --evidence-dir "$evidence_r
 scripts/qa/check-running-penggie-build-identity.sh "$evidence_dir"
 openspec validate productize-ui-ux-contract --strict
 openspec validate --all --strict
+scripts/qa/check-openspec-worktree-inventory.sh
 scripts/qa/check-product-grade-ui-ux-manual-qa.sh
 scripts/qa/check-product-ui-ux-task-evidence-map.sh
 scripts/qa/check-product-ui-ux-evidence-bundle.sh --allow-pending "$evidence_dir"
@@ -213,6 +214,11 @@ prevents accidental task closure or scope drift by requiring every unchecked
 task in \`tasks.md\` to be one of the protected live/manual QA tasks and by
 verifying each protected task maps to manifest scenarios, manual QA steps, and
 strict evidence fields.
+
+\`scripts/qa/check-openspec-worktree-inventory.sh\` must pass before live QA
+starts. It verifies that the expected foundational OpenSpec changes are archived,
+the active change set is known, and \`Vendor/ghostty\` has no unclassified dirty
+changes.
 
 EOF
 
