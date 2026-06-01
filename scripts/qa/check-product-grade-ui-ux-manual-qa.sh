@@ -6,8 +6,9 @@ qa_script="$repo_root/openspec/changes/productize-ui-ux-contract/product-grade-u
 manifest="$repo_root/scripts/qa/product-ui-ux-manifest.tsv"
 live_status_script="$repo_root/scripts/qa/check-product-ui-ux-live-qa-status.sh"
 evidence_checker="$repo_root/scripts/qa/check-product-ui-ux-evidence-bundle.sh"
+task_evidence_map="$repo_root/scripts/qa/check-product-ui-ux-task-evidence-map.sh"
 
-python3 - "$qa_script" "$manifest" "$live_status_script" "$evidence_checker" <<'PY'
+python3 - "$qa_script" "$manifest" "$live_status_script" "$evidence_checker" "$task_evidence_map" <<'PY'
 import csv
 import re
 import sys
@@ -17,9 +18,11 @@ path = Path(sys.argv[1])
 manifest = Path(sys.argv[2])
 live_status_script = Path(sys.argv[3])
 evidence_checker = Path(sys.argv[4])
+task_evidence_map = Path(sys.argv[5])
 source = path.read_text()
 live_status_source = live_status_script.read_text()
 evidence_checker_source = evidence_checker.read_text()
+task_evidence_map_source = task_evidence_map.read_text()
 
 required_sections = [
     "Required Evidence Record",
@@ -110,6 +113,12 @@ if "Screenshot/recording path" not in evidence_checker_source:
     raise AssertionError("Strict evidence bundle check must validate screenshot/recording paths")
 if "path does not exist" not in evidence_checker_source:
     raise AssertionError("Strict evidence bundle check must verify referenced evidence files exist")
+if "Product UI/UX task evidence map guard passed" not in task_evidence_map_source:
+    raise AssertionError("Manual QA guard must include the task-to-evidence mapping guard")
+if "Unchecked tasks must be either implemented now" not in task_evidence_map_source:
+    raise AssertionError("Task evidence map guard must fail on unexpected unchecked implementation tasks")
+if "Protected live/manual QA tasks missing manifest scenarios" not in task_evidence_map_source:
+    raise AssertionError("Task evidence map guard must fail on missing live QA manifest coverage")
 
 for scenario in required_scenarios:
     match = re.search(
@@ -126,3 +135,5 @@ for scenario in required_scenarios:
 
 print("Product-grade UI/UX manual QA script guard passed")
 PY
+
+"$task_evidence_map"

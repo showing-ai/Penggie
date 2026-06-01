@@ -162,6 +162,7 @@ scripts/qa/check-running-penggie-build-identity.sh "$evidence_dir"
 openspec validate productize-ui-ux-contract --strict
 openspec validate --all --strict
 scripts/qa/check-product-grade-ui-ux-manual-qa.sh
+scripts/qa/check-product-ui-ux-task-evidence-map.sh
 scripts/qa/check-product-ui-ux-evidence-bundle.sh --allow-pending "$evidence_dir"
 scripts/qa/check-fixture-regression-coverage.sh
 scripts/qa/check-accessibility-smoke-source.sh
@@ -206,6 +207,12 @@ The strict checker fails until the recorded Debug app is the running Penggie
 process and every required scenario note has a non-placeholder result, observed
 result, Raw Terminal parity note where applicable, follow-up, and the coverage
 required by \`manifest.tsv\`.
+
+\`scripts/qa/check-product-ui-ux-task-evidence-map.sh\` must also pass. It
+prevents accidental task closure or scope drift by requiring every unchecked
+task in \`tasks.md\` to be one of the protected live/manual QA tasks and by
+verifying each protected task maps to manifest scenarios, manual QA steps, and
+strict evidence fields.
 
 EOF
 

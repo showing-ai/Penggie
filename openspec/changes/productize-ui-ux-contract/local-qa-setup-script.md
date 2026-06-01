@@ -53,8 +53,15 @@ Structural bundle verification:
 
 ```bash
 bundle="$(scripts/qa/prepare-product-ui-ux-local-qa.sh --evidence-dir /tmp/penggie-ui-ux-qa | tail -n 1)"
+scripts/qa/check-product-ui-ux-task-evidence-map.sh
 scripts/qa/check-product-ui-ux-evidence-bundle.sh --allow-pending "$bundle"
 ```
+
+The task evidence map guard must pass before manual QA starts. It proves that
+every unchecked task in `tasks.md` is one of the protected live/manual QA tasks
+and that every protected task has manifest scenarios, manual QA steps, and
+strict evidence fields. If a future implementation task remains unchecked, this
+guard fails instead of silently treating it as manual QA.
 
 Remaining live/manual QA status:
 
