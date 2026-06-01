@@ -88,6 +88,13 @@ tokens. This prevents a scenario from passing with only generic prose when it
 actually required light/dark, narrow-window, VoiceOver, Raw Terminal, pointer,
 motion, contrast, or screenshot evidence.
 
+When `manifest.tsv` marks `screenshot=required`, the scenario note must include
+one or more existing relative paths under `screenshots/` or `recordings/` in
+`Screenshot/recording path`. When a scenario result is `fail` or `blocked`, the
+note must include at least one existing relative path under `logs/` in
+`Diagnostic/log path`. Absolute paths and paths outside the evidence bundle are
+rejected so evidence remains portable and reviewable.
+
 Optional build verification:
 
 ```bash

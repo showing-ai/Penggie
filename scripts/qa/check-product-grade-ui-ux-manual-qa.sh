@@ -5,8 +5,9 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 qa_script="$repo_root/openspec/changes/productize-ui-ux-contract/product-grade-ui-ux-manual-qa-script.md"
 manifest="$repo_root/scripts/qa/product-ui-ux-manifest.tsv"
 live_status_script="$repo_root/scripts/qa/check-product-ui-ux-live-qa-status.sh"
+evidence_checker="$repo_root/scripts/qa/check-product-ui-ux-evidence-bundle.sh"
 
-python3 - "$qa_script" "$manifest" "$live_status_script" <<'PY'
+python3 - "$qa_script" "$manifest" "$live_status_script" "$evidence_checker" <<'PY'
 import csv
 import re
 import sys
@@ -15,8 +16,10 @@ from pathlib import Path
 path = Path(sys.argv[1])
 manifest = Path(sys.argv[2])
 live_status_script = Path(sys.argv[3])
+evidence_checker = Path(sys.argv[4])
 source = path.read_text()
 live_status_source = live_status_script.read_text()
+evidence_checker_source = evidence_checker.read_text()
 
 required_sections = [
     "Required Evidence Record",
@@ -101,6 +104,12 @@ if "check-running-penggie-build-identity.sh" not in live_status_source:
     raise AssertionError("Strict live QA status must verify the running Penggie build identity")
 if '"$strict" == true' not in live_status_source:
     raise AssertionError("Live QA status script must keep a strict verification path")
+if "Diagnostic/log path" not in evidence_checker_source:
+    raise AssertionError("Strict evidence bundle check must require diagnostic/log paths for failures")
+if "Screenshot/recording path" not in evidence_checker_source:
+    raise AssertionError("Strict evidence bundle check must validate screenshot/recording paths")
+if "path does not exist" not in evidence_checker_source:
+    raise AssertionError("Strict evidence bundle check must verify referenced evidence files exist")
 
 for scenario in required_scenarios:
     match = re.search(

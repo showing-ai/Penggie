@@ -85,7 +85,7 @@ if [[ "$allow_pending" != true ]]; then
   fi
 fi
 
-python3 - "$manifest" "$notes_dir" "$allow_pending" "$build_commit" <<'PY'
+python3 - "$manifest" "$notes_dir" "$allow_pending" "$build_commit" "$bundle_dir" <<'PY'
 import re
 import sys
 from pathlib import Path
@@ -96,6 +96,7 @@ manifest = Path(sys.argv[1])
 notes_dir = Path(sys.argv[2])
 allow_pending = sys.argv[3] == "true"
 build_commit = sys.argv[4]
+bundle_dir = Path(sys.argv[5]).resolve()
 
 rows = manifest.read_text().splitlines()
 if not rows or rows[0] != "Scenario ID\tTask ID\tScope\tCoverage":
@@ -120,6 +121,7 @@ required_fields = [
     "Observed result",
     "Raw Terminal parity note",
     "Screenshot/recording path",
+    "Diagnostic/log path",
     "Follow-up",
 ]
 
@@ -140,7 +142,7 @@ allowed_coverage_keys = {
 
 
 def field_value(source: str, field: str) -> str:
-    match = re.search(rf"^- {re.escape(field)}:\s*(.*)$", source, flags=re.M)
+    match = re.search(rf"^- {re.escape(field)}:[ \t]*(.*)$", source, flags=re.M)
     if not match:
         raise AssertionError(f"missing field {field}")
     return match.group(1).strip()
@@ -181,6 +183,48 @@ def token_present(value: str, token: str) -> bool:
     return all(word in normalized for word in token_words if word)
 
 
+def referenced_paths(value: str) -> list[str]:
+    paths: list[str] = []
+    for part in re.split(r"[,;]", value):
+        part = part.strip()
+        if part:
+            paths.append(part)
+    return paths
+
+
+def require_existing_artifacts(
+    value: str,
+    scenario_id: str,
+    field: str,
+    allowed_roots: set[str],
+) -> list[str]:
+    errors: list[str] = []
+    paths = referenced_paths(value)
+    if not paths:
+        return [f"{scenario_id}: {field} must reference an evidence artifact path"]
+
+    for raw_path in paths:
+        path = Path(raw_path)
+        if path.is_absolute():
+            errors.append(f"{scenario_id}: {field} must use a relative evidence path: {raw_path}")
+            continue
+        if not path.parts or path.parts[0] not in allowed_roots:
+            allowed = ", ".join(sorted(allowed_roots))
+            errors.append(f"{scenario_id}: {field} must be under {allowed}: {raw_path}")
+            continue
+
+        resolved = (bundle_dir / path).resolve()
+        try:
+            resolved.relative_to(bundle_dir)
+        except ValueError:
+            errors.append(f"{scenario_id}: {field} escapes evidence bundle: {raw_path}")
+            continue
+        if not resolved.exists():
+            errors.append(f"{scenario_id}: {field} path does not exist: {raw_path}")
+
+    return errors
+
+
 def require_coverage(values: dict[str, str], coverage: dict[str, list[str]], scenario_id: str) -> list[str]:
     errors: list[str] = []
     field_for_key = {
@@ -203,6 +247,15 @@ def require_coverage(values: dict[str, str], coverage: dict[str, list[str]], sce
         if not value or value.lower() in {"pending", "todo", "tbd"}:
             errors.append(f"{scenario_id}: {field} is required by coverage {key}={','.join(tokens)}")
             continue
+        if key == "screenshot" and "required" in tokens:
+            errors.extend(
+                require_existing_artifacts(
+                    value,
+                    scenario_id,
+                    field,
+                    {"screenshots", "recordings"},
+                )
+            )
         for token in tokens:
             if not token_present(value, token):
                 errors.append(f"{scenario_id}: {field} does not include coverage token {token!r}")
@@ -264,6 +317,15 @@ for line in rows[1:]:
             if not value or value.lower() in {"pending", "todo", "tbd"}:
                 strict_missing.append(f"{scenario_id}: {field} is not filled")
         strict_missing.extend(require_coverage(values, coverage, scenario_id))
+        if result in {"fail", "blocked"}:
+            strict_missing.extend(
+                require_existing_artifacts(
+                    values["Diagnostic/log path"],
+                    scenario_id,
+                    "Diagnostic/log path",
+                    {"logs"},
+                )
+            )
     scenario_count += 1
 
 if scenario_count < 24:

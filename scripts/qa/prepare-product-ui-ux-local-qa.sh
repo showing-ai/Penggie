@@ -149,6 +149,11 @@ cat > "$evidence_dir/README.md" <<EOF
 - \`notes/\`: per-scenario manual QA notes with embedded scenario-specific steps.
 - \`manifest.tsv\`: required scenarios, owning task IDs, review scope, and required coverage.
 
+When a scenario requires screenshots or recordings, record relative paths such
+as \`screenshots/QA-OVERLAY-003-light.png\` in the scenario note. If a scenario
+result is \`fail\` or \`blocked\`, record at least one relative path under
+\`logs/\` in \`Diagnostic/log path\`.
+
 ## Required Local Checks
 
 \`\`\`bash
@@ -227,6 +232,7 @@ cat > "$evidence_dir/notes/scenario-template.md" <<'EOF'
 - Observed result:
 - Raw Terminal parity note:
 - Screenshot/recording path:
+- Diagnostic/log path:
 - Follow-up:
 EOF
 
@@ -253,6 +259,7 @@ tail -n +2 "$evidence_dir/manifest.tsv" | while IFS=$'\t' read -r scenario_id ta
 - Observed result:
 - Raw Terminal parity note:
 - Screenshot/recording path:
+- Diagnostic/log path:
 - Follow-up:
 
 ## Notes

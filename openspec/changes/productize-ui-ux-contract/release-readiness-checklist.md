@@ -32,6 +32,9 @@ For each milestone, record:
   `scripts/qa/check-running-penggie-build-identity.sh <bundle>`.
 - Fixtures added or updated, or reason not applicable.
 - Manual QA scenario names and result.
+- Existing screenshot or recording paths for scenarios that require visual
+  evidence.
+- Existing diagnostic log paths for every failed or blocked scenario.
 - Accessibility QA result.
 - Visual QA captures reviewed, or reason not applicable.
 - Raw Terminal parity evidence when a live/inspectable terminal surface exists.
