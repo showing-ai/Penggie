@@ -59,6 +59,7 @@ Rules for adding fixtures:
 | Tool-heavy hierarchy | `tool-heavy-warning-hierarchy` | Covered for repeated activity/tool/status rows, warning rows, and final answer text that must remain visible. |
 | Long sessions | `long-session-stable` | Covered for completed answer text followed by later status/prompt-ready output without polluting stable turns. |
 | Low-confidence fallback | `low-confidence-fallback` | Covered for intentionally weak semantic classification that must preserve raw/preformatted terminal evidence. |
+| Large preformatted content | `large-preformatted` | Covered for wide terminal-shaped rows that exceed the nominal terminal width and must remain cell-aware with horizontal scroll. |
 | Approval prompt | `approval-prompt` | Covered at Display AST layer. Missing Reading snapshot and low-confidence fallback variant. |
 
 ## Remaining Coverage Gaps
@@ -76,6 +77,7 @@ Rules for adding fixtures:
 - `tool-heavy-warning-hierarchy`: tool-heavy output with repeated progress rows and final answer hierarchy.
 - `low-confidence-fallback`: fallback classification that keeps visible terminal evidence.
 - `long-session-stable`: long-session stability pressure with completed output and later status/prompt-ready rows.
+- `large-preformatted`: wide terminal-shaped output with CJK and slash-looking text that must stay cell-aware and horizontally scrollable.
 
 These fixtures are snapshot-tested by `PenggieDisplayFixtureTests` against Display AST output. Reading visual breadth, footer pollution prevention, and traceable fallback presentation remain covered by later tasks.
 

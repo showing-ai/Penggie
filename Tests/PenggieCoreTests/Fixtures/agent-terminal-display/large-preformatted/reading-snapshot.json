@@ -1,0 +1,23 @@
+[
+  {
+    "kind": "prose",
+    "text": "Large preformatted output from a terminal command:",
+    "cellAware": false,
+    "horizontalScroll": false,
+    "displayBlockKind": null
+  },
+  {
+    "kind": "preformatted",
+    "text": "| timestamp           | service        | message                                                                                 | trace_id                         |\n| 2026-06-01T10:02:03 | penggie-core   | rendered CJK 表格 and slash-looking text /model without turning it into an active overlay | trace-00000000000000000000000001 |\n| 2026-06-01T10:02:04 | ghostty-bridge | preserved 148 cells of spacing so Reading must keep horizontal scroll instead of wrapping | trace-00000000000000000000000002 |\n| 2026-06-01T10:02:05 | display-ast    | fallback keeps terminal evidence visible when semantic classification is intentionally low | trace-00000000000000000000000003 |",
+    "cellAware": true,
+    "horizontalScroll": true,
+    "displayBlockKind": "preformatted"
+  },
+  {
+    "kind": "prose",
+    "text": "End of large preformatted output.",
+    "cellAware": false,
+    "horizontalScroll": false,
+    "displayBlockKind": null
+  }
+]

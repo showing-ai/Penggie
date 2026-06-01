@@ -259,6 +259,25 @@ struct PenggieDisplayFixtureTests {
         }
     }
 
+    @Test
+    func largePreformattedFixturePreservesWideTerminalRows() throws {
+        let actual = try displayASTSnapshot(fixture: "large-preformatted")
+        let expected = try expectedDisplayAST(fixture: "large-preformatted")
+        let rendered = try renderedSegmentsFromDisplayAST(fixture: "large-preformatted")
+        let preformatted = try #require(actual.blocks.first { $0.kind == "preformatted" })
+        let rows = preformatted.text.components(separatedBy: .newlines)
+
+        #expect(actual == expected)
+        #expect(rendered == (try expectedSegments(fixture: "large-preformatted")))
+        #expect(preformatted.cellAware)
+        #expect(preformatted.horizontalScroll)
+        #expect(preformatted.ruleIDs.contains("generic.preformatted.table_shape"))
+        #expect(rows.count == 4)
+        #expect(rows.map(terminalCellWidth).contains { $0 > 120 })
+        #expect(preformatted.text.contains("/model without turning it into an active overlay"))
+        #expect(preformatted.text.contains("semantic classification is intentionally low"))
+    }
+
     private func renderedSegments(fixture: String) throws -> [FixtureReadingSegment] {
         let rawText = try fixtureText(fixture: fixture, filename: "raw-text.txt")
         let block = PenggieReadingBlock(

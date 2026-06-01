@@ -1,0 +1,43 @@
+{
+  "source": "terminalProjection",
+  "terminalColumns": 120,
+  "terminalRows": 6,
+  "blocks": [
+    {
+      "kind": "rawFallback",
+      "role": "unknown",
+      "text": "Large preformatted output from a terminal command:",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.raw.visible_text"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": "generic.visible_text"
+    },
+    {
+      "kind": "preformatted",
+      "role": "unknown",
+      "text": "| timestamp           | service        | message                                                                                 | trace_id                         |\n| 2026-06-01T10:02:03 | penggie-core   | rendered CJK 表格 and slash-looking text /model without turning it into an active overlay | trace-00000000000000000000000001 |\n| 2026-06-01T10:02:04 | ghostty-bridge | preserved 148 cells of spacing so Reading must keep horizontal scroll instead of wrapping | trace-00000000000000000000000002 |\n| 2026-06-01T10:02:05 | display-ast    | fallback keeps terminal evidence visible when semantic classification is intentionally low | trace-00000000000000000000000003 |",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.preformatted.table_shape"
+      ],
+      "cellAware": true,
+      "horizontalScroll": true,
+      "fallbackCode": "generic.table_shape"
+    },
+    {
+      "kind": "rawFallback",
+      "role": "unknown",
+      "text": "End of large preformatted output.",
+      "confidenceLevel": "fallback",
+      "ruleIDs": [
+        "generic.raw.visible_text"
+      ],
+      "cellAware": false,
+      "horizontalScroll": false,
+      "fallbackCode": "generic.visible_text"
+    }
+  ]
+}
