@@ -779,6 +779,8 @@ final class PenggieSessionModel: ObservableObject {
     }
 
     private static func appendDebugDiagnostic(fileName: String, message: String) {
+        guard debugFileDiagnosticsEnabled else { return }
+
         let directory = URL(fileURLWithPath: NSTemporaryDirectory())
             .appendingPathComponent("Penggie", isDirectory: true)
         do {
@@ -796,6 +798,17 @@ final class PenggieSessionModel: ObservableObject {
         } catch {
             NSLog("[PenggieDiagnosticWriteFailed] %@ %@", fileName, String(describing: error))
         }
+    }
+
+    private static var debugFileDiagnosticsEnabled: Bool {
+        debugBooleanEnvironmentFlag("PENGGIE_DEBUG_FILE_DIAGNOSTICS")
+    }
+
+    private static func debugBooleanEnvironmentFlag(_ name: String) -> Bool {
+        let value = ProcessInfo.processInfo.environment[name]?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+        return value == "1" || value == "true" || value == "yes"
     }
 
     private func logActiveInputStyleDiagnosticIfNeeded(

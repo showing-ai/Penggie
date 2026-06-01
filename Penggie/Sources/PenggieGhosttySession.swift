@@ -618,6 +618,7 @@ final class PenggieGhosttySession: ObservableObject {
 
     private static func logDebugDiagnostic(_ message: String) {
         NSLog("%@", message)
+        guard debugFileDiagnosticsEnabled else { return }
 
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent("Penggie", isDirectory: true)
@@ -637,6 +638,21 @@ final class PenggieGhosttySession: ObservableObject {
         } catch {
             NSLog("[PenggieTerminalStyleDiagnostic] failed to write debug log: %@", String(describing: error))
         }
+    }
+
+    private static var debugFileDiagnosticsEnabled: Bool {
+        debugBooleanEnvironmentFlag("PENGGIE_DEBUG_FILE_DIAGNOSTICS")
+    }
+
+    private static var debugLaunchEnvironmentDiagnosticEnabled: Bool {
+        debugBooleanEnvironmentFlag("PENGGIE_DEBUG_LAUNCH_ENV_DIAGNOSTIC")
+    }
+
+    private static func debugBooleanEnvironmentFlag(_ name: String) -> Bool {
+        let value = ProcessInfo.processInfo.environment[name]?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+        return value == "1" || value == "true" || value == "yes"
     }
 #endif
 
@@ -693,9 +709,11 @@ final class PenggieGhosttySession: ObservableObject {
         _ body: (inout [ghostty_env_var_s]) -> Result
     ) -> Result {
         #if DEBUG
-        NSLog(
-            "[PenggieCodexLaunchEnvironment] surface env overrides: NO_COLOR=<unset> CLICOLOR=1 CLICOLOR_FORCE=<unset> FORCE_COLOR=<unset>; TERM/COLORTERM/TERM_PROGRAM are Ghostty-owned"
-        )
+        if debugLaunchEnvironmentDiagnosticEnabled {
+            NSLog(
+                "[PenggieCodexLaunchEnvironment] surface env overrides: NO_COLOR=<unset> CLICOLOR=1 CLICOLOR_FORCE=<unset> FORCE_COLOR=<unset>; TERM/COLORTERM/TERM_PROGRAM are Ghostty-owned"
+            )
+        }
         #endif
         let overrides = [
             ("NO_COLOR", ""),
