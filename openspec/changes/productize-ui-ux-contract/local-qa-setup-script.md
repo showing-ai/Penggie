@@ -26,7 +26,8 @@ The script creates:
 - `recordings/`
 - `logs/`
 - `notes/`
-- `manifest.tsv` with required scenario IDs, owning task IDs, and review scope
+- `manifest.tsv` with required scenario IDs, owning task IDs, review scope, and
+  machine-checkable coverage requirements
 - `README.md` with required validation commands and manual QA references
 - `notes/scenario-template.md` for per-scenario evidence
 - one `notes/<scenario-id>.md` file for every required manual QA scenario
@@ -56,7 +57,19 @@ scripts/qa/check-product-ui-ux-evidence-bundle.sh "$bundle"
 
 The final checker is expected to fail on a freshly generated bundle. It should
 only pass after every scenario note records a final result, observed result,
-Raw Terminal parity note, and follow-up.
+Raw Terminal parity note, follow-up, and the coverage required by
+`manifest.tsv`.
+
+Coverage entries are semicolon-separated `key=value` clauses, for example:
+
+```text
+theme=light,dark;window=normal,narrow;voiceover=on;terminal=live;raw-terminal=required
+```
+
+The strict checker verifies the matching note fields contain those coverage
+tokens. This prevents a scenario from passing with only generic prose when it
+actually required light/dark, narrow-window, VoiceOver, Raw Terminal, pointer,
+motion, contrast, or screenshot evidence.
 
 Optional build verification:
 

@@ -10,8 +10,9 @@ Usage: scripts/qa/check-product-ui-ux-evidence-bundle.sh [--allow-pending] EVIDE
 Validates a product-grade UI/UX manual QA evidence bundle.
 
 Without --allow-pending, every manifest scenario note must contain a filled
-result and observation fields. This script checks evidence completeness only; it
-does not treat screenshots as terminal-owned state truth.
+result, observation fields, and the scenario-specific coverage required by the
+manifest. This script checks evidence completeness only; it does not treat
+screenshots as terminal-owned state truth.
 
 Options:
   --allow-pending  Validate generated bundle structure without requiring filled results.
@@ -69,13 +70,14 @@ notes_dir = Path(sys.argv[2])
 allow_pending = sys.argv[3] == "true"
 
 rows = manifest.read_text().splitlines()
-if not rows or rows[0] != "Scenario ID\tTask ID\tScope":
+if not rows or rows[0] != "Scenario ID\tTask ID\tScope\tCoverage":
     raise AssertionError("manifest.tsv must start with the expected header")
 
 required_fields = [
     "Scenario ID",
     "Task ID",
     "Scope",
+    "Required coverage",
     "Result",
     "Commit SHA",
     "Build configuration",
@@ -84,6 +86,7 @@ required_fields = [
     "Project folder",
     "Terminal fixture or live terminal setup",
     "Keyboard path",
+    "Pointer path",
     "VoiceOver state",
     "Expected result",
     "Observed result",
@@ -94,6 +97,18 @@ required_fields = [
 
 allowed_results = {"pass", "fail", "blocked", "not applicable"}
 pending_results = {"pending", ""}
+allowed_coverage_keys = {
+    "theme",
+    "window",
+    "voiceover",
+    "terminal",
+    "keyboard",
+    "pointer",
+    "raw-terminal",
+    "screenshot",
+    "motion",
+    "contrast",
+}
 
 
 def field_value(source: str, field: str) -> str:
@@ -103,6 +118,69 @@ def field_value(source: str, field: str) -> str:
     return match.group(1).strip()
 
 
+def parse_coverage(raw: str) -> dict[str, list[str]]:
+    if not raw:
+        raise AssertionError("coverage must not be blank")
+    parsed: dict[str, list[str]] = {}
+    for clause in raw.split(";"):
+        clause = clause.strip()
+        if not clause:
+            continue
+        if "=" not in clause:
+            raise AssertionError(f"invalid coverage clause: {clause!r}")
+        key, values = clause.split("=", 1)
+        key = key.strip()
+        values = values.strip()
+        if key not in allowed_coverage_keys:
+            raise AssertionError(f"unknown coverage key: {key!r}")
+        if not values:
+            raise AssertionError(f"coverage key {key!r} has no values")
+        tokens = [token.strip().lower() for token in values.split(",") if token.strip()]
+        if not tokens:
+            raise AssertionError(f"coverage key {key!r} has no tokens")
+        parsed[key] = tokens
+    if not parsed:
+        raise AssertionError("coverage must include at least one key")
+    return parsed
+
+
+def token_present(value: str, token: str) -> bool:
+    normalized = value.lower()
+    token = token.lower()
+    if token in {"optional", "not-required", "none", "required"}:
+        return True
+    token_words = re.split(r"[-_]", token)
+    return all(word in normalized for word in token_words if word)
+
+
+def require_coverage(values: dict[str, str], coverage: dict[str, list[str]], scenario_id: str) -> list[str]:
+    errors: list[str] = []
+    field_for_key = {
+        "theme": "macOS appearance",
+        "window": "Window size",
+        "voiceover": "VoiceOver state",
+        "terminal": "Terminal fixture or live terminal setup",
+        "keyboard": "Keyboard path",
+        "pointer": "Pointer path",
+        "raw-terminal": "Raw Terminal parity note",
+        "screenshot": "Screenshot/recording path",
+        "motion": "Observed result",
+        "contrast": "Observed result",
+    }
+    for key, tokens in coverage.items():
+        field = field_for_key[key]
+        value = values[field]
+        if key in {"raw-terminal", "screenshot", "pointer"} and tokens == ["not-required"]:
+            continue
+        if not value or value.lower() in {"pending", "todo", "tbd"}:
+            errors.append(f"{scenario_id}: {field} is required by coverage {key}={','.join(tokens)}")
+            continue
+        for token in tokens:
+            if not token_present(value, token):
+                errors.append(f"{scenario_id}: {field} does not include coverage token {token!r}")
+    return errors
+
+
 scenario_count = 0
 strict_missing = []
 
@@ -110,9 +188,10 @@ for line in rows[1:]:
     if not line.strip():
         continue
     parts = line.split("\t")
-    if len(parts) != 3:
-        raise AssertionError(f"manifest row must have 3 tab-separated columns: {line!r}")
-    scenario_id, task_id, scope = parts
+    if len(parts) != 4:
+        raise AssertionError(f"manifest row must have 4 tab-separated columns: {line!r}")
+    scenario_id, task_id, scope, coverage_raw = parts
+    coverage = parse_coverage(coverage_raw)
     note = notes_dir / f"{scenario_id}.md"
     if not note.exists():
         raise AssertionError(f"missing scenario note: {note}")
@@ -126,6 +205,8 @@ for line in rows[1:]:
         raise AssertionError(f"{note} task id mismatch: {values['Task ID']} != {task_id}")
     if values["Scope"] != scope:
         raise AssertionError(f"{note} scope mismatch: {values['Scope']} != {scope}")
+    if values["Required coverage"] != coverage_raw:
+        raise AssertionError(f"{note} required coverage mismatch: {values['Required coverage']} != {coverage_raw}")
 
     result = values["Result"].lower()
     if allow_pending:
@@ -140,6 +221,7 @@ for line in rows[1:]:
             "Project folder",
             "Terminal fixture or live terminal setup",
             "Keyboard path",
+            "Pointer path",
             "VoiceOver state",
             "Expected result",
             "Observed result",
@@ -149,6 +231,7 @@ for line in rows[1:]:
             value = values[field]
             if not value or value.lower() in {"pending", "todo", "tbd"}:
                 strict_missing.append(f"{scenario_id}: {field} is not filled")
+        strict_missing.extend(require_coverage(values, coverage, scenario_id))
     scenario_count += 1
 
 if scenario_count < 24:

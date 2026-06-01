@@ -84,7 +84,7 @@ cat > "$evidence_dir/README.md" <<EOF
 - \`recordings/\`: optional short videos for flicker, focus, or scrolling behavior.
 - \`logs/\`: relevant app/system logs when a scenario fails.
 - \`notes/\`: per-scenario manual QA notes.
-- \`manifest.tsv\`: required scenarios, owning task IDs, and review scope.
+- \`manifest.tsv\`: required scenarios, owning task IDs, review scope, and required coverage.
 
 ## Required Local Checks
 
@@ -133,42 +133,46 @@ scripts/qa/check-product-ui-ux-evidence-bundle.sh "$evidence_dir"
 \`\`\`
 
 The strict checker fails until every required scenario note has a non-placeholder
-result, observed result, Raw Terminal parity note where applicable, and follow-up.
+result, observed result, Raw Terminal parity note where applicable, follow-up,
+and the coverage required by \`manifest.tsv\`.
 
 EOF
 
 cat > "$evidence_dir/manifest.tsv" <<'EOF'
-Scenario ID	Task ID	Scope
-QA-SETUP-001	2.2	Valid folder start
-QA-SETUP-002	2.2	Invalid or missing folder recovery
-QA-LIFE-001	2.6	New Chat confirmation
-QA-LIFE-002	2.6	Close Session confirmation
-QA-OVERLAY-001	3.10	Slash suggestions
-QA-OVERLAY-002	3.10	Model and effort picker
-QA-OVERLAY-003	3.10	Resume picker scroll, filter, sort, and page boundary
-QA-OVERLAY-004	3.10	Approval and permission modal choices
-QA-COMP-001	4.2	IME marked text
-QA-COMP-002	4.3	Ordinary composer behavior
-QA-COMP-003	4.4	Slash handoff focus
-QA-FOCUS-001	4.5	Focus transitions across app states
-QA-READ-001	5.3	Long transcript stability
-QA-READ-002	5.6	CJK, table, code, warning, and fallback display
-QA-RAW-001	6.2	Reading to Raw Terminal round trip
-QA-RAW-002	6.4	Raw Terminal keyboard focus and clipboard
-QA-RAW-003	6.3	Raw Terminal availability during low-confidence projection
-QA-RAW-004	6.5	Raw Terminal text selection, copy, paste, and mouse reporting
-QA-RAW-005	6.6	Raw Terminal visual parity
-QA-AX-001	7.4	Keyboard-only and larger text journey
-QA-AX-002	7.5	Reduced motion and dynamic announcements
-QA-VIS-001	8.3	Light and dark visual capture matrix
-QA-VIS-002	8.4	Density rules
-QA-VIS-003	8.5	Contrast targets
+Scenario ID	Task ID	Scope	Coverage
+QA-SETUP-001	2.2	Valid folder start	theme=light,dark;window=normal;voiceover=on;terminal=none;keyboard=tab-space
+QA-SETUP-002	2.2	Invalid or missing folder recovery	theme=light,dark;window=normal,narrow;voiceover=on;terminal=none;keyboard=tab-enter
+QA-LIFE-001	2.6	New Chat confirmation	theme=light,dark;window=normal;voiceover=on;terminal=live;keyboard=esc-enter;raw-terminal=not-required
+QA-LIFE-002	2.6	Close Session confirmation	theme=light,dark;window=normal;voiceover=on;terminal=live;keyboard=esc-enter;raw-terminal=not-required
+QA-OVERLAY-001	3.10	Slash suggestions	theme=light,dark;window=normal,narrow;voiceover=on;terminal=live;keyboard=arrows-enter-esc-backspace-filter;raw-terminal=required
+QA-OVERLAY-002	3.10	Model and effort picker	theme=light,dark;window=normal,narrow;voiceover=on;terminal=live;keyboard=arrows-tab-enter-esc;raw-terminal=required
+QA-OVERLAY-003	3.10	Resume picker scroll, filter, sort, and page boundary	theme=light,dark;window=normal,narrow;voiceover=on;terminal=live;keyboard=arrows-tab-enter-esc-backspace-filter;raw-terminal=required;screenshot=required
+QA-OVERLAY-004	3.10	Approval and permission modal choices	theme=light,dark;window=normal;voiceover=on;terminal=live;keyboard=arrows-enter-esc;raw-terminal=required;screenshot=required
+QA-COMP-001	4.2	IME marked text	theme=light,dark;window=normal;voiceover=optional;terminal=live;keyboard=ime-enter;raw-terminal=not-required
+QA-COMP-002	4.3	Ordinary composer behavior	theme=light,dark;window=normal,narrow;voiceover=on;terminal=live;keyboard=enter-shift-enter-paste-large-paste;raw-terminal=not-required
+QA-COMP-003	4.4	Slash handoff focus	theme=light,dark;window=normal;voiceover=on;terminal=live;keyboard=slash-arrows-esc;raw-terminal=required
+QA-FOCUS-001	4.5	Focus transitions across app states	theme=light,dark;window=normal,narrow;voiceover=on;terminal=live;keyboard=tab-esc-enter-mode-switch;raw-terminal=required
+QA-READ-001	5.3	Long transcript stability	theme=light,dark;window=normal,narrow;voiceover=optional;terminal=live-or-fixture;keyboard=scroll-switch-resize-submit;raw-terminal=required
+QA-READ-002	5.6	CJK, table, code, warning, and fallback display	theme=light,dark;window=normal,narrow,large-text;voiceover=on;terminal=live-or-fixture;keyboard=scroll-resize-switch;raw-terminal=required;screenshot=required
+QA-RAW-001	6.2	Reading to Raw Terminal round trip	theme=light,dark;window=normal;voiceover=on;terminal=live;keyboard=mode-switch;raw-terminal=required
+QA-RAW-002	6.4	Raw Terminal keyboard focus and clipboard	theme=light,dark;window=normal;voiceover=optional;terminal=live;keyboard=raw-keys-copy-paste;pointer=selection;raw-terminal=required
+QA-RAW-003	6.3	Raw Terminal availability during low-confidence projection	theme=light,dark;window=normal;voiceover=optional;terminal=live-or-fixture;keyboard=mode-switch;raw-terminal=required
+QA-RAW-004	6.5	Raw Terminal text selection, copy, paste, and mouse reporting	theme=light,dark;window=normal;voiceover=optional;terminal=live;keyboard=copy-paste;pointer=selection-shift-drag;raw-terminal=required
+QA-RAW-005	6.6	Raw Terminal visual parity	theme=light,dark;window=normal,narrow;voiceover=optional;terminal=live;keyboard=mode-switch;raw-terminal=required;screenshot=required
+QA-AX-001	7.4	Keyboard-only and larger text journey	theme=light,dark;window=normal,large-text;voiceover=on;terminal=live;keyboard=keyboard-only;raw-terminal=required;screenshot=required
+QA-AX-002	7.5	Reduced motion and dynamic announcements	theme=light,dark;window=normal;voiceover=on;terminal=live;keyboard=working-approval-permission;motion=reduced;raw-terminal=required
+QA-VIS-001	8.3	Light and dark visual capture matrix	theme=light,dark;window=normal,narrow,large-text;voiceover=optional;terminal=live;keyboard=visual-path;screenshot=required
+QA-VIS-002	8.4	Density rules	theme=light,dark;window=normal,narrow,large-text;voiceover=optional;terminal=live-or-fixture;keyboard=visual-path;screenshot=required
+QA-VIS-003	8.5	Contrast targets	theme=light,dark;window=normal,narrow;voiceover=optional;terminal=live-or-fixture;keyboard=visual-path;contrast=required;screenshot=required
 EOF
 
 cat > "$evidence_dir/notes/scenario-template.md" <<'EOF'
 # Scenario Evidence
 
 - Scenario ID:
+- Task ID:
+- Scope:
+- Required coverage:
 - Result: pass / fail / blocked / not applicable
 - Commit SHA:
 - Build configuration:
@@ -177,6 +181,7 @@ cat > "$evidence_dir/notes/scenario-template.md" <<'EOF'
 - Project folder:
 - Terminal fixture or live terminal setup:
 - Keyboard path:
+- Pointer path:
 - VoiceOver state:
 - Expected result:
 - Observed result:
@@ -185,7 +190,7 @@ cat > "$evidence_dir/notes/scenario-template.md" <<'EOF'
 - Follow-up:
 EOF
 
-tail -n +2 "$evidence_dir/manifest.tsv" | while IFS=$'\t' read -r scenario_id task_id scope; do
+tail -n +2 "$evidence_dir/manifest.tsv" | while IFS=$'\t' read -r scenario_id task_id scope coverage; do
   note_path="$evidence_dir/notes/$scenario_id.md"
   cat > "$note_path" <<EOF
 # Scenario Evidence: $scenario_id
@@ -193,6 +198,7 @@ tail -n +2 "$evidence_dir/manifest.tsv" | while IFS=$'\t' read -r scenario_id ta
 - Scenario ID: $scenario_id
 - Task ID: $task_id
 - Scope: $scope
+- Required coverage: $coverage
 - Result: pending
 - Commit SHA: $commit_sha
 - Build configuration: Debug
@@ -201,6 +207,7 @@ tail -n +2 "$evidence_dir/manifest.tsv" | while IFS=$'\t' read -r scenario_id ta
 - Project folder:
 - Terminal fixture or live terminal setup:
 - Keyboard path:
+- Pointer path:
 - VoiceOver state:
 - Expected result:
 - Observed result:
