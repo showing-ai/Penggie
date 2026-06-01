@@ -11,6 +11,9 @@ Use this checklist before accepting each product-grade UI/UX milestone.
 - Relevant QA/source guard scripts, including:
   - `scripts/qa/check-p0-session-lifecycle-source.sh` when lifecycle/session guards are touched.
   - `scripts/check-theme-token-usage.sh` when visual/theme tokens are touched.
+- Live/manual QA status guard:
+  - `scripts/qa/check-product-ui-ux-live-qa-status.sh` before manual QA starts, to prove all remaining live tasks have manifest scenarios.
+  - `scripts/qa/check-product-ui-ux-live-qa-status.sh --strict --evidence-dir <bundle>` before accepting live/manual QA completion.
 - `git diff --check`
 - `xcodebuild -project Penggie/Penggie.xcodeproj -scheme Penggie -configuration Debug -destination 'platform=macOS' build`
 
@@ -21,6 +24,7 @@ For each milestone, record:
 - OpenSpec task IDs completed.
 - Source files changed.
 - Tests run and result.
+- Evidence bundle path and `check-product-ui-ux-live-qa-status.sh` result.
 - Fixtures added or updated, or reason not applicable.
 - Manual QA scenario names and result.
 - Accessibility QA result.

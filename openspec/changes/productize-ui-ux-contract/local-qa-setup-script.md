@@ -32,6 +32,11 @@ The script creates:
 - `notes/scenario-template.md` for per-scenario evidence
 - one `notes/<scenario-id>.md` file for every required manual QA scenario
 
+The scenario matrix is stored in
+`scripts/qa/product-ui-ux-manifest.tsv` and copied into each bundle. The prepare
+script and status guard use the same manifest so QA coverage cannot silently
+drift between tools.
+
 ## Verification
 
 Run:
@@ -48,6 +53,16 @@ Structural bundle verification:
 bundle="$(scripts/qa/prepare-product-ui-ux-local-qa.sh --evidence-dir /tmp/penggie-ui-ux-qa | tail -n 1)"
 scripts/qa/check-product-ui-ux-evidence-bundle.sh --allow-pending "$bundle"
 ```
+
+Remaining live/manual QA status:
+
+```bash
+scripts/qa/check-product-ui-ux-live-qa-status.sh --evidence-dir "$bundle"
+```
+
+The status guard reports every open live/manual QA task and the manifest
+scenarios that prove it. It must not be used to mark tasks complete; it only
+proves that pending tasks still have explicit evidence slots.
 
 Final manual QA evidence verification:
 
@@ -78,6 +93,15 @@ scripts/qa/prepare-product-ui-ux-local-qa.sh --build --evidence-dir /tmp/penggie
 ```
 
 This runs the standard Debug macOS build before writing evidence notes.
+
+Strict live/manual QA status verification:
+
+```bash
+scripts/qa/check-product-ui-ux-live-qa-status.sh --strict --evidence-dir "$bundle"
+```
+
+This wraps the strict evidence checker and should only pass when the bundle is
+fully filled from a live app run.
 
 ## Non-Goals
 

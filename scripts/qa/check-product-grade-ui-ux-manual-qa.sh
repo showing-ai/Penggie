@@ -3,13 +3,16 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 qa_script="$repo_root/openspec/changes/productize-ui-ux-contract/product-grade-ui-ux-manual-qa-script.md"
+manifest="$repo_root/scripts/qa/product-ui-ux-manifest.tsv"
 
-python3 - "$qa_script" <<'PY'
+python3 - "$qa_script" "$manifest" <<'PY'
+import csv
 import re
 import sys
 from pathlib import Path
 
 path = Path(sys.argv[1])
+manifest = Path(sys.argv[2])
 source = path.read_text()
 
 required_sections = [
@@ -78,6 +81,18 @@ for term in required_terms:
 for scenario in required_scenarios:
     if f"### {scenario}:" not in source:
         raise AssertionError(f"Missing scenario: {scenario}")
+
+with manifest.open(newline="") as handle:
+    rows = list(csv.DictReader(handle, delimiter="\t"))
+manifest_scenarios = {row["Scenario ID"] for row in rows}
+missing_from_manifest = sorted(set(required_scenarios) - manifest_scenarios)
+extra_in_manifest = sorted(manifest_scenarios - set(required_scenarios))
+if missing_from_manifest:
+    raise AssertionError(f"Manual QA scenarios missing from manifest: {', '.join(missing_from_manifest)}")
+if extra_in_manifest:
+    raise AssertionError(f"Manifest scenarios missing from manual QA script: {', '.join(extra_in_manifest)}")
+if any(not row["Coverage"].strip() for row in rows):
+    raise AssertionError("Every manifest scenario must include coverage requirements")
 
 for scenario in required_scenarios:
     match = re.search(
