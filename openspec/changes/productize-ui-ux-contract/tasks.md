@@ -67,7 +67,7 @@
 ## 8. P1 Theme, Density, And Visual Polish
 
 - [x] 8.1 Review `PenggieTheme.swift`, `PenggieThemeController.swift`, `PenggieRootView.swift`, and `PenggieGhosttySession.swift` against the token layer, scene token, component token, and renderer palette contract.
-- [ ] 8.2 Validate that setup, Reading canvas, composer, transcript content, terminal-owned overlays, Raw Terminal, titlebar chrome, recovery states, and confirmations use approved tokens rather than scattered raw colors or system backgrounds.
+- [x] 8.2 Validate that setup, Reading canvas, composer, transcript content, terminal-owned overlays, Raw Terminal, titlebar chrome, recovery states, and confirmations use approved tokens rather than scattered raw colors or system backgrounds.
 - [ ] 8.3 Create visual QA captures for light mode and dark mode across setup, empty Reading, long transcript, composer focus, slash overlay, resume picker, approval/permission, Raw Terminal, recovery, narrow window, and large text.
 - [ ] 8.4 Validate density rules: high information density from hierarchy and disclosure, not smaller body text, hidden state, overloaded titlebar, nested cards, or decorative visual weight.
 - [ ] 8.5 Validate contrast targets for normal text, large text/icons, focus rings, disabled state, selected rows, warnings, danger, and terminal renderer colors.

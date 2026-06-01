@@ -200,7 +200,7 @@ private struct PenggieStartView: View {
                     .font(.system(size: 24, weight: .semibold))
                 Text(startupState?.message ?? "Choose a project folder, then create with Penggie.")
                     .font(.system(size: 15))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(theme.secondaryText)
             }
 
             VStack(spacing: 10) {
@@ -212,7 +212,7 @@ private struct PenggieStartView: View {
                             .font(.system(size: 16, weight: .semibold))
                         Text("Local agent CLI")
                             .font(.system(size: 13))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(theme.secondaryText)
                     }
 
                     Spacer()
@@ -247,7 +247,7 @@ private struct PenggieStartView: View {
                                 .foregroundStyle(theme.secondaryText)
                             Text(session.sessionFolderDisplayPath)
                                 .font(.system(size: 13, weight: .medium))
-                                .foregroundStyle(.primary)
+                                .foregroundStyle(theme.primaryText)
                                 .lineLimit(1)
                                 .truncationMode(.middle)
                         }
@@ -333,7 +333,7 @@ private struct CodexProviderIcon: View {
                 .renderingMode(.template)
                 .scaledToFit()
                 .frame(width: 26, height: 26)
-                .foregroundStyle(.primary)
+                .foregroundStyle(theme.primaryText)
         }
         .frame(width: 52, height: 52)
         .overlay {
@@ -346,6 +346,7 @@ private struct CodexProviderIcon: View {
 
 private struct PenggieProgressView: View {
     @EnvironmentObject private var session: PenggieSessionModel
+    @Environment(\.penggieTheme) private var theme
 
     var body: some View {
         VStack(spacing: 18) {
@@ -356,7 +357,7 @@ private struct PenggieProgressView: View {
                     .font(.system(size: 17, weight: .semibold))
                 Text(session.state == .checkingCodex ? "Looking in your login shell PATH." : "Preparing your Penggie workspace.")
                     .font(.system(size: 13))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(theme.secondaryText)
             }
         }
         .padding(32)
@@ -380,14 +381,14 @@ private struct PenggieErrorStateView: View {
         VStack(spacing: 20) {
             Image(systemName: "exclamationmark.triangle")
                 .font(.system(size: 36, weight: .regular))
-                .foregroundStyle(.orange)
+                .foregroundStyle(theme.warningText)
 
             VStack(spacing: 8) {
                 Text(title)
                     .font(.system(size: 22, weight: .semibold))
                 Text(message)
                     .font(.system(size: 14))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(theme.secondaryText)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: 460)
             }
@@ -679,7 +680,7 @@ private struct PenggieReadingChatView: View {
 
             Text("What should we work on?")
                 .font(.system(size: 27, weight: .medium))
-                .foregroundStyle(.primary)
+                .foregroundStyle(theme.primaryText)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
                 .frame(maxWidth: contentWidth)
@@ -703,10 +704,10 @@ private struct PenggieReadingChatView: View {
             VStack(spacing: 8) {
                 Text(copy.title)
                     .font(.system(size: 18, weight: .medium))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(theme.primaryText)
                 Text(copy.message)
                     .font(.system(size: 14))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(theme.secondaryText)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: min(contentWidth, 560))
             }
@@ -746,10 +747,10 @@ private struct PenggieReadingChatView: View {
                         .foregroundStyle(theme.secondaryText)
                     Text("Resume a previous session")
                         .font(.system(size: 25, weight: .semibold))
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(theme.primaryText)
                     Text("Type to search, use ↑/↓ to browse, press Enter to resume.")
                         .font(.system(size: 14))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(theme.secondaryText)
                 }
                 .multilineTextAlignment(.center)
 
@@ -879,10 +880,10 @@ private struct PenggieReadingChatView: View {
                         .foregroundStyle(theme.secondaryText)
                     Text(surface.kind == .permissionPrompt ? "Permission required" : "Approval required")
                         .font(.system(size: 25, weight: .semibold))
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(theme.primaryText)
                     Text("Use ↑/↓ to choose, Enter to confirm, or Esc to cancel.")
                         .font(.system(size: 14))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(theme.secondaryText)
                 }
                 .multilineTextAlignment(.center)
 
@@ -1046,7 +1047,7 @@ private struct PenggieReadingChatView: View {
                     if !composerHasVisibleText {
                         Text("Ask Codex anything")
                             .font(.system(size: 14))
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(theme.placeholderText)
                             .padding(.top, 6)
                             .allowsHitTesting(false)
                     }
@@ -1379,7 +1380,7 @@ private struct PenggieReadingBlockView: View {
         } else if PenggieReadingPresentation.isToolChromeBlock(block) {
             Text(PenggieReadingPresentation.terminalText(for: block))
                 .font(.system(size: 12, design: .monospaced))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(theme.secondaryText)
                 .lineSpacing(3)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 12)
@@ -1393,6 +1394,8 @@ private struct PenggieReadingBlockView: View {
 }
 
 private struct PenggieReadingContentView: View {
+    @Environment(\.penggieTheme) private var theme
+
     let block: PenggieReadingBlock
 
     var body: some View {
@@ -1402,14 +1405,14 @@ private struct PenggieReadingContentView: View {
                 case .prose:
                     Text(segment.text)
                         .font(.system(size: 14))
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(theme.primaryText)
                         .lineSpacing(5)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 case .preformatted:
                     ScrollView(.horizontal, showsIndicators: false) {
                         Text(segment.text)
                             .font(.system(size: 13, design: .monospaced))
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(theme.primaryText)
                             .lineSpacing(3)
                             .fixedSize(horizontal: true, vertical: false)
                             .padding(.vertical, 2)
@@ -1464,7 +1467,7 @@ private struct PenggieReadingDisclosureView: View {
             if isExpanded, disclosure.hasDetails {
                 Text(disclosure.detailText)
                     .font(.system(size: 12, design: .monospaced))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(theme.secondaryText)
                     .lineSpacing(3)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 12)
@@ -1599,12 +1602,12 @@ private struct PenggieRawTerminalPlaceholder: View {
                 VStack(spacing: 12) {
                     Image(systemName: "terminal")
                         .font(.system(size: 34))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(theme.secondaryText)
                     Text("Raw Terminal")
                         .font(.system(size: 22, weight: .semibold))
                     Text("No active Codex session.")
                         .font(.system(size: 13))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(theme.secondaryText)
                 }
             }
         }

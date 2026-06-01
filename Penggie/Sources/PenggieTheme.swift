@@ -15,7 +15,11 @@ struct PenggieTheme {
     var elevatedSurface: Color { scenes.reading.elevatedSurface.color }
     var separator: Color { semantic.separator.color }
     var quietSeparator: Color { semantic.quietSeparator.color }
+    var primaryText: Color { semantic.textPrimary.color }
     var secondaryText: Color { semantic.textSecondary.color }
+    var mutedText: Color { semantic.textMuted.color }
+    var warningText: Color { semantic.warning.color }
+    var placeholderText: Color { components.readingComposer.placeholder.color }
     var selectedBackground: Color { components.nativeTuiOverlay.selectedBackground.color }
     var terminalBackground: Color { scenes.terminal.canvasBackground.color }
     var disabledAction: Color { semantic.textDisabled.color }
