@@ -62,7 +62,7 @@
 - [ ] 7.3 Implement or verify dynamic state announcements for checking, launching, ready, working, tool running, approval required, permission required, projection degraded, selection syncing, process exited, missing Codex, and launch failed.
 - [ ] 7.4 Validate Dynamic Type or larger text behavior across setup, Reading, composer, overlays, recovery, Raw Terminal chrome, and narrow windows; document accepted truncation and accessible full values.
 - [ ] 7.5 Validate reduced motion behavior for disclosure, surface switching, focus affordances, and overlay transitions.
-- [ ] 7.6 Decide which accessibility checks can become automated smoke tests and add scripts only where the result is stable enough to avoid noisy failures.
+- [x] 7.6 Decide which accessibility checks can become automated smoke tests and add scripts only where the result is stable enough to avoid noisy failures.
 
 ## 8. P1 Theme, Density, And Visual Polish
 
