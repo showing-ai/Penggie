@@ -8,10 +8,11 @@ live_status_script="$repo_root/scripts/qa/check-product-ui-ux-live-qa-status.sh"
 evidence_checker="$repo_root/scripts/qa/check-product-ui-ux-evidence-bundle.sh"
 task_evidence_map="$repo_root/scripts/qa/check-product-ui-ux-task-evidence-map.sh"
 inventory_guard="$repo_root/scripts/qa/check-openspec-worktree-inventory.sh"
+preflight="$repo_root/scripts/qa/run-product-ui-ux-preflight.sh"
 release_checklist="$repo_root/openspec/changes/productize-ui-ux-contract/release-readiness-checklist.md"
 local_qa_setup="$repo_root/openspec/changes/productize-ui-ux-contract/local-qa-setup-script.md"
 
-python3 - "$qa_script" "$manifest" "$live_status_script" "$evidence_checker" "$task_evidence_map" "$inventory_guard" "$release_checklist" "$local_qa_setup" <<'PY'
+python3 - "$qa_script" "$manifest" "$live_status_script" "$evidence_checker" "$task_evidence_map" "$inventory_guard" "$preflight" "$release_checklist" "$local_qa_setup" <<'PY'
 import csv
 import re
 import sys
@@ -23,13 +24,15 @@ live_status_script = Path(sys.argv[3])
 evidence_checker = Path(sys.argv[4])
 task_evidence_map = Path(sys.argv[5])
 inventory_guard = Path(sys.argv[6])
-release_checklist = Path(sys.argv[7])
-local_qa_setup = Path(sys.argv[8])
+preflight = Path(sys.argv[7])
+release_checklist = Path(sys.argv[8])
+local_qa_setup = Path(sys.argv[9])
 source = path.read_text()
 live_status_source = live_status_script.read_text()
 evidence_checker_source = evidence_checker.read_text()
 task_evidence_map_source = task_evidence_map.read_text()
 inventory_guard_source = inventory_guard.read_text()
+preflight_source = preflight.read_text()
 release_checklist_source = release_checklist.read_text()
 local_qa_setup_source = local_qa_setup.read_text()
 
@@ -132,12 +135,30 @@ if "OpenSpec/worktree inventory guard passed" not in inventory_guard_source:
     raise AssertionError("Manual QA guard must include the OpenSpec/worktree inventory guard")
 if "Vendor/ghostty has dirty changes" not in inventory_guard_source:
     raise AssertionError("OpenSpec/worktree inventory guard must fail on dirty Vendor/ghostty state")
+required_preflight_commands = [
+    "check-openspec-worktree-inventory.sh",
+    "openspec validate productize-ui-ux-contract --strict",
+    "openspec validate --all --strict",
+    "check-product-ui-ux-task-evidence-map.sh",
+    "check-p0-terminal-owned-live-qa-readiness.sh",
+    "check-p0-composer-ime-focus-readiness.sh",
+    "check-p0-raw-terminal-source.sh",
+    "check-p1-visual-accessibility-readiness.sh",
+    "swift test --filter PenggieDisplayFixtureTests",
+    "swift test --filter PenggieTerminalInteractionSurfaceTests",
+    "xcodebuild",
+]
+for command in required_preflight_commands:
+    if command not in preflight_source:
+        raise AssertionError(f"Product UI/UX preflight script must run {command}")
 for source_name, checked_source in [
     ("release readiness checklist", release_checklist_source),
     ("local QA setup evidence", local_qa_setup_source),
 ]:
     if "scripts/qa/check-openspec-worktree-inventory.sh" not in checked_source:
         raise AssertionError(f"{source_name} must require the OpenSpec/worktree inventory guard")
+    if "scripts/qa/run-product-ui-ux-preflight.sh" not in checked_source:
+        raise AssertionError(f"{source_name} must require the product UI/UX preflight script")
 
 for scenario in required_scenarios:
     match = re.search(

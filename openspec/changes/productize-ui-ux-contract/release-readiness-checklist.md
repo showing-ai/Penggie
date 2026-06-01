@@ -8,6 +8,7 @@ Use this checklist before accepting each product-grade UI/UX milestone.
 - `openspec show productize-ui-ux-contract --json`
 - `openspec validate --all --strict`
 - Relevant `swift test --filter ...` commands for changed logic.
+- `scripts/qa/run-product-ui-ux-preflight.sh` before live QA starts, unless a reviewer explicitly documents why a narrower rerun is sufficient.
 - Relevant QA/source guard scripts, including:
   - `scripts/qa/check-openspec-worktree-inventory.sh` before live QA starts, to prove the expected historical OpenSpec changes are archived, the current active change set is understood, and `Vendor/ghostty` has no unclassified dirty changes.
   - `scripts/qa/check-p0-session-lifecycle-source.sh` when lifecycle/session guards are touched.

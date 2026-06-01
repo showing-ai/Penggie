@@ -159,6 +159,7 @@ result is \`fail\` or \`blocked\`, record at least one relative path under
 \`\`\`bash
 scripts/qa/prepare-product-ui-ux-local-qa.sh --build --evidence-dir "$evidence_root"
 scripts/qa/check-running-penggie-build-identity.sh "$evidence_dir"
+scripts/qa/run-product-ui-ux-preflight.sh
 openspec validate productize-ui-ux-contract --strict
 openspec validate --all --strict
 scripts/qa/check-openspec-worktree-inventory.sh
@@ -219,6 +220,11 @@ strict evidence fields.
 starts. It verifies that the expected foundational OpenSpec changes are archived,
 the active change set is known, and \`Vendor/ghostty\` has no unclassified dirty
 changes.
+
+\`scripts/qa/run-product-ui-ux-preflight.sh\` is the preferred single command
+before live QA starts. It aggregates the OpenSpec validation, worktree inventory,
+source guards, fixture guards, focused Swift tests, and Debug macOS Xcode build
+needed for product-grade UI/UX QA readiness.
 
 EOF
 

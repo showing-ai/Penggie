@@ -53,10 +53,16 @@ Structural bundle verification:
 
 ```bash
 bundle="$(scripts/qa/prepare-product-ui-ux-local-qa.sh --evidence-dir /tmp/penggie-ui-ux-qa | tail -n 1)"
+scripts/qa/run-product-ui-ux-preflight.sh
 scripts/qa/check-openspec-worktree-inventory.sh
 scripts/qa/check-product-ui-ux-task-evidence-map.sh
 scripts/qa/check-product-ui-ux-evidence-bundle.sh --allow-pending "$bundle"
 ```
+
+The product UI/UX preflight script should pass before live QA starts. It
+aggregates the OpenSpec validation, worktree inventory, source guards, fixture
+guards, focused Swift tests, and Debug macOS Xcode build that protect the
+terminal-owned surface and product-grade UI/UX contracts.
 
 The OpenSpec/worktree inventory guard must pass before live QA starts. It proves
 that previously completed foundational changes are archived, the expected
